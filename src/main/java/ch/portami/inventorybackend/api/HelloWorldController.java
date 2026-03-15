@@ -7,7 +7,23 @@ import org.springframework.web.bind.annotation.RestController;
 public class HelloWorldController {
 
     @GetMapping("/test")
-    public String helloWorld() {
-        return "Hello World!";
+    public HelloResponse helloWorld() {
+        return new HelloResponse("Hello World!");
+    }
+
+    static class HelloResponse {
+        private String message;
+
+        public HelloResponse(String message) {
+            this.message = message;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+
+        public void setMessage(String message) {
+            this.message = message;
+        }
     }
 }
