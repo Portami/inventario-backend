@@ -1,0 +1,32 @@
+name: Reusable – Test
+
+on:
+  workflow_call:
+    outputs:
+      sha_short:
+        description: Short commit SHA
+        value: ${{ jobs.test.outputs.sha_short }}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    outputs:
+      sha_short: ${{ steps.vars.outputs.sha_short }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set outputs
+        id: vars
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Run tests
+        run: |
+          chmod +x mvnw
+          ./mvnw verify

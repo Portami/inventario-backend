@@ -1,0 +1,34 @@
+name: Pull request workflow
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    uses: ./.github/workflows/_test.yaml
+
+  sonar:
+    needs: test
+    uses: ./.github/workflows/_sonar.yaml
+    with:
+      sonar-version: ${{ needs.test.outputs.sha }}-SNAPSHOT
+
+  gate:
+    needs: sonar
+    runs-on: ubuntu-latest
+    environment: staging-approval  # ← this is where the manual gate lives
+    steps:
+      - run: echo "Approved"
+
+  build-push:
+    needs: gate
+    uses: ./.github/workflows/_build-push.yaml
+    with:
+      tag: ${{ needs.test.outputs.sha }}
+
+  update-infra:
+    needs: build-push
+    uses: ./.github/workflows/_update-infra.yaml
+    with:
+      environment: staging
+      tag: ${{ needs.test.outputs.sha }}

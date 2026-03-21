@@ -1,0 +1,21 @@
+name: Release creation flow
+on:
+
+jobs:
+  sonar:
+    uses: ./.github/workflows/_sonar.yaml
+    with:
+      sonar-version: ${{ github.event.release.tag_name }}
+
+  build-push:
+    needs: sonar
+    uses: ./.github/workflows/_build-push.yaml
+    with:
+      tag: ${{ github.event.release.tag_name }}
+
+  update-infra:
+    needs: build-push
+    uses: ./.github/workflows/_update-infra.yaml
+    with:
+      environment: production
+      tag: ${{ github.event.release.tag_name }}
