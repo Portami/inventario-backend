@@ -33,6 +33,7 @@ jobs:
   update-infra:
     needs: build-push
     uses: ./.github/workflows/_update-infra.yaml
+    secrets: inherit
     with:
       environment: staging
       tag: ${{ needs.test.outputs.sha }}
