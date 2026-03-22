@@ -5,6 +5,8 @@ on:
 
 jobs:
   test:
+    permissions:
+      contents: read
     uses: ./.github/workflows/_test.yaml
 
   sonar:
