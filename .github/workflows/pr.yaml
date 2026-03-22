@@ -16,13 +16,12 @@ jobs:
           commit: '${{ github.sha }}'
 
   test:
-    needs: get-tag
     permissions:
       contents: read
     uses: ./.github/workflows/_test.yaml
 
   sonar:
-    needs: test
+    needs: [test, get-tag]
     uses: ./.github/workflows/_sonar.yaml
     secrets: inherit
     with:
@@ -36,7 +35,7 @@ jobs:
       - run: echo "Approved"
 
   build-push:
-    needs: gate
+    needs: [gate, get-tag]
     permissions:
       contents: read
       packages: write
@@ -45,7 +44,7 @@ jobs:
       tag: ${{ needs.get-tag.outputs.sha_short }}
 
   update-infra:
-    needs: build-push
+    needs: [build-push, get-tag]
     uses: ./.github/workflows/_update-infra.yaml
     secrets: inherit
     with:
