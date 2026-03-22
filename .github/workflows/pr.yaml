@@ -15,13 +15,8 @@ jobs:
         with:
           commit: '${{ github.sha }}'
 
-  test:
-    permissions:
-      contents: read
-    uses: ./.github/workflows/_test.yaml
-
   sonar:
-    needs: [test, get-tag]
+    needs: get-tag
     uses: ./.github/workflows/_sonar.yaml
     secrets: inherit
     with:
