@@ -10,6 +10,7 @@ jobs:
   sonar:
     needs: test
     uses: ./.github/workflows/_sonar.yaml
+    secrets: inherit
     with:
       sonar-version: ${{ needs.test.outputs.sha }}-SNAPSHOT
 
