@@ -23,6 +23,9 @@ jobs:
 
   build-push:
     needs: gate
+    permissions:
+      contents: read
+      packages: write
     uses: ./.github/workflows/_build-push.yaml
     with:
       tag: ${{ needs.test.outputs.sha }}

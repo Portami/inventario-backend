@@ -1,5 +1,7 @@
 name: Release creation flow
 on:
+  release:
+    types: [published]
 
 jobs:
   sonar:
@@ -9,6 +11,9 @@ jobs:
 
   build-push:
     needs: sonar
+    permissions:
+      contents: read
+      packages: write
     uses: ./.github/workflows/_build-push.yaml
     with:
       tag: ${{ github.event.release.tag_name }}
