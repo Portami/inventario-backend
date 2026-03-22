@@ -26,7 +26,7 @@ jobs:
     uses: ./.github/workflows/_sonar.yaml
     secrets: inherit
     with:
-      sonar-version: ${{ needs.get-tag.outputs.sha_short }}-SNAPSHOT
+      sonar-version: ${{ jobs.get-tag.outputs.sha_short }}-SNAPSHOT
 
   gate:
     needs: sonar
@@ -42,7 +42,7 @@ jobs:
       packages: write
     uses: ./.github/workflows/_build-push.yaml
     with:
-      tag: ${{ needs.get-tag.outputs.sha_short }}
+      tag: ${{ jobs.get-tag.outputs.sha_short }}
 
   update-infra:
     needs: build-push
@@ -50,4 +50,4 @@ jobs:
     secrets: inherit
     with:
       environment: staging
-      tag: ${{ needs.get-tag.outputs.sha_short }}
+      tag: ${{ jobs.get-tag.outputs.sha_short }}
