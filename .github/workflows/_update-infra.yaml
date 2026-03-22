@@ -32,7 +32,7 @@ jobs:
           app-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
           owner: portami
-          repositories: Infrastructure
+          repositories: inventario-infrastructure
 
       - name: Checkout infrastructure repo
         uses: actions/checkout@v5
