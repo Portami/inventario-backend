@@ -10,7 +10,7 @@
     </parent>
     <groupId>ch.portami</groupId>
     <artifactId>inventory-backend</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.0-SNAPSHOT</version>
     <name>portami-inventory-backend</name>
     <description>portami-inventory-backend</description>
     <url/>
