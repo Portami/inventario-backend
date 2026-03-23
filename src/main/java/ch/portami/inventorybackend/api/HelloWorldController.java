@@ -13,7 +13,7 @@ public class HelloWorldController {
         return new HelloResponse("Hello World!");
     }
 
-    static class HelloResponse {
+    public static class HelloResponse {
         private String message;
 
         public HelloResponse(String message) {
