@@ -48,4 +48,5 @@ jobs:
             -Dsonar.projectKey=inventario-backend \
             -Dsonar.projectName='Portami Inventario Backend' \
             -Dsonar.qualitygate.wait=true \
+            -Dsonar.qualitygate.timeout=300 \
             -Dsonar.projectVersion=${{ inputs.sonar-version }}
