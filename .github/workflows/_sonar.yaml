@@ -47,4 +47,5 @@ jobs:
           ./mvnw -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
             -Dsonar.projectKey=inventario-backend \
             -Dsonar.projectName='Portami Inventario Backend' \
+            -Dsonar.qualitygate.wait=true \
             -Dsonar.projectVersion=${{ inputs.sonar-version }}
