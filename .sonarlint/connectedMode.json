@@ -1,4 +1,4 @@
 {
     "sonarQubeUri": "https://sonarqube.pm4.init-lab.ch",
-    "projectKey": "inventario-backend"
+    "projectKey": "ch.portami:inventario-backend"
 }
