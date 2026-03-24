@@ -45,7 +45,7 @@ jobs:
         run: |
           chmod +x mvnw
           ./mvnw -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
-            -Pcoverage
+            -Pcoverage \
             -Dsonar.projectKey=inventario-backend \
             -Dsonar.projectName='Portami Inventario Backend' \
             -Dsonar.qualitygate.wait=true \
