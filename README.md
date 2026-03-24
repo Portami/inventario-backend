@@ -1,6 +1,6 @@
 # Inventory backend
-[![Quality Gate Status](https://sonarqube.pm4.init-lab.ch/api/project_badges/measure?project=inventario-backend&metric=alert_status&token=sqb_74624c93225bba20767b51b3364c204516d00bb0)](https://sonarqube.pm4.init-lab.ch/dashboard?id=inventario-backend)
-[![Coverage](https://sonarqube.pm4.init-lab.ch/api/project_badges/measure?project=inventario-backend&metric=coverage&token=sqb_74624c93225bba20767b51b3364c204516d00bb0)](https://sonarqube.pm4.init-lab.ch/dashboard?id=inventario-backend)
+[![Quality Gate Status](https://sonarqube.pm4.init-lab.ch/api/project_badges/measure?project=ch.portami%3Ainventario-backend&metric=alert_status&token=sqb_138eea231f119f9f1b63467ceca81f50cab123ce)](https://sonarqube.pm4.init-lab.ch/dashboard?id=ch.portami%3Ainventario-backend)
+[![Coverage](https://sonarqube.pm4.init-lab.ch/api/project_badges/measure?project=ch.portami%3Ainventario-backend&metric=coverage&token=sqb_138eea231f119f9f1b63467ceca81f50cab123ce)](https://sonarqube.pm4.init-lab.ch/dashboard?id=ch.portami%3Ainventario-backend)
 
 Backend service for the Portami Inventario application, built with Java 25 and Spring Boot 4.
 
