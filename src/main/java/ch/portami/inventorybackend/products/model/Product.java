@@ -1,4 +1,4 @@
-package ch.portami.inventorybackend.dto;
+package ch.portami.inventorybackend.products.model;
 
 /**
  * This class describes a base generic product. This is currently a dummy structure.
