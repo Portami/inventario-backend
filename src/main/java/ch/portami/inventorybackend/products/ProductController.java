@@ -12,19 +12,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-/**
- * REST controller for the {@code /products} resource.
- *
- * <p>Implements the full OpenAPI contract:
- * <ul>
- *   <li>GET    /products          – list, with optional type/color filters</li>
- *   <li>POST   /products          – create</li>
- *   <li>GET    /products/{id}     – get by id</li>
- *   <li>PUT    /products/{id}     – full replace</li>
- *   <li>PATCH  /products/{id}     – partial update</li>
- *   <li>DELETE /products/{id}     – delete</li>
- * </ul>
- */
 @RestController
 @RequestMapping("/api/products")
 public class ProductController {
