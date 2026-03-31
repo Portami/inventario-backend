@@ -27,7 +27,16 @@ public class ProductService {
      * {@code null} parameters mean "no filter applied".
      */
     public List<Product> getAllProducts(ProductType type, Color color) {
-        return repository.findAll(type, color);
+        if (type != null && color != null) {
+            return repository.findByTypeAndColor(type, color);
+        }
+        if (type != null) {
+            return repository.findByType(type);
+        }
+        if (color != null) {
+            return repository.findByColor(color);
+        }
+        return repository.findAll();
     }
 
     /**
@@ -44,7 +53,7 @@ public class ProductService {
      * Creates a new product from the given request payload.
      */
     public Product createProduct(ProductRequest request) {
-        var product = new Product(0, request.articleNumber(), request.type(), request.color());
+        Product product = new Product(request.articleNumber(), request.type(), request.color());
         applyFullUpdate(product, request);
         return repository.save(product);
     }

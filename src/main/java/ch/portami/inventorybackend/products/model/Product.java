@@ -1,57 +1,51 @@
 package ch.portami.inventorybackend.products.model;
 
-/**
- * This class describes a base generic product. This is currently a dummy structure.
- */
+import jakarta.persistence.*;
+
+@Entity
+@Table(
+        name = "products",
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_products_article_number",
+                columnNames = "article_number"
+        )
+)
 public class Product {
 
-    /**
-     * The unique identifier for this product.
-     */
-    private int id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
 
-    /**
-     * The name of this product.
-     */
     private String name;
 
-    /**
-     * The article number is a human-readable unique identifier for a product.
-     */
+    @Column(name = "article_number", nullable = false, unique = true)
     private String articleNumber;
 
-    /**
-     * The product type
-     */
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private ProductType type;
 
-    /**
-     * The felt thickness in millimeters (mm).
-     */
-    private int thickness;
+    private Integer thickness;
+    private Integer density;
 
-    /**
-     * The density in ?
-     */
-    private int density;
-
-    /**
-     * The description of this products color.
-     */
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private Color color;
 
-    public Product(int id, String articleNumber, ProductType type, Color color) {
-        this.id = id;
+    protected Product() {
+    }
+
+    public Product(String articleNumber, ProductType type, Color color) {
         this.articleNumber = articleNumber;
         this.type = type;
         this.color = color;
     }
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -71,28 +65,28 @@ public class Product {
         this.articleNumber = articleNumber;
     }
 
-    public int  getThickness() {
-        return thickness;
-    }
-
-    public void setThickness(int thickness) {
-        this.thickness = thickness;
-    }
-
-    public int getDensity() {
-        return density;
-    }
-
-    public void setDensity(int density) {
-        this.density = density;
-    }
-
     public ProductType getType() {
         return type;
     }
 
     public void setType(ProductType type) {
         this.type = type;
+    }
+
+    public Integer getThickness() {
+        return thickness;
+    }
+
+    public void setThickness(Integer thickness) {
+        this.thickness = thickness;
+    }
+
+    public Integer getDensity() {
+        return density;
+    }
+
+    public void setDensity(Integer density) {
+        this.density = density;
     }
 
     public Color getColor() {
