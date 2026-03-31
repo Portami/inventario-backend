@@ -6,34 +6,41 @@ import ch.portami.inventorybackend.products.dto.ProductRequest;
 import ch.portami.inventorybackend.products.model.Color;
 import ch.portami.inventorybackend.products.model.Product;
 import ch.portami.inventorybackend.products.model.ProductType;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.client.RestTestClient;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.mariadb.MariaDBContainer;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureRestTestClient
+@ActiveProfiles("test")
 class ProductControllerIntegrationTest {
 
+    @Container
+    @ServiceConnection
+    static MariaDBContainer mariadb = new MariaDBContainer("mariadb:11.4")
+            .withDatabaseName("inventory_test")
+            .withUsername("test")
+            .withPassword("test");
 
-    @Autowired
-    private ProductController productController;
-
-    private RestTestClient restTestClient;
-
-    @Autowired
-    ProductRepository productRepository;
-
-    @BeforeEach
-    void beforeEach() {
-        restTestClient = RestTestClient.bindToController(productController)
-                .build();
-    }
+    private static final String PRODUCTS_URI = "/api/products";
 
     private static final ProductRequest VALID_REQUEST = new ProductRequest(
             "Premium Felt Sheet",
@@ -44,141 +51,166 @@ class ProductControllerIntegrationTest {
             200
     );
 
+    private static final ParameterizedTypeReference<List<Product>> PRODUCT_LIST =
+            new ParameterizedTypeReference<>() {};
+
+    @Autowired
+    private RestTestClient restTestClient;
+
+    @Autowired
+    private ProductRepository productRepository;
+
     @BeforeEach
     void resetStore() {
-        productRepository.findAll().forEach(p -> productRepository.deleteById(p.getId()));
+        productRepository.deleteAll();
     }
 
     @Nested
-    @DisplayName("GET /products")
+    @DisplayName("GET /api/products")
     class GetAllProducts {
 
         @Test
         @DisplayName("returns empty list when no products exist")
         void returnsEmptyList() {
-            webTestClient.get().uri("/products")
+            restTestClient.get().uri(PRODUCTS_URI)
                     .exchange()
                     .expectStatus().isOk()
-                    .expectBodyList(Product.class)
-                    .hasSize(0);
+                    .expectBody(PRODUCT_LIST)
+                    .value(products -> assertThat(products).isEmpty());
         }
 
         @Test
         @DisplayName("returns all products when no filter is applied")
         void returnsAllProducts() {
             createProduct(VALID_REQUEST);
-            createProduct(new ProductRequest("Synthetic Sheet", "ART-00124",
-                    ProductType.SYNTHETIC, Color.BLUE, 3, 150));
+            createProduct(new ProductRequest(
+                    "Synthetic Sheet",
+                    "ART-00124",
+                    ProductType.SYNTHETIC,
+                    Color.BLUE,
+                    3,
+                    150));
 
-            webTestClient.get().uri("/products")
+            restTestClient.get().uri(PRODUCTS_URI)
                     .exchange()
                     .expectStatus().isOk()
-                    .expectBodyList(Product.class)
-                    .hasSize(2);
+                    .expectBody(PRODUCT_LIST)
+                    .value(products -> assertThat(products).hasSize(2));
         }
 
         @Test
         @DisplayName("filters by type correctly")
         void filtersByType() {
             createProduct(VALID_REQUEST);
-            createProduct(new ProductRequest("Synthetic Sheet", "ART-00124",
-                    ProductType.SYNTHETIC, Color.BLUE, 3, 150));
+            createProduct(new ProductRequest(
+                    "Synthetic Sheet",
+                    "ART-00124",
+                    ProductType.SYNTHETIC,
+                    Color.BLUE,
+                    3,
+                    150));
 
-            List<Product> body = webTestClient.get()
-                    .uri(u -> u.path("/products").queryParam("type", "WOOL").build())
+            restTestClient.get()
+                    .uri(uriBuilder -> uriBuilder.path(PRODUCTS_URI).queryParam("type", "WOOL").build())
                     .exchange()
                     .expectStatus().isOk()
-                    .expectBodyList(Product.class)
-                    .returnResult()
-                    .getResponseBody();
-
-            assertThat(body)
-                    .hasSize(1)
-                    .allMatch(p -> p.getType() == ProductType.WOOL);
+                    .expectBody(PRODUCT_LIST)
+                    .value(products -> assertThat(products)
+                            .hasSize(1)
+                            .allMatch(product -> product.getType() == ProductType.WOOL));
         }
 
         @Test
         @DisplayName("filters by color correctly")
         void filtersByColor() {
             createProduct(VALID_REQUEST);
-            createProduct(new ProductRequest("Blue Sheet", "ART-00125",
-                    ProductType.BLENDED, Color.BLUE, 4, 180));
+            createProduct(new ProductRequest(
+                    "Blue Sheet",
+                    "ART-00125",
+                    ProductType.BLENDED,
+                    Color.BLUE,
+                    4,
+                    180));
 
-            List<Product> body = webTestClient.get()
-                    .uri(u -> u.path("/products").queryParam("color", "BLUE").build())
+            restTestClient.get()
+                    .uri(uriBuilder -> uriBuilder.path(PRODUCTS_URI).queryParam("color", "BLUE").build())
                     .exchange()
                     .expectStatus().isOk()
-                    .expectBodyList(Product.class)
-                    .returnResult()
-                    .getResponseBody();
-
-            assertThat(body)
-                    .hasSize(1)
-                    .allMatch(p -> p.getColor() == Color.BLUE);
+                    .expectBody(PRODUCT_LIST)
+                    .value(products -> assertThat(products)
+                            .hasSize(1)
+                            .allMatch(product -> product.getColor() == Color.BLUE));
         }
 
         @Test
         @DisplayName("filters by both type and color")
         void filtersByTypeAndColor() {
-            createProduct(VALID_REQUEST);                                             // WOOL + RED
-            createProduct(new ProductRequest("Wool Blue",  "ART-00126",
-                    ProductType.WOOL,      Color.BLUE, 5, 200));                     // WOOL + BLUE
-            createProduct(new ProductRequest("Synth Red",  "ART-00127",
-                    ProductType.SYNTHETIC, Color.RED,  3, 150));                     // SYNTHETIC + RED
+            createProduct(VALID_REQUEST);
+            createProduct(new ProductRequest(
+                    "Wool Blue",
+                    "ART-00126",
+                    ProductType.WOOL,
+                    Color.BLUE,
+                    5,
+                    200));
+            createProduct(new ProductRequest(
+                    "Synth Red",
+                    "ART-00127",
+                    ProductType.SYNTHETIC,
+                    Color.RED,
+                    3,
+                    150));
 
-            List<Product> body = webTestClient.get()
-                    .uri(u -> u.path("/products")
-                            .queryParam("type",  "WOOL")
+            restTestClient.get()
+                    .uri(uriBuilder -> uriBuilder.path(PRODUCTS_URI)
+                            .queryParam("type", "WOOL")
                             .queryParam("color", "RED")
                             .build())
                     .exchange()
                     .expectStatus().isOk()
-                    .expectBodyList(Product.class)
-                    .returnResult()
-                    .getResponseBody();
-
-            assertThat(body)
-                    .hasSize(1)
-                    .first()
-                    .extracting(Product::getArticleNumber)
-                    .isEqualTo("ART-00123");
+                    .expectBody(PRODUCT_LIST)
+                    .value(products -> assertThat(products)
+                            .hasSize(1)
+                            .first()
+                            .extracting(Product::getArticleNumber)
+                            .isEqualTo("ART-00123"));
         }
 
         @Test
         @DisplayName("returns empty list when filter matches nothing")
         void filterMatchesNothing() {
-            createProduct(VALID_REQUEST); // WOOL
+            createProduct(VALID_REQUEST);
 
-            webTestClient.get()
-                    .uri(u -> u.path("/products").queryParam("type", "INDUSTRIAL").build())
+            restTestClient.get()
+                    .uri(uriBuilder -> uriBuilder.path(PRODUCTS_URI).queryParam("type", "INDUSTRIAL").build())
                     .exchange()
                     .expectStatus().isOk()
-                    .expectBodyList(Product.class)
-                    .hasSize(0);
+                    .expectBody(PRODUCT_LIST)
+                    .value(products -> assertThat(products).isEmpty());
         }
     }
 
     @Nested
-    @DisplayName("POST /products")
+    @DisplayName("POST /api/products")
     class CreateProduct {
 
         @Test
         @DisplayName("creates product and returns 201 with full body")
         void createsProduct() {
-            webTestClient.post().uri("/products")
+            restTestClient.post().uri(PRODUCTS_URI)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .bodyValue(VALID_REQUEST)
+                    .body(VALID_REQUEST)
                     .exchange()
                     .expectStatus().isCreated()
                     .expectBody(Product.class)
-                    .value(p -> {
-                        assertThat(p.getId()).isGreaterThan(0);
-                        assertThat(p.getArticleNumber()).isEqualTo("ART-00123");
-                        assertThat(p.getName()).isEqualTo("Premium Felt Sheet");
-                        assertThat(p.getType()).isEqualTo(ProductType.WOOL);
-                        assertThat(p.getColor()).isEqualTo(Color.RED);
-                        assertThat(p.getThickness()).isEqualTo(5);
-                        assertThat(p.getDensity()).isEqualTo(200);
+                    .value(product -> {
+                        assertThat(product.getId()).isGreaterThan(0);
+                        assertThat(product.getArticleNumber()).isEqualTo("ART-00123");
+                        assertThat(product.getName()).isEqualTo("Premium Felt Sheet");
+                        assertThat(product.getType()).isEqualTo(ProductType.WOOL);
+                        assertThat(product.getColor()).isEqualTo(Color.RED);
+                        assertThat(product.getThickness()).isEqualTo(5);
+                        assertThat(product.getDensity()).isEqualTo(200);
                     });
         }
 
@@ -187,9 +219,9 @@ class ProductControllerIntegrationTest {
         void rejectsMissingArticleNumber() {
             var invalid = new ProductRequest("Name", null, ProductType.WOOL, Color.RED, 5, 200);
 
-            webTestClient.post().uri("/products")
+            restTestClient.post().uri(PRODUCTS_URI)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .bodyValue(invalid)
+                    .body(invalid)
                     .exchange()
                     .expectStatus().isBadRequest()
                     .expectBody(ErrorResponse.class)
@@ -204,9 +236,9 @@ class ProductControllerIntegrationTest {
         void rejectsMissingType() {
             var invalid = new ProductRequest("Name", "ART-001", null, Color.RED, 5, 200);
 
-            webTestClient.post().uri("/products")
+            restTestClient.post().uri(PRODUCTS_URI)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .bodyValue(invalid)
+                    .body(invalid)
                     .exchange()
                     .expectStatus().isBadRequest()
                     .expectBody(ErrorResponse.class)
@@ -218,9 +250,9 @@ class ProductControllerIntegrationTest {
         void rejectsMissingColor() {
             var invalid = new ProductRequest("Name", "ART-001", ProductType.WOOL, null, 5, 200);
 
-            webTestClient.post().uri("/products")
+            restTestClient.post().uri(PRODUCTS_URI)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .bodyValue(invalid)
+                    .body(invalid)
                     .exchange()
                     .expectStatus().isBadRequest()
                     .expectBody(ErrorResponse.class)
@@ -232,42 +264,42 @@ class ProductControllerIntegrationTest {
         void createsWithOnlyRequiredFields() {
             var minimal = new ProductRequest(null, "ART-MIN", ProductType.WOOL, Color.GREEN, null, null);
 
-            webTestClient.post().uri("/products")
+            restTestClient.post().uri(PRODUCTS_URI)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .bodyValue(minimal)
+                    .body(minimal)
                     .exchange()
                     .expectStatus().isCreated()
                     .expectBody(Product.class)
-                    .value(p -> {
-                        assertThat(p.getId()).isGreaterThan(0);
-                        assertThat(p.getArticleNumber()).isEqualTo("ART-MIN");
+                    .value(product -> {
+                        assertThat(product.getId()).isGreaterThan(0);
+                        assertThat(product.getArticleNumber()).isEqualTo("ART-MIN");
                     });
         }
     }
 
     @Nested
-    @DisplayName("GET /products/{id}")
+    @DisplayName("GET /api/products/{id}")
     class GetProductById {
 
         @Test
         @DisplayName("returns product when it exists")
         void returnsExistingProduct() {
-            int id = createProductAndGetId(VALID_REQUEST);
+            Integer id = createProductAndGetId(VALID_REQUEST);
 
-            webTestClient.get().uri("/products/{id}", id)
+            restTestClient.get().uri(PRODUCTS_URI + "/{id}", id)
                     .exchange()
                     .expectStatus().isOk()
                     .expectBody(Product.class)
-                    .value(p -> {
-                        assertThat(p.getId()).isEqualTo(id);
-                        assertThat(p.getArticleNumber()).isEqualTo("ART-00123");
+                    .value(product -> {
+                        assertThat(product.getId()).isEqualTo(id);
+                        assertThat(product.getArticleNumber()).isEqualTo("ART-00123");
                     });
         }
 
         @Test
         @DisplayName("returns 404 when product does not exist")
         void returns404ForMissingProduct() {
-            webTestClient.get().uri("/products/{id}", 9999)
+            restTestClient.get().uri(PRODUCTS_URI + "/{id}", 9999)
                     .exchange()
                     .expectStatus().isNotFound()
                     .expectBody(ErrorResponse.class)
@@ -279,39 +311,43 @@ class ProductControllerIntegrationTest {
     }
 
     @Nested
-    @DisplayName("PUT /products/{id}")
+    @DisplayName("PUT /api/products/{id}")
     class UpdateProduct {
 
         @Test
         @DisplayName("fully replaces an existing product")
         void replacesProduct() {
-            int id = createProductAndGetId(VALID_REQUEST);
+            Integer id = createProductAndGetId(VALID_REQUEST);
 
             var replacement = new ProductRequest(
-                    "Industrial Sheet", "ART-IND-01",
-                    ProductType.INDUSTRIAL, Color.OTHER, 10, 300);
+                    "Industrial Sheet",
+                    "ART-IND-01",
+                    ProductType.INDUSTRIAL,
+                    Color.OTHER,
+                    10,
+                    300);
 
-            webTestClient.put().uri("/products/{id}", id)
+            restTestClient.put().uri(PRODUCTS_URI + "/{id}", id)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .bodyValue(replacement)
+                    .body(replacement)
                     .exchange()
                     .expectStatus().isOk()
                     .expectBody(Product.class)
-                    .value(p -> {
-                        assertThat(p.getId()).isEqualTo(id);
-                        assertThat(p.getName()).isEqualTo("Industrial Sheet");
-                        assertThat(p.getArticleNumber()).isEqualTo("ART-IND-01");
-                        assertThat(p.getType()).isEqualTo(ProductType.INDUSTRIAL);
-                        assertThat(p.getColor()).isEqualTo(Color.OTHER);
+                    .value(product -> {
+                        assertThat(product.getId()).isEqualTo(id);
+                        assertThat(product.getName()).isEqualTo("Industrial Sheet");
+                        assertThat(product.getArticleNumber()).isEqualTo("ART-IND-01");
+                        assertThat(product.getType()).isEqualTo(ProductType.INDUSTRIAL);
+                        assertThat(product.getColor()).isEqualTo(Color.OTHER);
                     });
         }
 
         @Test
         @DisplayName("returns 404 when product does not exist")
         void returns404ForMissingProduct() {
-            webTestClient.put().uri("/products/{id}", 9999)
+            restTestClient.put().uri(PRODUCTS_URI + "/{id}", 9999)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .bodyValue(VALID_REQUEST)
+                    .body(VALID_REQUEST)
                     .exchange()
                     .expectStatus().isNotFound()
                     .expectBody(ErrorResponse.class)
@@ -321,12 +357,12 @@ class ProductControllerIntegrationTest {
         @Test
         @DisplayName("returns 400 when required fields are missing")
         void returns400ForInvalidBody() {
-            int id = createProductAndGetId(VALID_REQUEST);
+            Integer id = createProductAndGetId(VALID_REQUEST);
             var invalid = new ProductRequest(null, null, null, null, null, null);
 
-            webTestClient.put().uri("/products/{id}", id)
+            restTestClient.put().uri(PRODUCTS_URI + "/{id}", id)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .bodyValue(invalid)
+                    .body(invalid)
                     .exchange()
                     .expectStatus().isBadRequest()
                     .expectBody(ErrorResponse.class)
@@ -335,47 +371,45 @@ class ProductControllerIntegrationTest {
     }
 
     @Nested
-    @DisplayName("PATCH /products/{id}")
+    @DisplayName("PATCH /api/products/{id}")
     class PatchProduct {
 
         @Test
         @DisplayName("updates only the provided fields")
         void patchesPartialFields() {
-            int id = createProductAndGetId(VALID_REQUEST);
-
+            Integer id = createProductAndGetId(VALID_REQUEST);
             var patch = new ProductPatchRequest("Updated Name", null, null, null, null, null);
 
-            webTestClient.patch().uri("/products/{id}", id)
+            restTestClient.patch().uri(PRODUCTS_URI + "/{id}", id)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .bodyValue(patch)
+                    .body(patch)
                     .exchange()
                     .expectStatus().isOk()
                     .expectBody(Product.class)
-                    .value(p -> {
-                        assertThat(p.getName()).isEqualTo("Updated Name");
-                        assertThat(p.getArticleNumber()).isEqualTo("ART-00123"); // unchanged
-                        assertThat(p.getType()).isEqualTo(ProductType.WOOL);     // unchanged
-                        assertThat(p.getColor()).isEqualTo(Color.RED);           // unchanged
+                    .value(product -> {
+                        assertThat(product.getName()).isEqualTo("Updated Name");
+                        assertThat(product.getArticleNumber()).isEqualTo("ART-00123");
+                        assertThat(product.getType()).isEqualTo(ProductType.WOOL);
+                        assertThat(product.getColor()).isEqualTo(Color.RED);
                     });
         }
 
         @Test
         @DisplayName("no-op patch leaves product unchanged")
         void noOpPatchLeavesProductUnchanged() {
-            int id = createProductAndGetId(VALID_REQUEST);
-
+            Integer id = createProductAndGetId(VALID_REQUEST);
             var emptyPatch = new ProductPatchRequest(null, null, null, null, null, null);
 
-            webTestClient.patch().uri("/products/{id}", id)
+            restTestClient.patch().uri(PRODUCTS_URI + "/{id}", id)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .bodyValue(emptyPatch)
+                    .body(emptyPatch)
                     .exchange()
                     .expectStatus().isOk()
                     .expectBody(Product.class)
-                    .value(p -> {
-                        assertThat(p.getArticleNumber()).isEqualTo("ART-00123");
-                        assertThat(p.getType()).isEqualTo(ProductType.WOOL);
-                        assertThat(p.getColor()).isEqualTo(Color.RED);
+                    .value(product -> {
+                        assertThat(product.getArticleNumber()).isEqualTo("ART-00123");
+                        assertThat(product.getType()).isEqualTo(ProductType.WOOL);
+                        assertThat(product.getColor()).isEqualTo(Color.RED);
                     });
         }
 
@@ -384,9 +418,9 @@ class ProductControllerIntegrationTest {
         void returns404ForMissingProduct() {
             var patch = new ProductPatchRequest("New Name", null, null, null, null, null);
 
-            webTestClient.patch().uri("/products/{id}", 9999)
+            restTestClient.patch().uri(PRODUCTS_URI + "/{id}", 9999)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .bodyValue(patch)
+                    .body(patch)
                     .exchange()
                     .expectStatus().isNotFound()
                     .expectBody(ErrorResponse.class)
@@ -395,20 +429,19 @@ class ProductControllerIntegrationTest {
     }
 
     @Nested
-    @DisplayName("DELETE /products/{id}")
+    @DisplayName("DELETE /api/products/{id}")
     class DeleteProduct {
 
         @Test
         @DisplayName("deletes an existing product and returns 204")
         void deletesExistingProduct() {
-            int id = createProductAndGetId(VALID_REQUEST);
+            Integer id = createProductAndGetId(VALID_REQUEST);
 
-            webTestClient.delete().uri("/products/{id}", id)
+            restTestClient.delete().uri(PRODUCTS_URI + "/{id}", id)
                     .exchange()
                     .expectStatus().isNoContent();
 
-            // confirm it is truly gone
-            webTestClient.get().uri("/products/{id}", id)
+            restTestClient.get().uri(PRODUCTS_URI + "/{id}", id)
                     .exchange()
                     .expectStatus().isNotFound();
         }
@@ -416,7 +449,7 @@ class ProductControllerIntegrationTest {
         @Test
         @DisplayName("returns 404 when product does not exist")
         void returns404ForMissingProduct() {
-            webTestClient.delete().uri("/products/{id}", 9999)
+            restTestClient.delete().uri(PRODUCTS_URI + "/{id}", 9999)
                     .exchange()
                     .expectStatus().isNotFound()
                     .expectBody(ErrorResponse.class)
@@ -427,10 +460,10 @@ class ProductControllerIntegrationTest {
         }
     }
 
-    private int createProductAndGetId(ProductRequest request) {
-        Product body = webTestClient.post().uri("/products")
+    private Integer createProductAndGetId(ProductRequest request) {
+        Product body = restTestClient.post().uri(PRODUCTS_URI)
                 .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(request)
+                .body(request)
                 .exchange()
                 .expectStatus().isCreated()
                 .expectBody(Product.class)
