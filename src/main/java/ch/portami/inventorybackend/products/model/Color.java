@@ -1,4 +1,4 @@
-package ch.portami.inventorybackend.dto;
+package ch.portami.inventorybackend.products.model;
 
 public enum Color {
     RED,
