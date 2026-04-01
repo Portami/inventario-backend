@@ -25,9 +25,14 @@ Backend service for the Portami Inventario application, built with Java 25 and S
 
 ### Run locally
 
-```bash
-./mvnw spring-boot:run
-```
+Before starting the application locally, make sure the required environment files are in place:
+
+1. Create a `.env` file inside the `docker/` directory using the structure from `docker/.env.sample`.
+2. Create a `.env` file in the project root using the structure from the root `.env.sample`.
+
+After that, start the Docker services defined in `docker/docker-compose.yaml`.
+
+We recommend starting the application using the saved run configuration, because the `.env` file is already assigned there.
 
 The application starts on **http://localhost:8080**.
 
