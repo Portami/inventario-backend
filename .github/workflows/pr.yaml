@@ -21,9 +21,10 @@ jobs:
     secrets: inherit
     with:
       sonar-version: ${{ needs.get-tag.outputs.sha_short }}-SNAPSHOT
+      enforce-quality-gate: true
 
   gate:
-    needs: sonar
+    needs: get-tag
     runs-on: ubuntu-latest
     environment: staging-approval  # ← this is where the manual gate lives
     steps:
