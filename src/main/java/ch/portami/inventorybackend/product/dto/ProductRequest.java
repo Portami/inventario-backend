@@ -1,7 +1,7 @@
-package ch.portami.inventorybackend.products.dto;
+package ch.portami.inventorybackend.product.dto;
 
-import ch.portami.inventorybackend.products.model.Color;
-import ch.portami.inventorybackend.products.model.ProductType;
+import ch.portami.inventorybackend.product.model.Color;
+import ch.portami.inventorybackend.product.model.ProductType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 

@@ -1,10 +1,10 @@
-package ch.portami.inventorybackend.products;
+package ch.portami.inventorybackend.product;
 
-import ch.portami.inventorybackend.products.dto.ProductPatchRequest;
-import ch.portami.inventorybackend.products.dto.ProductRequest;
-import ch.portami.inventorybackend.products.model.Color;
-import ch.portami.inventorybackend.products.model.Product;
-import ch.portami.inventorybackend.products.model.ProductType;
+import ch.portami.inventorybackend.product.dto.ProductPatchRequest;
+import ch.portami.inventorybackend.product.dto.ProductRequest;
+import ch.portami.inventorybackend.product.model.Color;
+import ch.portami.inventorybackend.product.model.Product;
+import ch.portami.inventorybackend.product.model.ProductType;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

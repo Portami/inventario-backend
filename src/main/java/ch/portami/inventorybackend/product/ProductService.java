@@ -1,9 +1,9 @@
-package ch.portami.inventorybackend.products;
+package ch.portami.inventorybackend.product;
 
-import ch.portami.inventorybackend.products.dto.ProductPatchRequest;
-import ch.portami.inventorybackend.products.dto.ProductRequest;
-import ch.portami.inventorybackend.products.exceptions.ProductNotFoundException;
-import ch.portami.inventorybackend.products.model.*;
+import ch.portami.inventorybackend.product.dto.ProductPatchRequest;
+import ch.portami.inventorybackend.product.dto.ProductRequest;
+import ch.portami.inventorybackend.product.exceptions.ProductNotFoundException;
+import ch.portami.inventorybackend.product.model.*;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

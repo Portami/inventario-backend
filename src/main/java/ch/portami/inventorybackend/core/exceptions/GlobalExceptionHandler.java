@@ -1,6 +1,6 @@
 package ch.portami.inventorybackend.core.exceptions;
 
-import ch.portami.inventorybackend.products.exceptions.ProductNotFoundException;
+import ch.portami.inventorybackend.product.exceptions.ProductNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;

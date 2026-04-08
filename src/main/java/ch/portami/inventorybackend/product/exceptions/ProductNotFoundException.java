@@ -1,4 +1,4 @@
-package ch.portami.inventorybackend.products.exceptions;
+package ch.portami.inventorybackend.product.exceptions;
 
 /**
  * Thrown when a product with the requested ID cannot be found.

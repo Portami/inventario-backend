@@ -1,11 +1,11 @@
-package ch.portami.inventorybackend.products;
+package ch.portami.inventorybackend.product;
 
 import ch.portami.inventorybackend.core.exceptions.ErrorResponse;
-import ch.portami.inventorybackend.products.dto.ProductPatchRequest;
-import ch.portami.inventorybackend.products.dto.ProductRequest;
-import ch.portami.inventorybackend.products.model.Color;
-import ch.portami.inventorybackend.products.model.Product;
-import ch.portami.inventorybackend.products.model.ProductType;
+import ch.portami.inventorybackend.product.dto.ProductPatchRequest;
+import ch.portami.inventorybackend.product.dto.ProductRequest;
+import ch.portami.inventorybackend.product.model.Color;
+import ch.portami.inventorybackend.product.model.Product;
+import ch.portami.inventorybackend.product.model.ProductType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
