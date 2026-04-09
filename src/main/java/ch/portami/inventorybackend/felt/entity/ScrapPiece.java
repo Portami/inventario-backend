@@ -14,15 +14,15 @@ public class ScrapPiece {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "fk_felt_color_variant_id", nullable = false)
+    @JoinColumn(name = "felt_color_variant_id", nullable = false)
     private FeltColorVariant feltColorVariant;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "fk_batch_id")
+    @JoinColumn(name = "batch_id")
     private Batch batch;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "fk_storage_id")
+    @JoinColumn(name = "storage_id")
     private Storage storage;
 
     @DecimalMin("44.0")

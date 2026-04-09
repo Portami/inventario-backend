@@ -14,11 +14,11 @@ public class Felt {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "fk_felt_type_id", nullable = false)
+    @JoinColumn(name = "felt_type_id", nullable = false)
     private FeltType feltType;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "fk_supplier_id", nullable = false)
+    @JoinColumn(name = "supplier_id", nullable = false)
     private Supplier supplier;
 
     @Column(name = "article_number", nullable = false)

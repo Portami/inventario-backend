@@ -13,11 +13,11 @@ public class ProductInventory {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "fk_product_variant_id", nullable = false)
+    @JoinColumn(name = "product_variant_id", nullable = false)
     private ProductVariant productVariant;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "fk_storage_id", nullable = false)
+    @JoinColumn(name = "storage_id", nullable = false)
     private Storage storage;
 
     @Column(nullable = false)

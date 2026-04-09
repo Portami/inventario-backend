@@ -12,16 +12,16 @@ public class ProductAttributeValue {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "fk_product_variant_id", nullable = false)
+    @JoinColumn(name = "product_variant_id", nullable = false)
     private ProductVariant productVariant;
 
     // Denormalized FK — kept for query convenience; also derivable via productAttribute.getProduct()
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "fk_product_id", nullable = false)
+    @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "fk_product_attribute_id", nullable = false)
+    @JoinColumn(name = "product_attribute_id", nullable = false)
     private ProductAttribute productAttribute;
 
     @Column(nullable = false)

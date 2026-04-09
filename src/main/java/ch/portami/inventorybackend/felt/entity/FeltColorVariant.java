@@ -14,7 +14,7 @@ public class FeltColorVariant {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "fk_felt_variant_id", nullable = false)
+    @JoinColumn(name = "felt_variant_id", nullable = false)
     private FeltVariant feltVariant;
 
     @Column(nullable = false)

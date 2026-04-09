@@ -14,7 +14,7 @@ public class Product {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "fk_product_type_id", nullable = false)
+    @JoinColumn(name = "product_type_id", nullable = false)
     private ProductType productType;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
