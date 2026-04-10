@@ -1,4 +1,4 @@
-package ch.portami.inventorybackend.shared.entity;
+package ch.portami.inventorybackend.core.entity;
 
 import ch.portami.inventorybackend.felt.entity.FeltRoll;
 import ch.portami.inventorybackend.felt.entity.ScrapPiece;
