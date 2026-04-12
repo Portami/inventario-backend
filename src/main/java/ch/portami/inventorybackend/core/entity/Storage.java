@@ -6,6 +6,7 @@ import ch.portami.inventorybackend.product.entity.ProductInventory;
 import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Table(name = "storage")
@@ -13,19 +14,20 @@ public class Storage {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "storage_id")
+    @Column(name = "id")
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String name;
 
-    @OneToMany(mappedBy = "storage", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    // No cascade: Storage is a location reference; inventory outlives a storage record.
+    @OneToMany(mappedBy = "storage", fetch = FetchType.LAZY)
     private List<ScrapPiece> scrapPieces = new ArrayList<>();
 
-    @OneToMany(mappedBy = "storage", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "storage", fetch = FetchType.LAZY)
     private List<FeltRoll> feltRolls = new ArrayList<>();
 
-    @OneToMany(mappedBy = "storage", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "storage", fetch = FetchType.LAZY)
     private List<ProductInventory> productInventories = new ArrayList<>();
 
     public Storage() {}
@@ -40,11 +42,57 @@ public class Storage {
     public void setName(String name) { this.name = name; }
 
     public List<ScrapPiece> getScrapPieces() { return scrapPieces; }
-    public void setScrapPieces(List<ScrapPiece> scrapPieces) { this.scrapPieces = scrapPieces; }
-
     public List<FeltRoll> getFeltRolls() { return feltRolls; }
-    public void setFeltRolls(List<FeltRoll> feltRolls) { this.feltRolls = feltRolls; }
-
     public List<ProductInventory> getProductInventories() { return productInventories; }
-    public void setProductInventories(List<ProductInventory> productInventories) { this.productInventories = productInventories; }
+
+    // --- Sync helpers ---------------------------------------------------
+
+    public void addScrapPiece(ScrapPiece piece) {
+        scrapPieces.add(piece);
+        piece.setStorage(this);
+    }
+
+    public void removeScrapPiece(ScrapPiece piece) {
+        scrapPieces.remove(piece);
+        piece.setStorage(null);
+    }
+
+    public void addFeltRoll(FeltRoll roll) {
+        feltRolls.add(roll);
+        roll.setStorage(this);
+    }
+
+    public void removeFeltRoll(FeltRoll roll) {
+        feltRolls.remove(roll);
+        roll.setStorage(null);
+    }
+
+    public void addProductInventory(ProductInventory inventory) {
+        productInventories.add(inventory);
+        inventory.setStorage(this);
+    }
+
+    public void removeProductInventory(ProductInventory inventory) {
+        productInventories.remove(inventory);
+        inventory.setStorage(null);
+    }
+
+    // --- equals / hashCode ----------------------------------------------
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Storage that)) return false;
+        return id != null && Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return "Storage{id=" + id + ", name='" + name + "'}";
+    }
 }

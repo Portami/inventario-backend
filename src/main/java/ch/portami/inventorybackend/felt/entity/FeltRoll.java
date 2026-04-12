@@ -1,7 +1,8 @@
 package ch.portami.inventorybackend.felt.entity;
 
-import ch.portami.inventorybackend.shared.entity.Storage;
+import ch.portami.inventorybackend.core.entity.Storage;
 import jakarta.persistence.*;
+import java.util.Objects;
 
 @Entity
 @Table(name = "felt_roll")
@@ -9,17 +10,19 @@ public class FeltRoll {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "felt_roll_id")
+    @Column(name = "id")
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "felt_color_variant_id", nullable = false)
     private FeltColorVariant feltColorVariant;
 
+    // Optional: a roll may not yet be assigned to a batch.
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "batch_id")
     private Batch batch;
 
+    // Optional: a roll may be in transit with no assigned storage.
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "storage_id")
     private Storage storage;
@@ -30,19 +33,15 @@ public class FeltRoll {
     @Column(nullable = false)
     private Double width;
 
-    // TBD: mainroll identifier — placeholder for PORTAMI-19
-    @Column(name = "is_main_roll", nullable = false)
-    private boolean isMainRoll = false;
-
     public FeltRoll() {}
 
-    public FeltRoll(FeltColorVariant feltColorVariant, Batch batch, Storage storage, Double length, Double width, boolean isMainRoll) {
+    public FeltRoll(FeltColorVariant feltColorVariant, Batch batch, Storage storage,
+                    Double length, Double width) {
         this.feltColorVariant = feltColorVariant;
         this.batch = batch;
         this.storage = storage;
         this.length = length;
         this.width = width;
-        this.isMainRoll = isMainRoll;
     }
 
     public Long getId() { return id; }
@@ -62,6 +61,22 @@ public class FeltRoll {
     public Double getWidth() { return width; }
     public void setWidth(Double width) { this.width = width; }
 
-    public boolean isMainRoll() { return isMainRoll; }
-    public void setMainRoll(boolean isMainRoll) { this.isMainRoll = isMainRoll; }
+    // --- equals / hashCode ----------------------------------------------
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof FeltRoll that)) return false;
+        return id != null && Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return "FeltRoll{id=" + id + ", length=" + length + ", width=" + width + "}";
+    }
 }

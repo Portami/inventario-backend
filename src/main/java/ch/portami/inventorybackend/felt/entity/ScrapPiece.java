@@ -1,8 +1,9 @@
 package ch.portami.inventorybackend.felt.entity;
 
-import ch.portami.inventorybackend.shared.entity.Storage;
+import ch.portami.inventorybackend.core.entity.Storage;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMin;
+import java.util.Objects;
 
 @Entity
 @Table(name = "scrap_piece")
@@ -10,10 +11,10 @@ public class ScrapPiece {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "scrap_piece_id")
+    @Column(name = "id")
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "felt_color_variant_id", nullable = false)
     private FeltColorVariant feltColorVariant;
 
@@ -59,4 +60,23 @@ public class ScrapPiece {
 
     public Double getWidth() { return width; }
     public void setWidth(Double width) { this.width = width; }
+
+    // --- equals / hashCode ----------------------------------------------
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ScrapPiece that)) return false;
+        return id != null && Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return "ScrapPiece{id=" + id + ", length=" + length + ", width=" + width + "}";
+    }
 }

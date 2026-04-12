@@ -3,6 +3,7 @@ package ch.portami.inventorybackend.felt.entity;
 import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Table(name = "batch")
@@ -10,16 +11,18 @@ public class Batch {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "batch_id")
+    @Column(name = "id")
     private Long id;
 
     @Column(name = "batch_name", nullable = false)
     private String batchName;
 
-    @OneToMany(mappedBy = "batch", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    // No cascade: a Batch is a lot identifier. Deleting it must not delete
+    // physical inventory (scrap pieces / rolls) that still exists.
+    @OneToMany(mappedBy = "batch", fetch = FetchType.LAZY)
     private List<ScrapPiece> scrapPieces = new ArrayList<>();
 
-    @OneToMany(mappedBy = "batch", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "batch", fetch = FetchType.LAZY)
     private List<FeltRoll> feltRolls = new ArrayList<>();
 
     public Batch() {}
@@ -34,8 +37,46 @@ public class Batch {
     public void setBatchName(String batchName) { this.batchName = batchName; }
 
     public List<ScrapPiece> getScrapPieces() { return scrapPieces; }
-    public void setScrapPieces(List<ScrapPiece> scrapPieces) { this.scrapPieces = scrapPieces; }
-
     public List<FeltRoll> getFeltRolls() { return feltRolls; }
-    public void setFeltRolls(List<FeltRoll> feltRolls) { this.feltRolls = feltRolls; }
+
+    // --- Sync helpers ---------------------------------------------------
+
+    public void addScrapPiece(ScrapPiece piece) {
+        scrapPieces.add(piece);
+        piece.setBatch(this);
+    }
+
+    public void removeScrapPiece(ScrapPiece piece) {
+        scrapPieces.remove(piece);
+        piece.setBatch(null);
+    }
+
+    public void addFeltRoll(FeltRoll roll) {
+        feltRolls.add(roll);
+        roll.setBatch(this);
+    }
+
+    public void removeFeltRoll(FeltRoll roll) {
+        feltRolls.remove(roll);
+        roll.setBatch(null);
+    }
+
+    // --- equals / hashCode ----------------------------------------------
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Batch that)) return false;
+        return id != null && Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return "Batch{id=" + id + ", batchName='" + batchName + "'}";
+    }
 }

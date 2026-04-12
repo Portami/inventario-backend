@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Table(name = "felt_variant")
@@ -11,10 +12,10 @@ public class FeltVariant {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "felt_variant_id")
+    @Column(name = "id")
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "felt_id", nullable = false)
     private Felt felt;
 
@@ -27,7 +28,8 @@ public class FeltVariant {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
 
-    @OneToMany(mappedBy = "feltVariant", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    // True aggregate: FeltVariant owns its color variants.
+    @OneToMany(mappedBy = "feltVariant", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<FeltColorVariant> feltColorVariants = new ArrayList<>();
 
     public FeltVariant() {}
@@ -54,5 +56,35 @@ public class FeltVariant {
     public void setPrice(BigDecimal price) { this.price = price; }
 
     public List<FeltColorVariant> getFeltColorVariants() { return feltColorVariants; }
-    public void setFeltColorVariants(List<FeltColorVariant> feltColorVariants) { this.feltColorVariants = feltColorVariants; }
+
+    // --- Sync helpers ---------------------------------------------------
+
+    public void addFeltColorVariant(FeltColorVariant colorVariant) {
+        feltColorVariants.add(colorVariant);
+        colorVariant.setFeltVariant(this);
+    }
+
+    public void removeFeltColorVariant(FeltColorVariant colorVariant) {
+        feltColorVariants.remove(colorVariant);
+        colorVariant.setFeltVariant(null);
+    }
+
+    // --- equals / hashCode ----------------------------------------------
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof FeltVariant that)) return false;
+        return id != null && Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return "FeltVariant{id=" + id + ", thickness=" + thickness + ", density=" + density + ", price=" + price + "}";
+    }
 }

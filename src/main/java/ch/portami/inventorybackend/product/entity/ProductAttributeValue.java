@@ -1,26 +1,28 @@
 package ch.portami.inventorybackend.product.entity;
 
 import jakarta.persistence.*;
+import java.util.Objects;
 
 @Entity
-@Table(name = "product_attribute_value")
+@Table(
+        name = "product_attribute_value",
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_pav_variant_attribute",
+                columnNames = {"product_variant_id", "product_attribute_id"}
+        )
+)
 public class ProductAttributeValue {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "product_attribute_value_id")
+    @Column(name = "id")
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "product_variant_id", nullable = false)
     private ProductVariant productVariant;
 
-    // Denormalized FK — kept for query convenience; also derivable via productAttribute.getProduct()
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_id", nullable = false)
-    private Product product;
-
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "product_attribute_id", nullable = false)
     private ProductAttribute productAttribute;
 
@@ -29,9 +31,8 @@ public class ProductAttributeValue {
 
     public ProductAttributeValue() {}
 
-    public ProductAttributeValue(ProductVariant productVariant, Product product, ProductAttribute productAttribute, String value) {
+    public ProductAttributeValue(ProductVariant productVariant, ProductAttribute productAttribute, String value) {
         this.productVariant = productVariant;
-        this.product = product;
         this.productAttribute = productAttribute;
         this.value = value;
     }
@@ -41,12 +42,28 @@ public class ProductAttributeValue {
     public ProductVariant getProductVariant() { return productVariant; }
     public void setProductVariant(ProductVariant productVariant) { this.productVariant = productVariant; }
 
-    public Product getProduct() { return product; }
-    public void setProduct(Product product) { this.product = product; }
-
     public ProductAttribute getProductAttribute() { return productAttribute; }
     public void setProductAttribute(ProductAttribute productAttribute) { this.productAttribute = productAttribute; }
 
     public String getValue() { return value; }
     public void setValue(String value) { this.value = value; }
+
+    // --- equals / hashCode ----------------------------------------------
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ProductAttributeValue that)) return false;
+        return id != null && Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return "ProductAttributeValue{id=" + id + ", value='" + value + "'}";
+    }
 }

@@ -1,22 +1,29 @@
 package ch.portami.inventorybackend.product.entity;
 
-import ch.portami.inventorybackend.shared.entity.Storage;
+import ch.portami.inventorybackend.core.entity.Storage;
 import jakarta.persistence.*;
+import java.util.Objects;
 
 @Entity
-@Table(name = "product_inventory")
+@Table(
+        name = "product_inventory",
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_inventory_variant_storage",
+                columnNames = {"product_variant_id", "storage_id"}
+        )
+)
 public class ProductInventory {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "product_inventory_id")
+    @Column(name = "id")
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "product_variant_id", nullable = false)
     private ProductVariant productVariant;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "storage_id", nullable = false)
     private Storage storage;
 
@@ -41,4 +48,23 @@ public class ProductInventory {
 
     public Integer getCount() { return count; }
     public void setCount(Integer count) { this.count = count; }
+
+    // --- equals / hashCode ----------------------------------------------
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ProductInventory that)) return false;
+        return id != null && Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return "ProductInventory{id=" + id + ", count=" + count + "}";
+    }
 }

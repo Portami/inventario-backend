@@ -3,6 +3,7 @@ package ch.portami.inventorybackend.product.entity;
 import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Table(name = "product_attribute")
@@ -10,37 +11,24 @@ public class ProductAttribute {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "product_attribute_id")
+    @Column(name = "id")
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
     @Column(nullable = false)
     private String name;
 
-    // Consider replacing with an enum: STRING, INTEGER, BOOLEAN, DECIMAL
-    @Column(name = "data_type")
-    private String dataType;
-
-    @Column(name = "is_required", nullable = false)
-    private boolean isRequired;
-
-    @Column(name = "default_value")
-    private String defaultValue;
-
-    @OneToMany(mappedBy = "productAttribute", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "productAttribute", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<ProductAttributeValue> productAttributeValues = new ArrayList<>();
 
     public ProductAttribute() {}
 
-    public ProductAttribute(Product product, String name, String dataType, boolean isRequired, String defaultValue) {
+    public ProductAttribute(Product product, String name) {
         this.product = product;
         this.name = name;
-        this.dataType = dataType;
-        this.isRequired = isRequired;
-        this.defaultValue = defaultValue;
     }
 
     public Long getId() { return id; }
@@ -51,15 +39,36 @@ public class ProductAttribute {
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 
-    public String getDataType() { return dataType; }
-    public void setDataType(String dataType) { this.dataType = dataType; }
-
-    public boolean isRequired() { return isRequired; }
-    public void setRequired(boolean isRequired) { this.isRequired = isRequired; }
-
-    public String getDefaultValue() { return defaultValue; }
-    public void setDefaultValue(String defaultValue) { this.defaultValue = defaultValue; }
-
     public List<ProductAttributeValue> getProductAttributeValues() { return productAttributeValues; }
-    public void setProductAttributeValues(List<ProductAttributeValue> values) { this.productAttributeValues = values; }
+
+    // --- Sync helpers ---------------------------------------------------
+
+    public void addProductAttributeValue(ProductAttributeValue value) {
+        productAttributeValues.add(value);
+        value.setProductAttribute(this);
+    }
+
+    public void removeProductAttributeValue(ProductAttributeValue value) {
+        productAttributeValues.remove(value);
+        value.setProductAttribute(null);
+    }
+
+    // --- equals / hashCode ----------------------------------------------
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ProductAttribute that)) return false;
+        return id != null && Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return "ProductAttribute{id=" + id + ", name='" + name + "'}";
+    }
 }
