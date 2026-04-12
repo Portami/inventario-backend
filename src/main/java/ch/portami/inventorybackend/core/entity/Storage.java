@@ -1,12 +1,19 @@
 package ch.portami.inventorybackend.core.entity;
 
-import ch.portami.inventorybackend.felt.entity.FeltRoll;
-import ch.portami.inventorybackend.felt.entity.ScrapPiece;
-import ch.portami.inventorybackend.product.entity.ProductInventory;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import ch.portami.inventorybackend.felt.entity.FeltRoll;
+import ch.portami.inventorybackend.felt.entity.ScrapPiece;
+import ch.portami.inventorybackend.product.entity.ProductInventory;
 
 @Entity
 @Table(name = "storage")
