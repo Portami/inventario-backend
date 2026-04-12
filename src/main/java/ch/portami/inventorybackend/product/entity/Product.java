@@ -29,10 +29,10 @@ public class Product {
     private Category category;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<ProductAttribute> productAttributes = new ArrayList<>();
+    private final List<ProductAttribute> productAttributes = new ArrayList<>();
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<ProductVariant> productVariants = new ArrayList<>();
+    private final List<ProductVariant> productVariants = new ArrayList<>();
 
     public Product() {}
 

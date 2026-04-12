@@ -26,7 +26,7 @@ public class FeltType {
 
     // No cascade: FeltType is a lookup; Felts must outlive it.
     @OneToMany(mappedBy = "feltType", fetch = FetchType.LAZY)
-    private List<Felt> felts = new ArrayList<>();
+    private final List<Felt> felts = new ArrayList<>();
 
     public FeltType() {}
 

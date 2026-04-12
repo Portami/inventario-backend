@@ -29,13 +29,13 @@ public class Storage {
 
     // No cascade: Storage is a location reference; inventory outlives a storage record.
     @OneToMany(mappedBy = "storage", fetch = FetchType.LAZY)
-    private List<ScrapPiece> scrapPieces = new ArrayList<>();
+    private final List<ScrapPiece> scrapPieces = new ArrayList<>();
 
     @OneToMany(mappedBy = "storage", fetch = FetchType.LAZY)
-    private List<FeltRoll> feltRolls = new ArrayList<>();
+    private final List<FeltRoll> feltRolls = new ArrayList<>();
 
     @OneToMany(mappedBy = "storage", fetch = FetchType.LAZY)
-    private List<ProductInventory> productInventories = new ArrayList<>();
+    private final List<ProductInventory> productInventories = new ArrayList<>();
 
     public Storage() {}
 

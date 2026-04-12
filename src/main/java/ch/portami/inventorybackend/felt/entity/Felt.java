@@ -37,7 +37,7 @@ public class Felt {
 
     // True aggregate: Felt owns its variants.
     @OneToMany(mappedBy = "felt", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<FeltVariant> feltVariants = new ArrayList<>();
+    private final List<FeltVariant> feltVariants = new ArrayList<>();
 
     public Felt() {}
 

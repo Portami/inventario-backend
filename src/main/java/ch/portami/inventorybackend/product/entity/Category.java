@@ -27,7 +27,7 @@ public class Category {
     // No cascade: a Category is a lookup/reference, not an aggregate root.
     // Deleting a Category must NOT delete its Products.
     @OneToMany(mappedBy = "category", fetch = FetchType.LAZY)
-    private List<Product> products = new ArrayList<>();
+    private final List<Product> products = new ArrayList<>();
 
     public Category() {}
 

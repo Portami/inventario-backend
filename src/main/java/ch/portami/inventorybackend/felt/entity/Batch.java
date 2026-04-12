@@ -27,10 +27,10 @@ public class Batch {
     // No cascade: a Batch is a lot identifier. Deleting it must not delete
     // physical inventory (scrap pieces / rolls) that still exists.
     @OneToMany(mappedBy = "batch", fetch = FetchType.LAZY)
-    private List<ScrapPiece> scrapPieces = new ArrayList<>();
+    private final List<ScrapPiece> scrapPieces = new ArrayList<>();
 
     @OneToMany(mappedBy = "batch", fetch = FetchType.LAZY)
-    private List<FeltRoll> feltRolls = new ArrayList<>();
+    private final List<FeltRoll> feltRolls = new ArrayList<>();
 
     public Batch() {}
 

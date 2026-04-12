@@ -40,7 +40,7 @@ public class FeltVariant {
 
     // True aggregate: FeltVariant owns its color variants.
     @OneToMany(mappedBy = "feltVariant", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<FeltColorVariant> feltColorVariants = new ArrayList<>();
+    private final List<FeltColorVariant> feltColorVariants = new ArrayList<>();
 
     public FeltVariant() {}
 

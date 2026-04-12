@@ -26,7 +26,7 @@ public class Supplier {
 
     // No cascade: Supplier is a reference; Felts must outlive it.
     @OneToMany(mappedBy = "supplier", fetch = FetchType.LAZY)
-    private List<Felt> felts = new ArrayList<>();
+    private final List<Felt> felts = new ArrayList<>();
 
     public Supplier() {}
 

@@ -32,7 +32,7 @@ public class ProductAttribute {
     private String name;
 
     @OneToMany(mappedBy = "productAttribute", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<ProductAttributeValue> productAttributeValues = new ArrayList<>();
+    private final List<ProductAttributeValue> productAttributeValues = new ArrayList<>();
 
     public ProductAttribute() {}
 

@@ -36,10 +36,10 @@ public class ProductVariant {
     private BigDecimal price;
 
     @OneToMany(mappedBy = "productVariant", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<ProductAttributeValue> productAttributeValues = new ArrayList<>();
+    private final List<ProductAttributeValue> productAttributeValues = new ArrayList<>();
 
     @OneToMany(mappedBy = "productVariant", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<ProductInventory> productInventories = new ArrayList<>();
+    private final List<ProductInventory> productInventories = new ArrayList<>();
 
     public ProductVariant() {}
 

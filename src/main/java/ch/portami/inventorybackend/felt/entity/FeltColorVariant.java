@@ -34,10 +34,10 @@ public class FeltColorVariant {
     private String supplierColor;
 
     @OneToMany(mappedBy = "feltColorVariant", fetch = FetchType.LAZY)
-    private List<ScrapPiece> scrapPieces = new ArrayList<>();
+    private final List<ScrapPiece> scrapPieces = new ArrayList<>();
 
     @OneToMany(mappedBy = "feltColorVariant", fetch = FetchType.LAZY)
-    private List<FeltRoll> feltRolls = new ArrayList<>();
+    private final List<FeltRoll> feltRolls = new ArrayList<>();
 
     public FeltColorVariant() {}
 
