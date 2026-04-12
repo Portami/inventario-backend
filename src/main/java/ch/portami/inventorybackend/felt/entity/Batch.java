@@ -21,8 +21,8 @@ public class Batch {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "batch_name", nullable = false)
-    private String batchName;
+    @Column(name = "name", nullable = false)
+    private String name;
 
     // No cascade: a Batch is a lot identifier. Deleting it must not delete
     // physical inventory (scrap pieces / rolls) that still exists.
@@ -34,14 +34,14 @@ public class Batch {
 
     public Batch() {}
 
-    public Batch(String batchName) {
-        this.batchName = batchName;
+    public Batch(String name) {
+        this.name = name;
     }
 
     public Long getId() { return id; }
 
-    public String getBatchName() { return batchName; }
-    public void setBatchName(String batchName) { this.batchName = batchName; }
+    public String getName() { return name; }
+    public void setName(String batchName) { this.name = batchName; }
 
     public List<ScrapPiece> getScrapPieces() { return scrapPieces; }
     public List<FeltRoll> getFeltRolls() { return feltRolls; }
@@ -84,6 +84,6 @@ public class Batch {
 
     @Override
     public String toString() {
-        return "Batch{id=" + id + ", batchName='" + batchName + "'}";
+        return "Batch{id=" + id + ", batchName='" + name + "'}";
     }
 }
