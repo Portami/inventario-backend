@@ -1,18 +1,23 @@
 package ch.portami.inventorybackend.felt;
 
+import ch.portami.inventorybackend.felt.dto.CreateFeltColorVariantRequest;
 import ch.portami.inventorybackend.felt.dto.CreateFeltRequest;
 import ch.portami.inventorybackend.felt.dto.CreateFeltTypeRequest;
 import ch.portami.inventorybackend.felt.dto.CreateFeltVariantRequest;
+import ch.portami.inventorybackend.felt.dto.FeltColorVariantResponse;
 import ch.portami.inventorybackend.felt.dto.FeltResponse;
 import ch.portami.inventorybackend.felt.dto.FeltTypeResponse;
 import ch.portami.inventorybackend.felt.dto.FeltVariantResponse;
+import ch.portami.inventorybackend.felt.dto.UpdateFeltColorVariantRequest;
 import ch.portami.inventorybackend.felt.dto.UpdateFeltRequest;
 import ch.portami.inventorybackend.felt.dto.UpdateFeltTypeRequest;
 import ch.portami.inventorybackend.felt.dto.UpdateFeltVariantRequest;
 import ch.portami.inventorybackend.felt.entity.Felt;
+import ch.portami.inventorybackend.felt.entity.FeltColorVariant;
 import ch.portami.inventorybackend.felt.entity.FeltType;
 import ch.portami.inventorybackend.felt.entity.FeltVariant;
 import ch.portami.inventorybackend.felt.entity.Supplier;
+import ch.portami.inventorybackend.felt.repository.FeltColorVariantRepository;
 import ch.portami.inventorybackend.felt.repository.FeltRepository;
 import ch.portami.inventorybackend.felt.repository.FeltTypeRepository;
 import ch.portami.inventorybackend.felt.repository.FeltVariantRepository;
@@ -29,17 +34,20 @@ public class FeltService {
     private final FeltRepository feltRepository;
     private final FeltTypeRepository feltTypeRepository;
     private final FeltVariantRepository feltVariantRepository;
+    private final FeltColorVariantRepository feltColorVariantRepository;
     private final SupplierRepository supplierRepository;
 
     public FeltService(
         FeltRepository feltRepository,
         FeltTypeRepository feltTypeRepository,
         FeltVariantRepository feltVariantRepository,
+        FeltColorVariantRepository feltColorVariantRepository,
         SupplierRepository supplierRepository
     ) {
         this.feltRepository = feltRepository;
         this.feltTypeRepository = feltTypeRepository;
         this.feltVariantRepository = feltVariantRepository;
+        this.feltColorVariantRepository = feltColorVariantRepository;
         this.supplierRepository = supplierRepository;
     }
 
@@ -126,7 +134,7 @@ public class FeltService {
         feltRepository.deleteById(id);
     }
     // endregion
-    
+
     // region FeltVariants
     @Transactional(readOnly = true)
     public List<FeltVariantResponse> getAllFeltVariants() {
@@ -173,6 +181,50 @@ public class FeltService {
     }
     // endregion
 
+    // region FeltColorVariants
+    @Transactional(readOnly = true)
+    public List<FeltColorVariantResponse> getAllFeltColorVariants() {
+        return feltColorVariantRepository
+            .findAll()
+            .stream()
+            .map(this::toFeltColorVariantResponse)
+            .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public FeltColorVariantResponse getFeltColorVariantById(Long id) {
+        return toFeltColorVariantResponse(findFeltColorVariantOrThrow(id));
+    }
+
+    @Transactional
+    public FeltColorVariantResponse createFeltColorVariant(CreateFeltColorVariantRequest request) {
+        FeltVariant variant = findFeltVariantOrThrow(request.feltVariantId());
+        FeltColorVariant colorVariant = new FeltColorVariant(variant, request.color());
+        colorVariant.setSupplierColor(request.supplierColor());
+        return toFeltColorVariantResponse(feltColorVariantRepository.save(colorVariant));
+    }
+
+    @Transactional
+    public FeltColorVariantResponse updateFeltColorVariant(Long id, UpdateFeltColorVariantRequest request) {
+        FeltColorVariant colorVariant = findFeltColorVariantOrThrow(id);
+        if (request.color() != null) {
+            colorVariant.setColor(request.color());
+        }
+        if (request.supplierColor() != null) {
+            colorVariant.setSupplierColor(request.supplierColor());
+        }
+        return toFeltColorVariantResponse(feltColorVariantRepository.save(colorVariant));
+    }
+
+    @Transactional
+    public void deleteFeltColorVariant(Long id) {
+        if (!feltColorVariantRepository.existsById(id)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "FeltColorVariant not found: " + id);
+        }
+        feltColorVariantRepository.deleteById(id);
+    }
+    // endregion
+
     private FeltType findFeltTypeOrThrow(Long id) {
         return feltTypeRepository
             .findById(id)
@@ -194,6 +246,14 @@ public class FeltService {
             .findById(id)
             .orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND, "FeltVariant not found: " + id)
+            );
+    }
+
+    private FeltColorVariant findFeltColorVariantOrThrow(Long id) {
+        return feltColorVariantRepository
+            .findById(id)
+            .orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "FeltColorVariant not found: " + id)
             );
     }
 
@@ -234,6 +294,21 @@ public class FeltService {
             variant.getThickness(),
             variant.getDensity(),
             variant.getPrice()
+        );
+    }
+
+    private FeltColorVariantResponse toFeltColorVariantResponse(FeltColorVariant colorVariant) {
+        FeltVariant variant = colorVariant.getFeltVariant();
+        Felt felt = variant.getFelt();
+        return new FeltColorVariantResponse(
+            colorVariant.getId(),
+            colorVariant.getColor(),
+            colorVariant.getSupplierColor(),
+            variant.getId(),
+            felt.getId(),
+            felt.getArticleNumber(),
+            felt.getFeltType().getName(),
+            felt.getSupplier().getName()
         );
     }
 }
