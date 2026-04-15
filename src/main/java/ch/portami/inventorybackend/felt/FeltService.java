@@ -1,17 +1,22 @@
 package ch.portami.inventorybackend.felt;
 
-import ch.portami.inventorybackend.core.entity.Storage;
-import ch.portami.inventorybackend.core.repository.StorageRepository;
-import ch.portami.inventorybackend.felt.dto.CreateFeltRollRequest;
-import ch.portami.inventorybackend.felt.dto.FeltRollResponse;
-import ch.portami.inventorybackend.felt.dto.UpdateFeltRollRequest;
-import ch.portami.inventorybackend.felt.entity.Batch;
-import ch.portami.inventorybackend.felt.entity.FeltColorVariant;
-import ch.portami.inventorybackend.felt.entity.FeltRoll;
+import ch.portami.inventorybackend.felt.dto.CreateFeltRequest;
+import ch.portami.inventorybackend.felt.dto.CreateFeltTypeRequest;
+import ch.portami.inventorybackend.felt.dto.CreateFeltVariantRequest;
+import ch.portami.inventorybackend.felt.dto.FeltResponse;
+import ch.portami.inventorybackend.felt.dto.FeltTypeResponse;
+import ch.portami.inventorybackend.felt.dto.FeltVariantResponse;
+import ch.portami.inventorybackend.felt.dto.UpdateFeltRequest;
+import ch.portami.inventorybackend.felt.dto.UpdateFeltTypeRequest;
+import ch.portami.inventorybackend.felt.dto.UpdateFeltVariantRequest;
+import ch.portami.inventorybackend.felt.entity.Felt;
+import ch.portami.inventorybackend.felt.entity.FeltType;
 import ch.portami.inventorybackend.felt.entity.FeltVariant;
-import ch.portami.inventorybackend.felt.repository.BatchRepository;
-import ch.portami.inventorybackend.felt.repository.FeltColorVariantRepository;
-import ch.portami.inventorybackend.felt.repository.FeltRollRepository;
+import ch.portami.inventorybackend.felt.entity.Supplier;
+import ch.portami.inventorybackend.felt.repository.FeltRepository;
+import ch.portami.inventorybackend.felt.repository.FeltTypeRepository;
+import ch.portami.inventorybackend.felt.repository.FeltVariantRepository;
+import ch.portami.inventorybackend.felt.repository.SupplierRepository;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -21,143 +26,210 @@ import org.springframework.web.server.ResponseStatusException;
 @Service
 public class FeltService {
 
-    private final FeltRollRepository feltRollRepository;
-    private final FeltColorVariantRepository feltColorVariantRepository;
-    private final BatchRepository batchRepository;
-    private final StorageRepository storageRepository;
+    private final FeltRepository feltRepository;
+    private final FeltTypeRepository feltTypeRepository;
+    private final FeltVariantRepository feltVariantRepository;
+    private final SupplierRepository supplierRepository;
 
     public FeltService(
-        FeltRollRepository feltRollRepository,
-        FeltColorVariantRepository feltColorVariantRepository,
-        BatchRepository batchRepository,
-        StorageRepository storageRepository
+        FeltRepository feltRepository,
+        FeltTypeRepository feltTypeRepository,
+        FeltVariantRepository feltVariantRepository,
+        SupplierRepository supplierRepository
     ) {
-        this.feltRollRepository = feltRollRepository;
-        this.feltColorVariantRepository = feltColorVariantRepository;
-        this.batchRepository = batchRepository;
-        this.storageRepository = storageRepository;
+        this.feltRepository = feltRepository;
+        this.feltTypeRepository = feltTypeRepository;
+        this.feltVariantRepository = feltVariantRepository;
+        this.supplierRepository = supplierRepository;
     }
 
-    public List<FeltRollResponse> getAllFeltRolls() {
-        return feltRollRepository
+    // region FeltTypes
+    public List<FeltTypeResponse> getAllFeltTypes() {
+        return feltTypeRepository
             .findAll()
             .stream()
-            .map(this::toResponse)
+            .map(this::toFeltTypeResponse)
             .toList();
     }
 
-    public FeltRollResponse getFeltRollById(Long id) {
-        return toResponse(findRollOrThrow(id));
+    public FeltTypeResponse getFeltTypeById(Long id) {
+        return toFeltTypeResponse(findFeltTypeOrThrow(id));
     }
 
     @Transactional
-    public FeltRollResponse createFeltRoll(CreateFeltRollRequest request) {
-        FeltColorVariant colorVariant = feltColorVariantRepository
-            .findById(request.feltColorVariantId())
-            .orElseThrow(() -> 
-                new ResponseStatusException(HttpStatus.NOT_FOUND, "FeltColorVariant not found: " + request.feltColorVariantId())
-            );
-
-        Batch batch = null;
-        if (request.batchId() != null) {
-            batch = batchRepository
-                .findById(request.batchId())
-                .orElseThrow(() -> 
-                    new ResponseStatusException(HttpStatus.NOT_FOUND, "Batch not found: " + request.batchId())
-                );
-        }
-        
-        Storage storage = null;
-        if (request.storageId() != null) {
-            storage = storageRepository
-                .findById(request.storageId())
-                .orElseThrow(() -> 
-                    new ResponseStatusException(HttpStatus.NOT_FOUND, "Storage not found: " + request.storageId())
-                );
-        }
-
-        FeltRoll roll = new FeltRoll(colorVariant, batch, storage, request.length(), request.width());
-        return toResponse(feltRollRepository.save(roll));
+    public FeltTypeResponse createFeltType(CreateFeltTypeRequest request) {
+        FeltType feltType = new FeltType(request.name());
+        return toFeltTypeResponse(feltTypeRepository.save(feltType));
     }
 
     @Transactional
-    public FeltRollResponse updateFeltRoll(Long id, UpdateFeltRollRequest request) {
-        FeltRoll roll = findRollOrThrow(id);
-
-        if (request.length() != null) {
-            roll.setLength(request.length());
+    public FeltTypeResponse updateFeltType(Long id, UpdateFeltTypeRequest request) {
+        FeltType feltType = findFeltTypeOrThrow(id);
+        if (request.name() != null) {
+            feltType.setName(request.name());
         }
-        if (request.width() != null) {
-            roll.setWidth(request.width());
-        }
-
-        if (request.batchId() != null) {
-            Batch batch = batchRepository
-                .findById(request.batchId())
-                .orElseThrow(() -> 
-                    new ResponseStatusException(HttpStatus.NOT_FOUND, "Batch not found: " + request.batchId())
-                );
-            roll.setBatch(batch);
-        } else {
-            roll.setBatch(null);
-        }
-
-        if (request.storageId() != null) {
-            Storage storage = storageRepository
-                .findById(request.storageId())
-                .orElseThrow(() ->
-                    new ResponseStatusException(HttpStatus.NOT_FOUND, "Storage not found: " + request.storageId())
-                );
-            roll.setStorage(storage);
-        } else {
-            roll.setStorage(null);
-        }
-
-        return toResponse(feltRollRepository.save(roll));
+        return toFeltTypeResponse(feltTypeRepository.save(feltType));
     }
 
     @Transactional
-    public void deleteFeltRoll(Long id) {
-        if (!feltRollRepository.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "FeltRoll not found: " + id);
+    public void deleteFeltType(Long id) {
+        if (!feltTypeRepository.existsById(id)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "FeltType not found: " + id);
         }
-        feltRollRepository.deleteById(id);
+        feltTypeRepository.deleteById(id);
+    }
+    // endregion
+
+    // region Felts
+    public List<FeltResponse> getAllFelts() {
+        return feltRepository
+            .findAll()
+            .stream()
+            .map(this::toFeltResponse)
+            .toList();
     }
 
-    private FeltRoll findRollOrThrow(Long id) {
-        return feltRollRepository
+    public FeltResponse getFeltById(Long id) {
+        return toFeltResponse(findFeltOrThrow(id));
+    }
+
+    @Transactional
+    public FeltResponse createFelt(CreateFeltRequest request) {
+        FeltType feltType = findFeltTypeOrThrow(request.feltTypeId());
+        Supplier supplier = findSupplierOrThrow(request.supplierId());
+        Felt felt = new Felt(feltType, supplier, request.articleNumber());
+        return toFeltResponse(feltRepository.save(felt));
+    }
+
+    @Transactional
+    public FeltResponse updateFelt(Long id, UpdateFeltRequest request) {
+        Felt felt = findFeltOrThrow(id);
+        if (request.feltTypeId() != null) {
+            felt.setFeltType(findFeltTypeOrThrow(request.feltTypeId()));
+        }
+        if (request.supplierId() != null) {
+            felt.setSupplier(findSupplierOrThrow(request.supplierId()));
+        }
+        if (request.articleNumber() != null) {
+            felt.setArticleNumber(request.articleNumber());
+        }
+        return toFeltResponse(feltRepository.save(felt));
+    }
+
+    @Transactional
+    public void deleteFelt(Long id) {
+        if (!feltRepository.existsById(id)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Felt not found: " + id);
+        }
+        feltRepository.deleteById(id);
+    }
+    // endregion
+    
+    // region FeltVariants
+    public List<FeltVariantResponse> getAllFeltVariants() {
+        return feltVariantRepository
+            .findAll()
+            .stream()
+            .map(this::toFeltVariantResponse)
+            .toList();
+    }
+
+    public FeltVariantResponse getFeltVariantById(Long id) {
+        return toFeltVariantResponse(findFeltVariantOrThrow(id));
+    }
+
+    @Transactional
+    public FeltVariantResponse createFeltVariant(CreateFeltVariantRequest request) {
+        Felt felt = findFeltOrThrow(request.feltId());
+        FeltVariant variant = new FeltVariant(felt, request.thickness(), request.density(), request.price());
+        return toFeltVariantResponse(feltVariantRepository.save(variant));
+    }
+
+    @Transactional
+    public FeltVariantResponse updateFeltVariant(Long id, UpdateFeltVariantRequest request) {
+        FeltVariant variant = findFeltVariantOrThrow(id);
+        if (request.thickness() != null) {
+            variant.setThickness(request.thickness());
+        }
+        if (request.density() != null) {
+            variant.setDensity(request.density());
+        }
+        if (request.price() != null) {
+            variant.setPrice(request.price());
+        }
+        return toFeltVariantResponse(feltVariantRepository.save(variant));
+    }
+
+    @Transactional
+    public void deleteFeltVariant(Long id) {
+        if (!feltVariantRepository.existsById(id)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "FeltVariant not found: " + id);
+        }
+        feltVariantRepository.deleteById(id);
+    }
+    // endregion
+
+    private FeltType findFeltTypeOrThrow(Long id) {
+        return feltTypeRepository
             .findById(id)
             .orElseThrow(() ->
-                new ResponseStatusException(HttpStatus.NOT_FOUND, "FeltRoll not found: " + id)
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "FeltType not found: " + id)
             );
     }
 
-    private FeltRollResponse toResponse(FeltRoll roll) {
-        FeltColorVariant colorVariant = roll.getFeltColorVariant();
-        FeltVariant feltVariant = colorVariant.getFeltVariant();
-        var felt = feltVariant.getFelt();
-        Batch batch = roll.getBatch();
-        Storage storage = roll.getStorage();
+    private Felt findFeltOrThrow(Long id) {
+        return feltRepository
+            .findById(id)
+            .orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "Felt not found: " + id)
+            );
+    }
 
-        return new FeltRollResponse(
-            roll.getId(),
-            roll.getLength(),
-            roll.getWidth(),
-            colorVariant.getId(),
-            colorVariant.getColor(),
-            colorVariant.getSupplierColor(),
-            feltVariant.getId(),
-            feltVariant.getThickness(),
-            feltVariant.getDensity(),
-            feltVariant.getPrice(),
+    private FeltVariant findFeltVariantOrThrow(Long id) {
+        return feltVariantRepository
+            .findById(id)
+            .orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "FeltVariant not found: " + id)
+            );
+    }
+
+    private Supplier findSupplierOrThrow(Long id) {
+        return supplierRepository
+            .findById(id)
+            .orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "Supplier not found: " + id)
+            );
+    }
+
+    private FeltTypeResponse toFeltTypeResponse(FeltType feltType) {
+        return new FeltTypeResponse(
+            feltType.getId(),
+            feltType.getName()
+        );
+    }
+
+    private FeltResponse toFeltResponse(Felt felt) {
+        return new FeltResponse(
+            felt.getId(),
+            felt.getArticleNumber(),
+            felt.getFeltType().getId(),
+            felt.getFeltType().getName(),
+            felt.getSupplier().getId(),
+            felt.getSupplier().getName()
+        );
+    }
+
+    private FeltVariantResponse toFeltVariantResponse(FeltVariant variant) {
+        Felt felt = variant.getFelt();
+        return new FeltVariantResponse(
+            variant.getId(),
             felt.getId(),
             felt.getArticleNumber(),
             felt.getFeltType().getName(),
             felt.getSupplier().getName(),
-            batch != null ? batch.getId() : null,
-            batch != null ? batch.getName() : null,
-            storage != null ? storage.getId() : null,
-            storage != null ? storage.getName() : null
+            variant.getThickness(),
+            variant.getDensity(),
+            variant.getPrice()
         );
     }
 }
