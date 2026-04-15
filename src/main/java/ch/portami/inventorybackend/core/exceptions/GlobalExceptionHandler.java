@@ -3,9 +3,11 @@ package ch.portami.inventorybackend.core.exceptions;
 import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.ErrorResponseException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
  * Translates domain exceptions into the {@link ErrorResponse} contract defined
@@ -25,6 +27,33 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(ErrorResponse.of(HttpStatus.BAD_REQUEST.value(), message));
+    }
+
+    // Handles ResponseStatusException thrown by services (e.g. NOT_FOUND with a detail message).
+    // Spring picks this over the ErrorResponseException handler below because it is more specific.
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<ErrorResponse> handleResponseStatus(ResponseStatusException ex) {
+        int status = ex.getStatusCode().value();
+        String message = ex.getReason() != null
+                ? ex.getReason()
+                : HttpStatus.resolve(status).getReasonPhrase();
+
+        return ResponseEntity
+                .status(ex.getStatusCode())
+                .body(ErrorResponse.of(status, message));
+    }
+
+    // Handles framework exceptions such as NoResourceFoundException (404 for unknown routes)
+    // and MethodNotAllowedException (405), which extend ErrorResponseException but NOT
+    // ResponseStatusException.
+    @ExceptionHandler(ErrorResponseException.class)
+    public ResponseEntity<ErrorResponse> handleErrorResponse(ErrorResponseException ex) {
+        int status = ex.getStatusCode().value();
+        String message = HttpStatus.resolve(status).getReasonPhrase();
+
+        return ResponseEntity
+                .status(ex.getStatusCode())
+                .body(ErrorResponse.of(status, message));
     }
 
     @ExceptionHandler(Exception.class)

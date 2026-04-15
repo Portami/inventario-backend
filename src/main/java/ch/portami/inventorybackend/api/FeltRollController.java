@@ -1,6 +1,6 @@
 package ch.portami.inventorybackend.api;
 
-import ch.portami.inventorybackend.felt.FeltService;
+import ch.portami.inventorybackend.felt.FeltRollService;
 import ch.portami.inventorybackend.felt.dto.CreateFeltRollRequest;
 import ch.portami.inventorybackend.felt.dto.FeltRollResponse;
 import ch.portami.inventorybackend.felt.dto.UpdateFeltRollRequest;
@@ -21,9 +21,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/felt-rolls")
 public class FeltRollController {
 
-    private final FeltService feltService;
+    private final FeltRollService feltService;
 
-    public FeltRollController(FeltService feltService) {
+    public FeltRollController(FeltRollService feltService) {
         this.feltService = feltService;
     }
 
