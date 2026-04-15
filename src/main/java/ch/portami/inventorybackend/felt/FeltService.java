@@ -81,6 +81,7 @@ public class FeltService {
     // endregion
 
     // region Felts
+    @Transactional(readOnly = true)
     public List<FeltResponse> getAllFelts() {
         return feltRepository
             .findAll()
@@ -89,6 +90,7 @@ public class FeltService {
             .toList();
     }
 
+    @Transactional(readOnly = true)
     public FeltResponse getFeltById(Long id) {
         return toFeltResponse(findFeltOrThrow(id));
     }
@@ -126,6 +128,7 @@ public class FeltService {
     // endregion
     
     // region FeltVariants
+    @Transactional(readOnly = true)
     public List<FeltVariantResponse> getAllFeltVariants() {
         return feltVariantRepository
             .findAll()
@@ -134,6 +137,7 @@ public class FeltService {
             .toList();
     }
 
+    @Transactional(readOnly = true)
     public FeltVariantResponse getFeltVariantById(Long id) {
         return toFeltVariantResponse(findFeltVariantOrThrow(id));
     }
