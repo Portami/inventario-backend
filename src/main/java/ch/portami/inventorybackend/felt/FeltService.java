@@ -54,20 +54,27 @@ public class FeltService {
     public FeltRollResponse createFeltRoll(CreateFeltRollRequest request) {
         FeltColorVariant colorVariant = feltColorVariantRepository
             .findById(request.feltColorVariantId())
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                "FeltColorVariant not found: " + request.feltColorVariantId()));
+            .orElseThrow(() -> 
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "FeltColorVariant not found: " + request.feltColorVariantId())
+            );
 
-        Batch batch = request.batchId() != null
-            ? batchRepository.findById(request.batchId())
-                             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                                 "Batch not found: " + request.batchId()))
-            : null;
-
-        Storage storage = request.storageId() != null
-            ? storageRepository.findById(request.storageId())
-                               .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                                   "Storage not found: " + request.storageId()))
-            : null;
+        Batch batch = null;
+        if (request.batchId() != null) {
+            batch = batchRepository
+                .findById(request.batchId())
+                .orElseThrow(() -> 
+                    new ResponseStatusException(HttpStatus.NOT_FOUND, "Batch not found: " + request.batchId())
+                );
+        }
+        
+        Storage storage = null;
+        if (request.storageId() != null) {
+            storage = storageRepository
+                .findById(request.storageId())
+                .orElseThrow(() -> 
+                    new ResponseStatusException(HttpStatus.NOT_FOUND, "Storage not found: " + request.storageId())
+                );
+        }
 
         FeltRoll roll = new FeltRoll(colorVariant, batch, storage, request.length(), request.width());
         return toResponse(feltRollRepository.save(roll));
@@ -85,18 +92,22 @@ public class FeltService {
         }
 
         if (request.batchId() != null) {
-            Batch batch = batchRepository.findById(request.batchId())
-                                         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                                             "Batch not found: " + request.batchId()));
+            Batch batch = batchRepository
+                .findById(request.batchId())
+                .orElseThrow(() -> 
+                    new ResponseStatusException(HttpStatus.NOT_FOUND, "Batch not found: " + request.batchId())
+                );
             roll.setBatch(batch);
         } else {
             roll.setBatch(null);
         }
 
         if (request.storageId() != null) {
-            Storage storage = storageRepository.findById(request.storageId())
-                                               .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                                                   "Storage not found: " + request.storageId()));
+            Storage storage = storageRepository
+                .findById(request.storageId())
+                .orElseThrow(() ->
+                    new ResponseStatusException(HttpStatus.NOT_FOUND, "Storage not found: " + request.storageId())
+                );
             roll.setStorage(storage);
         } else {
             roll.setStorage(null);
@@ -114,15 +125,17 @@ public class FeltService {
     }
 
     private FeltRoll findRollOrThrow(Long id) {
-        return feltRollRepository.findById(id)
-                                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                                     "FeltRoll not found: " + id));
+        return feltRollRepository
+            .findById(id)
+            .orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "FeltRoll not found: " + id)
+            );
     }
 
     private FeltRollResponse toResponse(FeltRoll roll) {
-        FeltColorVariant cv = roll.getFeltColorVariant();
-        FeltVariant fv = cv.getFeltVariant();
-        var felt = fv.getFelt();
+        FeltColorVariant colorVariant = roll.getFeltColorVariant();
+        FeltVariant feltVariant = colorVariant.getFeltVariant();
+        var felt = feltVariant.getFelt();
         Batch batch = roll.getBatch();
         Storage storage = roll.getStorage();
 
@@ -130,19 +143,17 @@ public class FeltService {
             roll.getId(),
             roll.getLength(),
             roll.getWidth(),
-            cv.getId(),
-            cv.getColor(),
-            cv.getSupplierColor(),
-            fv.getId(),
-            fv.getThickness(),
-            fv.getDensity(),
-            fv.getPrice(),
+            colorVariant.getId(),
+            colorVariant.getColor(),
+            colorVariant.getSupplierColor(),
+            feltVariant.getId(),
+            feltVariant.getThickness(),
+            feltVariant.getDensity(),
+            feltVariant.getPrice(),
             felt.getId(),
             felt.getArticleNumber(),
-            felt.getFeltType()
-                .getName(),
-            felt.getSupplier()
-                .getName(),
+            felt.getFeltType().getName(),
+            felt.getSupplier().getName(),
             batch != null ? batch.getId() : null,
             batch != null ? batch.getName() : null,
             storage != null ? storage.getId() : null,
