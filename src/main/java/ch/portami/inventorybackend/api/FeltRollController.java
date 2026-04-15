@@ -45,7 +45,7 @@ public class FeltRollController {
 
     @PutMapping("/{id}")
     public FeltRollResponse updateFeltRoll(@PathVariable Long id,
-                                           @Valid @RequestBody UpdateFeltRollRequest request) {
+        @Valid @RequestBody UpdateFeltRollRequest request) {
         return feltService.updateFeltRoll(id, request);
     }
 
