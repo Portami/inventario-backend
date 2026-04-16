@@ -137,29 +137,33 @@ public class FeltService {
 
     // region FeltVariants
     @Transactional(readOnly = true)
-    public List<FeltVariantDto> getAllFeltVariants() {
+    public List<FeltVariantDto> getFeltVariantsByFelt(Long feltId) {
+        findFeltOrThrow(feltId);
         return feltVariantRepository
-            .findAll()
+            .findByFeltId(feltId)
             .stream()
             .map(this::toFeltVariantResponse)
             .toList();
     }
 
     @Transactional(readOnly = true)
-    public FeltVariantDto getFeltVariantById(Long id) {
-        return toFeltVariantResponse(findFeltVariantOrThrow(id));
+    public FeltVariantDto getFeltVariantById(Long id, Long feltId) {
+        FeltVariant variant = findFeltVariantOrThrow(id);
+        validateVariantBelongsToFelt(variant, feltId);
+        return toFeltVariantResponse(variant);
     }
 
     @Transactional
-    public FeltVariantDto createFeltVariant(CreateFeltVariantDto request) {
-        Felt felt = findFeltOrThrow(request.feltId());
+    public FeltVariantDto createFeltVariant(Long feltId, CreateFeltVariantDto request) {
+        Felt felt = findFeltOrThrow(feltId);
         FeltVariant variant = new FeltVariant(felt, request.thickness(), request.density(), request.price());
         return toFeltVariantResponse(feltVariantRepository.save(variant));
     }
 
     @Transactional
-    public FeltVariantDto updateFeltVariant(Long id, UpdateFeltVariantDto request) {
+    public FeltVariantDto updateFeltVariant(Long id, Long feltId, UpdateFeltVariantDto request) {
         FeltVariant variant = findFeltVariantOrThrow(id);
+        validateVariantBelongsToFelt(variant, feltId);
         if (request.thickness() != null) {
             variant.setThickness(request.thickness());
         }
@@ -173,40 +177,51 @@ public class FeltService {
     }
 
     @Transactional
-    public void deleteFeltVariant(Long id) {
-        if (!feltVariantRepository.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "FeltVariant not found: " + id);
-        }
+    public void deleteFeltVariant(Long id, Long feltId) {
+        FeltVariant variant = findFeltVariantOrThrow(id);
+        validateVariantBelongsToFelt(variant, feltId);
         feltVariantRepository.deleteById(id);
+    }
+
+    private void validateVariantBelongsToFelt(FeltVariant variant, Long feltId) {
+        if (!variant.getFelt().getId().equals(feltId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "FeltVariant not found: " + variant.getId());
+        }
     }
     // endregion
 
     // region FeltColorVariants
     @Transactional(readOnly = true)
-    public List<FeltColorVariantDto> getAllFeltColorVariants() {
+    public List<FeltColorVariantDto> getFeltColorVariantsByVariant(Long feltId, Long variantId) {
+        FeltVariant variant = findFeltVariantOrThrow(variantId);
+        validateVariantBelongsToFelt(variant, feltId);
         return feltColorVariantRepository
-            .findAll()
+            .findByFeltVariantId(variantId)
             .stream()
             .map(this::toFeltColorVariantResponse)
             .toList();
     }
 
     @Transactional(readOnly = true)
-    public FeltColorVariantDto getFeltColorVariantById(Long id) {
-        return toFeltColorVariantResponse(findFeltColorVariantOrThrow(id));
+    public FeltColorVariantDto getFeltColorVariantById(Long id, Long feltId, Long variantId) {
+        FeltColorVariant colorVariant = findFeltColorVariantOrThrow(id);
+        validateColorVariantBelongsToVariant(colorVariant, feltId, variantId);
+        return toFeltColorVariantResponse(colorVariant);
     }
 
     @Transactional
-    public FeltColorVariantDto createFeltColorVariant(CreateFeltColorVariantDto request) {
-        FeltVariant variant = findFeltVariantOrThrow(request.feltVariantId());
+    public FeltColorVariantDto createFeltColorVariant(Long feltId, Long variantId, CreateFeltColorVariantDto request) {
+        FeltVariant variant = findFeltVariantOrThrow(variantId);
+        validateVariantBelongsToFelt(variant, feltId);
         FeltColorVariant colorVariant = new FeltColorVariant(variant, request.color());
         colorVariant.setSupplierColor(request.supplierColor());
         return toFeltColorVariantResponse(feltColorVariantRepository.save(colorVariant));
     }
 
     @Transactional
-    public FeltColorVariantDto updateFeltColorVariant(Long id, UpdateFeltColorVariantDto request) {
+    public FeltColorVariantDto updateFeltColorVariant(Long id, Long feltId, Long variantId, UpdateFeltColorVariantDto request) {
         FeltColorVariant colorVariant = findFeltColorVariantOrThrow(id);
+        validateColorVariantBelongsToVariant(colorVariant, feltId, variantId);
         if (request.color() != null) {
             colorVariant.setColor(request.color());
         }
@@ -217,11 +232,17 @@ public class FeltService {
     }
 
     @Transactional
-    public void deleteFeltColorVariant(Long id) {
-        if (!feltColorVariantRepository.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "FeltColorVariant not found: " + id);
-        }
+    public void deleteFeltColorVariant(Long id, Long feltId, Long variantId) {
+        FeltColorVariant colorVariant = findFeltColorVariantOrThrow(id);
+        validateColorVariantBelongsToVariant(colorVariant, feltId, variantId);
         feltColorVariantRepository.deleteById(id);
+    }
+
+    private void validateColorVariantBelongsToVariant(FeltColorVariant colorVariant, Long feltId, Long variantId) {
+        FeltVariant variant = colorVariant.getFeltVariant();
+        if (!variant.getId().equals(variantId) || !variant.getFelt().getId().equals(feltId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "FeltColorVariant not found: " + colorVariant.getId());
+        }
     }
     // endregion
 

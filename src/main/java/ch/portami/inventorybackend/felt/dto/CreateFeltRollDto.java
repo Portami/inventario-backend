@@ -4,7 +4,6 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
 public record CreateFeltRollDto(
-    @NotNull Long feltColorVariantId,
     @NotNull @Positive Double length,
     @NotNull @Positive Double width,
     Long batchId,

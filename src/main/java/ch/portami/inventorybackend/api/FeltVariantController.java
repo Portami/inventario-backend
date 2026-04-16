@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/felt-variants")
+@RequestMapping("/api/felts/{feltId}/variants")
 public class FeltVariantController {
 
     private final FeltService feltService;
@@ -28,32 +28,36 @@ public class FeltVariantController {
     }
 
     @GetMapping
-    public List<FeltVariantDto> getAllFeltVariants() {
-        return feltService.getAllFeltVariants();
+    public List<FeltVariantDto> getAllFeltVariants(@PathVariable Long feltId) {
+        return feltService.getFeltVariantsByFelt(feltId);
     }
 
     @GetMapping("/{id}")
-    public FeltVariantDto getFeltVariant(@PathVariable Long id) {
-        return feltService.getFeltVariantById(id);
+    public FeltVariantDto getFeltVariant(@PathVariable Long feltId, @PathVariable Long id) {
+        return feltService.getFeltVariantById(id, feltId);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public FeltVariantDto createFeltVariant(@Valid @RequestBody CreateFeltVariantDto request) {
-        return feltService.createFeltVariant(request);
+    public FeltVariantDto createFeltVariant(
+        @PathVariable Long feltId,
+        @Valid @RequestBody CreateFeltVariantDto request
+    ) {
+        return feltService.createFeltVariant(feltId, request);
     }
 
     @PutMapping("/{id}")
     public FeltVariantDto updateFeltVariant(
+        @PathVariable Long feltId,
         @PathVariable Long id,
         @Valid @RequestBody UpdateFeltVariantDto request
     ) {
-        return feltService.updateFeltVariant(id, request);
+        return feltService.updateFeltVariant(id, feltId, request);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteFeltVariant(@PathVariable Long id) {
-        feltService.deleteFeltVariant(id);
+    public void deleteFeltVariant(@PathVariable Long feltId, @PathVariable Long id) {
+        feltService.deleteFeltVariant(id, feltId);
     }
 }

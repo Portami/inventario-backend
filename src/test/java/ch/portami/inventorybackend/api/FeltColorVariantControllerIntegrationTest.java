@@ -50,7 +50,6 @@ class FeltColorVariantControllerIntegrationTest {
             .withUsername("test")
             .withPassword("test");
 
-    private static final String BASE_URI = "/api/felt-color-variants";
     private static final ParameterizedTypeReference<List<FeltColorVariantDto>> COLOR_VARIANT_LIST =
             new ParameterizedTypeReference<>() {};
 
@@ -61,8 +60,12 @@ class FeltColorVariantControllerIntegrationTest {
     @Autowired private FeltTypeRepository feltTypeRepository;
     @Autowired private SupplierRepository supplierRepository;
 
-    private Long feltVariantId;
     private Long feltId;
+    private Long variantId;
+
+    private String baseUri() {
+        return "/api/felts/" + feltId + "/variants/" + variantId + "/color-variants";
+    }
 
     @BeforeAll
     void setupHierarchy() {
@@ -70,7 +73,7 @@ class FeltColorVariantControllerIntegrationTest {
         Supplier supplier = supplierRepository.save(new Supplier("Supplier A"));
         Felt felt = feltRepository.save(new Felt(feltType, supplier, "ART-001"));
         feltId = felt.getId();
-        feltVariantId = feltVariantRepository.save(new FeltVariant(felt, 5.0, 300.0, new BigDecimal("12.99"))).getId();
+        variantId = feltVariantRepository.save(new FeltVariant(felt, 5.0, 300.0, new BigDecimal("12.99"))).getId();
     }
 
     @BeforeEach
@@ -79,11 +82,11 @@ class FeltColorVariantControllerIntegrationTest {
     }
 
     private CreateFeltColorVariantDto validRequest() {
-        return new CreateFeltColorVariantDto(feltVariantId, "Red", "R-001");
+        return new CreateFeltColorVariantDto("Red", "R-001");
     }
 
     private Long createColorVariantAndGetId(CreateFeltColorVariantDto request) {
-        FeltColorVariantDto body = restTestClient.post().uri(BASE_URI)
+        FeltColorVariantDto body = restTestClient.post().uri(baseUri())
                                                  .contentType(MediaType.APPLICATION_JSON)
                                                  .body(request)
                                                  .exchange()
@@ -101,13 +104,13 @@ class FeltColorVariantControllerIntegrationTest {
     }
 
     @Nested
-    @DisplayName("GET /api/felt-color-variants")
+    @DisplayName("GET /api/felts/{feltId}/variants/{variantId}/color-variants")
     class GetAllFeltColorVariants {
 
         @Test
         @DisplayName("returns empty list when no color variants exist")
         void returnsEmptyList() {
-            restTestClient.get().uri(BASE_URI)
+            restTestClient.get().uri(baseUri())
                     .exchange()
                     .expectStatus().isOk()
                     .expectBody(COLOR_VARIANT_LIST)
@@ -115,27 +118,40 @@ class FeltColorVariantControllerIntegrationTest {
         }
 
         @Test
-        @DisplayName("returns all color variants")
+        @DisplayName("returns all color variants for the variant")
         void returnsAllColorVariants() {
             createColorVariant(validRequest());
-            createColorVariant(new CreateFeltColorVariantDto(feltVariantId, "Blue", "B-001"));
+            createColorVariant(new CreateFeltColorVariantDto("Blue", "B-001"));
 
-            restTestClient.get().uri(BASE_URI)
+            restTestClient.get().uri(baseUri())
                     .exchange()
                     .expectStatus().isOk()
                     .expectBody(COLOR_VARIANT_LIST)
                     .value(colorVariants -> assertThat(colorVariants).hasSize(2));
         }
+
+        @Test
+        @DisplayName("returns 404 when variant does not exist")
+        void returns404ForUnknownVariant() {
+            restTestClient.get().uri("/api/felts/" + feltId + "/variants/9999/color-variants")
+                    .exchange()
+                    .expectStatus().isNotFound()
+                    .expectBody(ErrorResponse.class)
+                    .value(err -> {
+                        assertThat(err.status()).isEqualTo(HttpStatus.NOT_FOUND.value());
+                        assertThat(err.message()).contains("9999");
+                    });
+        }
     }
 
     @Nested
-    @DisplayName("POST /api/felt-color-variants")
+    @DisplayName("POST /api/felts/{feltId}/variants/{variantId}/color-variants")
     class CreateFeltColorVariant {
 
         @Test
         @DisplayName("creates color variant and returns 201 with full body")
         void createsColorVariant() {
-            restTestClient.post().uri(BASE_URI)
+            restTestClient.post().uri(baseUri())
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(validRequest())
                     .exchange()
@@ -145,7 +161,7 @@ class FeltColorVariantControllerIntegrationTest {
                         assertThat(cv.id()).isGreaterThan(0);
                         assertThat(cv.color()).isEqualTo("Red");
                         assertThat(cv.supplierColor()).isEqualTo("R-001");
-                        assertThat(cv.feltVariantId()).isEqualTo(feltVariantId);
+                        assertThat(cv.feltVariantId()).isEqualTo(variantId);
                         assertThat(cv.feltId()).isEqualTo(feltId);
                         assertThat(cv.articleNumber()).isEqualTo("ART-001");
                         assertThat(cv.feltTypeName()).isEqualTo("Wool");
@@ -154,28 +170,11 @@ class FeltColorVariantControllerIntegrationTest {
         }
 
         @Test
-        @DisplayName("returns 400 when feltVariantId is missing")
-        void rejectsMissingFeltVariantId() {
-            var invalid = new CreateFeltColorVariantDto(null, "Red", "R-001");
-
-            restTestClient.post().uri(BASE_URI)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(invalid)
-                    .exchange()
-                    .expectStatus().isBadRequest()
-                    .expectBody(ErrorResponse.class)
-                    .value(err -> {
-                        assertThat(err.status()).isEqualTo(HttpStatus.BAD_REQUEST.value());
-                        assertThat(err.message()).contains("feltVariantId");
-                    });
-        }
-
-        @Test
         @DisplayName("returns 400 when color is blank")
         void rejectsBlankColor() {
-            var invalid = new CreateFeltColorVariantDto(feltVariantId, "", "R-001");
+            var invalid = new CreateFeltColorVariantDto("", "R-001");
 
-            restTestClient.post().uri(BASE_URI)
+            restTestClient.post().uri(baseUri())
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(invalid)
                     .exchange()
@@ -187,9 +186,9 @@ class FeltColorVariantControllerIntegrationTest {
         @Test
         @DisplayName("returns 400 when supplierColor is blank")
         void rejectsBlankSupplierColor() {
-            var invalid = new CreateFeltColorVariantDto(feltVariantId, "Red", "");
+            var invalid = new CreateFeltColorVariantDto("Red", "");
 
-            restTestClient.post().uri(BASE_URI)
+            restTestClient.post().uri(baseUri())
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(invalid)
                     .exchange()
@@ -199,13 +198,11 @@ class FeltColorVariantControllerIntegrationTest {
         }
 
         @Test
-        @DisplayName("returns 404 when feltVariantId does not exist")
-        void returns404ForUnknownFeltVariant() {
-            var invalid = new CreateFeltColorVariantDto(9999L, "Red", "R-001");
-
-            restTestClient.post().uri(BASE_URI)
+        @DisplayName("returns 404 when variant does not exist")
+        void returns404ForUnknownVariant() {
+            restTestClient.post().uri("/api/felts/" + feltId + "/variants/9999/color-variants")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .body(invalid)
+                    .body(validRequest())
                     .exchange()
                     .expectStatus().isNotFound()
                     .expectBody(ErrorResponse.class)
@@ -217,7 +214,7 @@ class FeltColorVariantControllerIntegrationTest {
     }
 
     @Nested
-    @DisplayName("GET /api/felt-color-variants/{id}")
+    @DisplayName("GET /api/felts/{feltId}/variants/{variantId}/color-variants/{id}")
     class GetFeltColorVariantById {
 
         @Test
@@ -225,21 +222,21 @@ class FeltColorVariantControllerIntegrationTest {
         void returnsExistingColorVariant() {
             Long id = createColorVariantAndGetId(validRequest());
 
-            restTestClient.get().uri(BASE_URI + "/{id}", id)
+            restTestClient.get().uri(baseUri() + "/{id}", id)
                     .exchange()
                     .expectStatus().isOk()
                     .expectBody(FeltColorVariantDto.class)
                     .value(cv -> {
                         assertThat(cv.id()).isEqualTo(id);
                         assertThat(cv.color()).isEqualTo("Red");
-                        assertThat(cv.feltVariantId()).isEqualTo(feltVariantId);
+                        assertThat(cv.feltVariantId()).isEqualTo(variantId);
                     });
         }
 
         @Test
         @DisplayName("returns 404 when color variant does not exist")
         void returns404ForMissingColorVariant() {
-            restTestClient.get().uri(BASE_URI + "/{id}", 9999)
+            restTestClient.get().uri(baseUri() + "/{id}", 9999)
                     .exchange()
                     .expectStatus().isNotFound()
                     .expectBody(ErrorResponse.class)
@@ -251,7 +248,7 @@ class FeltColorVariantControllerIntegrationTest {
     }
 
     @Nested
-    @DisplayName("PUT /api/felt-color-variants/{id}")
+    @DisplayName("PUT /api/felts/{feltId}/variants/{variantId}/color-variants/{id}")
     class UpdateFeltColorVariant {
 
         @Test
@@ -260,7 +257,7 @@ class FeltColorVariantControllerIntegrationTest {
             Long id = createColorVariantAndGetId(validRequest());
             var update = new UpdateFeltColorVariantDto("Green", "G-001");
 
-            restTestClient.put().uri(BASE_URI + "/{id}", id)
+            restTestClient.put().uri(baseUri() + "/{id}", id)
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(update)
                     .exchange()
@@ -279,7 +276,7 @@ class FeltColorVariantControllerIntegrationTest {
             Long id = createColorVariantAndGetId(validRequest());
             var update = new UpdateFeltColorVariantDto("Green", null);
 
-            restTestClient.put().uri(BASE_URI + "/{id}", id)
+            restTestClient.put().uri(baseUri() + "/{id}", id)
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(update)
                     .exchange()
@@ -294,7 +291,7 @@ class FeltColorVariantControllerIntegrationTest {
         @Test
         @DisplayName("returns 404 when color variant does not exist")
         void returns404ForMissingColorVariant() {
-            restTestClient.put().uri(BASE_URI + "/{id}", 9999)
+            restTestClient.put().uri(baseUri() + "/{id}", 9999)
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(new UpdateFeltColorVariantDto("Green", null))
                     .exchange()
@@ -305,7 +302,7 @@ class FeltColorVariantControllerIntegrationTest {
     }
 
     @Nested
-    @DisplayName("DELETE /api/felt-color-variants/{id}")
+    @DisplayName("DELETE /api/felts/{feltId}/variants/{variantId}/color-variants/{id}")
     class DeleteFeltColorVariant {
 
         @Test
@@ -313,11 +310,11 @@ class FeltColorVariantControllerIntegrationTest {
         void deletesExistingColorVariant() {
             Long id = createColorVariantAndGetId(validRequest());
 
-            restTestClient.delete().uri(BASE_URI + "/{id}", id)
+            restTestClient.delete().uri(baseUri() + "/{id}", id)
                     .exchange()
                     .expectStatus().isNoContent();
 
-            restTestClient.get().uri(BASE_URI + "/{id}", id)
+            restTestClient.get().uri(baseUri() + "/{id}", id)
                     .exchange()
                     .expectStatus().isNotFound();
         }
@@ -325,7 +322,7 @@ class FeltColorVariantControllerIntegrationTest {
         @Test
         @DisplayName("returns 404 when color variant does not exist")
         void returns404ForMissingColorVariant() {
-            restTestClient.delete().uri(BASE_URI + "/{id}", 9999)
+            restTestClient.delete().uri(baseUri() + "/{id}", 9999)
                     .exchange()
                     .expectStatus().isNotFound()
                     .expectBody(ErrorResponse.class)

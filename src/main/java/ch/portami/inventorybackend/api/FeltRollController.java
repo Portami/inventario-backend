@@ -18,42 +18,64 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/felt-rolls")
+@RequestMapping("/api/felts/{feltId}/variants/{variantId}/color-variants/{colorVariantId}/rolls")
 public class FeltRollController {
 
-    private final FeltRollService feltService;
+    private final FeltRollService feltRollService;
 
-    public FeltRollController(FeltRollService feltService) {
-        this.feltService = feltService;
+    public FeltRollController(FeltRollService feltRollService) {
+        this.feltRollService = feltRollService;
     }
 
     @GetMapping
-    public List<FeltRollDto> getAllFeltRolls() {
-        return feltService.getAllFeltRolls();
+    public List<FeltRollDto> getAllFeltRolls(
+        @PathVariable Long feltId,
+        @PathVariable Long variantId,
+        @PathVariable Long colorVariantId
+    ) {
+        return feltRollService.getFeltRollsByColorVariant(feltId, variantId, colorVariantId);
     }
 
     @GetMapping("/{id}")
-    public FeltRollDto getFeltRoll(@PathVariable Long id) {
-        return feltService.getFeltRollById(id);
+    public FeltRollDto getFeltRoll(
+        @PathVariable Long feltId,
+        @PathVariable Long variantId,
+        @PathVariable Long colorVariantId,
+        @PathVariable Long id
+    ) {
+        return feltRollService.getFeltRollById(id, feltId, variantId, colorVariantId);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public FeltRollDto createFeltRoll(@Valid @RequestBody CreateFeltRollDto request) {
-        return feltService.createFeltRoll(request);
+    public FeltRollDto createFeltRoll(
+        @PathVariable Long feltId,
+        @PathVariable Long variantId,
+        @PathVariable Long colorVariantId,
+        @Valid @RequestBody CreateFeltRollDto request
+    ) {
+        return feltRollService.createFeltRoll(feltId, variantId, colorVariantId, request);
     }
 
     @PutMapping("/{id}")
     public FeltRollDto updateFeltRoll(
+        @PathVariable Long feltId,
+        @PathVariable Long variantId,
+        @PathVariable Long colorVariantId,
         @PathVariable Long id,
         @Valid @RequestBody UpdateFeltRollDto request
     ) {
-        return feltService.updateFeltRoll(id, request);
+        return feltRollService.updateFeltRoll(id, feltId, variantId, colorVariantId, request);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteFeltRoll(@PathVariable Long id) {
-        feltService.deleteFeltRoll(id);
+    public void deleteFeltRoll(
+        @PathVariable Long feltId,
+        @PathVariable Long variantId,
+        @PathVariable Long colorVariantId,
+        @PathVariable Long id
+    ) {
+        feltRollService.deleteFeltRoll(id, feltId, variantId, colorVariantId);
     }
 }

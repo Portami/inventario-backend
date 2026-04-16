@@ -56,51 +56,45 @@ class FeltRollControllerIntegrationTest {
         .withUsername("test")
         .withPassword("test");
 
-    private static final String BASE_URI = "/api/felt-rolls";
     private static final ParameterizedTypeReference<List<FeltRollDto>> ROLL_LIST =
-        new ParameterizedTypeReference<>() {
-        };
+        new ParameterizedTypeReference<>() {};
 
-    @Autowired
-    private RestTestClient restTestClient;
-    @Autowired
-    private FeltRollRepository feltRollRepository;
-    @Autowired
-    private FeltColorVariantRepository feltColorVariantRepository;
-    @Autowired
-    private FeltVariantRepository feltVariantRepository;
-    @Autowired
-    private FeltRepository feltRepository;
-    @Autowired
-    private FeltTypeRepository feltTypeRepository;
-    @Autowired
-    private SupplierRepository supplierRepository;
-    @Autowired
-    private BatchRepository batchRepository;
-    @Autowired
-    private StorageRepository storageRepository;
+    @Autowired private RestTestClient restTestClient;
+    @Autowired private FeltRollRepository feltRollRepository;
+    @Autowired private FeltColorVariantRepository feltColorVariantRepository;
+    @Autowired private FeltVariantRepository feltVariantRepository;
+    @Autowired private FeltRepository feltRepository;
+    @Autowired private FeltTypeRepository feltTypeRepository;
+    @Autowired private SupplierRepository supplierRepository;
+    @Autowired private BatchRepository batchRepository;
+    @Autowired private StorageRepository storageRepository;
 
+    private Long feltId;
+    private Long variantId;
     private Long colorVariantId;
     private Long batchId;
     private Long storageId;
+
+    private String baseUri() {
+        return "/api/felts/" + feltId + "/variants/" + variantId + "/color-variants/" + colorVariantId + "/rolls";
+    }
 
     @BeforeAll
     void setupHierarchy() {
         FeltType feltType = feltTypeRepository.save(new FeltType("Wool"));
         Supplier supplier = supplierRepository.save(new Supplier("Supplier A"));
         Felt felt = feltRepository.save(new Felt(feltType, supplier, "ART-001"));
+        feltId = felt.getId();
         FeltVariant variant = feltVariantRepository.save(
             new FeltVariant(felt, 5.0, 300.0, new BigDecimal("12.99")));
+        variantId = variant.getId();
 
         FeltColorVariant colorVariant = new FeltColorVariant(variant, "Red");
         colorVariant.setSupplierColor("R001");
-        colorVariantId = feltColorVariantRepository.save(colorVariant)
-                                                   .getId();
+        colorVariantId = feltColorVariantRepository.save(colorVariant).getId();
 
-        batchId = batchRepository.save(new Batch("Batch-1"))
-                                 .getId();
-        storageId = storageRepository.save(new Storage("Shelf A"))
-                                     .getId();
+        batchId = batchRepository.save(new Batch("Batch-1")).getId();
+        storageId = storageRepository.save(new Storage("Shelf A")).getId();
     }
 
     @BeforeEach
@@ -109,17 +103,16 @@ class FeltRollControllerIntegrationTest {
     }
 
     private CreateFeltRollDto validRequest() {
-        return new CreateFeltRollDto(colorVariantId, 100.0, 200.0, null, null);
+        return new CreateFeltRollDto(100.0, 200.0, null, null);
     }
 
     private Long createRollAndGetId(CreateFeltRollDto request) {
         FeltRollDto body = restTestClient.post()
-                                         .uri(BASE_URI)
+                                         .uri(baseUri())
                                          .contentType(MediaType.APPLICATION_JSON)
                                          .body(request)
                                          .exchange()
-                                         .expectStatus()
-                                         .isCreated()
+                                         .expectStatus().isCreated()
                                          .expectBody(FeltRollDto.class)
                                          .returnResult()
                                          .getResponseBody();
@@ -133,51 +126,59 @@ class FeltRollControllerIntegrationTest {
     }
 
     @Nested
-    @DisplayName("GET /api/felt-rolls")
+    @DisplayName("GET /api/felts/{feltId}/variants/{variantId}/color-variants/{colorVariantId}/rolls")
     class GetAllFeltRolls {
 
         @Test
         @DisplayName("returns empty list when no rolls exist")
         void returnsEmptyList() {
-            restTestClient.get()
-                          .uri(BASE_URI)
+            restTestClient.get().uri(baseUri())
                           .exchange()
-                          .expectStatus()
-                          .isOk()
+                          .expectStatus().isOk()
                           .expectBody(ROLL_LIST)
                           .value(rolls -> assertThat(rolls).isEmpty());
         }
 
         @Test
-        @DisplayName("returns all rolls")
+        @DisplayName("returns all rolls for the color variant")
         void returnsAllRolls() {
             createRoll(validRequest());
-            createRoll(new CreateFeltRollDto(colorVariantId, 50.0, 75.0, null, null));
+            createRoll(new CreateFeltRollDto(50.0, 75.0, null, null));
 
-            restTestClient.get()
-                          .uri(BASE_URI)
+            restTestClient.get().uri(baseUri())
                           .exchange()
-                          .expectStatus()
-                          .isOk()
+                          .expectStatus().isOk()
                           .expectBody(ROLL_LIST)
                           .value(rolls -> assertThat(rolls).hasSize(2));
+        }
+
+        @Test
+        @DisplayName("returns 404 when color variant does not exist")
+        void returns404ForUnknownColorVariant() {
+            restTestClient.get()
+                          .uri("/api/felts/" + feltId + "/variants/" + variantId + "/color-variants/9999/rolls")
+                          .exchange()
+                          .expectStatus().isNotFound()
+                          .expectBody(ErrorResponse.class)
+                          .value(err -> {
+                              assertThat(err.status()).isEqualTo(HttpStatus.NOT_FOUND.value());
+                              assertThat(err.message()).contains("9999");
+                          });
         }
     }
 
     @Nested
-    @DisplayName("POST /api/felt-rolls")
+    @DisplayName("POST /api/felts/{feltId}/variants/{variantId}/color-variants/{colorVariantId}/rolls")
     class CreateFeltRoll {
 
         @Test
         @DisplayName("creates roll and returns 201 with full body")
         void createsRoll() {
-            restTestClient.post()
-                          .uri(BASE_URI)
+            restTestClient.post().uri(baseUri())
                           .contentType(MediaType.APPLICATION_JSON)
                           .body(validRequest())
                           .exchange()
-                          .expectStatus()
-                          .isCreated()
+                          .expectStatus().isCreated()
                           .expectBody(FeltRollDto.class)
                           .value(roll -> {
                               assertThat(roll.id()).isGreaterThan(0);
@@ -195,15 +196,13 @@ class FeltRollControllerIntegrationTest {
         @Test
         @DisplayName("creates roll with optional batch and storage")
         void createsRollWithBatchAndStorage() {
-            var request = new CreateFeltRollDto(colorVariantId, 100.0, 200.0, batchId, storageId);
+            var request = new CreateFeltRollDto(100.0, 200.0, batchId, storageId);
 
-            restTestClient.post()
-                          .uri(BASE_URI)
+            restTestClient.post().uri(baseUri())
                           .contentType(MediaType.APPLICATION_JSON)
                           .body(request)
                           .exchange()
-                          .expectStatus()
-                          .isCreated()
+                          .expectStatus().isCreated()
                           .expectBody(FeltRollDto.class)
                           .value(roll -> {
                               assertThat(roll.batchId()).isEqualTo(batchId);
@@ -214,36 +213,15 @@ class FeltRollControllerIntegrationTest {
         }
 
         @Test
-        @DisplayName("returns 400 when feltColorVariantId is missing")
-        void rejectsMissingColorVariantId() {
-            var invalid = new CreateFeltRollDto(null, 100.0, 200.0, null, null);
-
-            restTestClient.post()
-                          .uri(BASE_URI)
-                          .contentType(MediaType.APPLICATION_JSON)
-                          .body(invalid)
-                          .exchange()
-                          .expectStatus()
-                          .isBadRequest()
-                          .expectBody(ErrorResponse.class)
-                          .value(err -> {
-                              assertThat(err.status()).isEqualTo(HttpStatus.BAD_REQUEST.value());
-                              assertThat(err.message()).contains("feltColorVariantId");
-                          });
-        }
-
-        @Test
         @DisplayName("returns 400 when length is missing")
         void rejectsMissingLength() {
-            var invalid = new CreateFeltRollDto(colorVariantId, null, 200.0, null, null);
+            var invalid = new CreateFeltRollDto(null, 200.0, null, null);
 
-            restTestClient.post()
-                          .uri(BASE_URI)
+            restTestClient.post().uri(baseUri())
                           .contentType(MediaType.APPLICATION_JSON)
                           .body(invalid)
                           .exchange()
-                          .expectStatus()
-                          .isBadRequest()
+                          .expectStatus().isBadRequest()
                           .expectBody(ErrorResponse.class)
                           .value(err -> assertThat(err.message()).contains("length"));
         }
@@ -251,15 +229,13 @@ class FeltRollControllerIntegrationTest {
         @Test
         @DisplayName("returns 400 when width is missing")
         void rejectsMissingWidth() {
-            var invalid = new CreateFeltRollDto(colorVariantId, 100.0, null, null, null);
+            var invalid = new CreateFeltRollDto(100.0, null, null, null);
 
-            restTestClient.post()
-                          .uri(BASE_URI)
+            restTestClient.post().uri(baseUri())
                           .contentType(MediaType.APPLICATION_JSON)
                           .body(invalid)
                           .exchange()
-                          .expectStatus()
-                          .isBadRequest()
+                          .expectStatus().isBadRequest()
                           .expectBody(ErrorResponse.class)
                           .value(err -> assertThat(err.message()).contains("width"));
         }
@@ -267,31 +243,26 @@ class FeltRollControllerIntegrationTest {
         @Test
         @DisplayName("returns 400 when length is not positive")
         void rejectsNonPositiveLength() {
-            var invalid = new CreateFeltRollDto(colorVariantId, -1.0, 200.0, null, null);
+            var invalid = new CreateFeltRollDto(-1.0, 200.0, null, null);
 
-            restTestClient.post()
-                          .uri(BASE_URI)
+            restTestClient.post().uri(baseUri())
                           .contentType(MediaType.APPLICATION_JSON)
                           .body(invalid)
                           .exchange()
-                          .expectStatus()
-                          .isBadRequest()
+                          .expectStatus().isBadRequest()
                           .expectBody(ErrorResponse.class)
                           .value(err -> assertThat(err.message()).contains("length"));
         }
 
         @Test
-        @DisplayName("returns 404 when feltColorVariantId does not exist")
+        @DisplayName("returns 404 when color variant does not exist")
         void returns404ForUnknownColorVariant() {
-            var invalid = new CreateFeltRollDto(9999L, 100.0, 200.0, null, null);
-
             restTestClient.post()
-                          .uri(BASE_URI)
+                          .uri("/api/felts/" + feltId + "/variants/" + variantId + "/color-variants/9999/rolls")
                           .contentType(MediaType.APPLICATION_JSON)
-                          .body(invalid)
+                          .body(validRequest())
                           .exchange()
-                          .expectStatus()
-                          .isNotFound()
+                          .expectStatus().isNotFound()
                           .expectBody(ErrorResponse.class)
                           .value(err -> {
                               assertThat(err.status()).isEqualTo(HttpStatus.NOT_FOUND.value());
@@ -301,7 +272,7 @@ class FeltRollControllerIntegrationTest {
     }
 
     @Nested
-    @DisplayName("GET /api/felt-rolls/{id}")
+    @DisplayName("GET /api/felts/{feltId}/variants/{variantId}/color-variants/{colorVariantId}/rolls/{id}")
     class GetFeltRollById {
 
         @Test
@@ -309,11 +280,9 @@ class FeltRollControllerIntegrationTest {
         void returnsExistingRoll() {
             Long id = createRollAndGetId(validRequest());
 
-            restTestClient.get()
-                          .uri(BASE_URI + "/{id}", id)
+            restTestClient.get().uri(baseUri() + "/{id}", id)
                           .exchange()
-                          .expectStatus()
-                          .isOk()
+                          .expectStatus().isOk()
                           .expectBody(FeltRollDto.class)
                           .value(roll -> {
                               assertThat(roll.id()).isEqualTo(id);
@@ -324,11 +293,9 @@ class FeltRollControllerIntegrationTest {
         @Test
         @DisplayName("returns 404 when roll does not exist")
         void returns404ForMissingRoll() {
-            restTestClient.get()
-                          .uri(BASE_URI + "/{id}", 9999)
+            restTestClient.get().uri(baseUri() + "/{id}", 9999)
                           .exchange()
-                          .expectStatus()
-                          .isNotFound()
+                          .expectStatus().isNotFound()
                           .expectBody(ErrorResponse.class)
                           .value(err -> {
                               assertThat(err.status()).isEqualTo(HttpStatus.NOT_FOUND.value());
@@ -338,7 +305,7 @@ class FeltRollControllerIntegrationTest {
     }
 
     @Nested
-    @DisplayName("PUT /api/felt-rolls/{id}")
+    @DisplayName("PUT /api/felts/{feltId}/variants/{variantId}/color-variants/{colorVariantId}/rolls/{id}")
     class UpdateFeltRoll {
 
         @Test
@@ -347,13 +314,11 @@ class FeltRollControllerIntegrationTest {
             Long id = createRollAndGetId(validRequest());
             var update = new UpdateFeltRollDto(75.0, 125.0, null, null);
 
-            restTestClient.put()
-                          .uri(BASE_URI + "/{id}", id)
+            restTestClient.put().uri(baseUri() + "/{id}", id)
                           .contentType(MediaType.APPLICATION_JSON)
                           .body(update)
                           .exchange()
-                          .expectStatus()
-                          .isOk()
+                          .expectStatus().isOk()
                           .expectBody(FeltRollDto.class)
                           .value(roll -> {
                               assertThat(roll.id()).isEqualTo(id);
@@ -368,13 +333,11 @@ class FeltRollControllerIntegrationTest {
             Long id = createRollAndGetId(validRequest());
             var update = new UpdateFeltRollDto(null, null, batchId, storageId);
 
-            restTestClient.put()
-                          .uri(BASE_URI + "/{id}", id)
+            restTestClient.put().uri(baseUri() + "/{id}", id)
                           .contentType(MediaType.APPLICATION_JSON)
                           .body(update)
                           .exchange()
-                          .expectStatus()
-                          .isOk()
+                          .expectStatus().isOk()
                           .expectBody(FeltRollDto.class)
                           .value(roll -> {
                               assertThat(roll.batchId()).isEqualTo(batchId);
@@ -385,17 +348,14 @@ class FeltRollControllerIntegrationTest {
         @Test
         @DisplayName("clears batch and storage when ids are null")
         void clearsBatchAndStorage() {
-            Long id = createRollAndGetId(
-                new CreateFeltRollDto(colorVariantId, 100.0, 200.0, batchId, storageId));
+            Long id = createRollAndGetId(new CreateFeltRollDto(100.0, 200.0, batchId, storageId));
             var update = new UpdateFeltRollDto(null, null, null, null);
 
-            restTestClient.put()
-                          .uri(BASE_URI + "/{id}", id)
+            restTestClient.put().uri(baseUri() + "/{id}", id)
                           .contentType(MediaType.APPLICATION_JSON)
                           .body(update)
                           .exchange()
-                          .expectStatus()
-                          .isOk()
+                          .expectStatus().isOk()
                           .expectBody(FeltRollDto.class)
                           .value(roll -> {
                               assertThat(roll.batchId()).isNull();
@@ -408,20 +368,18 @@ class FeltRollControllerIntegrationTest {
         void returns404ForMissingRoll() {
             var update = new UpdateFeltRollDto(100.0, 200.0, null, null);
 
-            restTestClient.put()
-                          .uri(BASE_URI + "/{id}", 9999)
+            restTestClient.put().uri(baseUri() + "/{id}", 9999)
                           .contentType(MediaType.APPLICATION_JSON)
                           .body(update)
                           .exchange()
-                          .expectStatus()
-                          .isNotFound()
+                          .expectStatus().isNotFound()
                           .expectBody(ErrorResponse.class)
                           .value(err -> assertThat(err.status()).isEqualTo(HttpStatus.NOT_FOUND.value()));
         }
     }
 
     @Nested
-    @DisplayName("DELETE /api/felt-rolls/{id}")
+    @DisplayName("DELETE /api/felts/{feltId}/variants/{variantId}/color-variants/{colorVariantId}/rolls/{id}")
     class DeleteFeltRoll {
 
         @Test
@@ -429,27 +387,21 @@ class FeltRollControllerIntegrationTest {
         void deletesExistingRoll() {
             Long id = createRollAndGetId(validRequest());
 
-            restTestClient.delete()
-                          .uri(BASE_URI + "/{id}", id)
+            restTestClient.delete().uri(baseUri() + "/{id}", id)
                           .exchange()
-                          .expectStatus()
-                          .isNoContent();
+                          .expectStatus().isNoContent();
 
-            restTestClient.get()
-                          .uri(BASE_URI + "/{id}", id)
+            restTestClient.get().uri(baseUri() + "/{id}", id)
                           .exchange()
-                          .expectStatus()
-                          .isNotFound();
+                          .expectStatus().isNotFound();
         }
 
         @Test
         @DisplayName("returns 404 when roll does not exist")
         void returns404ForMissingRoll() {
-            restTestClient.delete()
-                          .uri(BASE_URI + "/{id}", 9999)
+            restTestClient.delete().uri(baseUri() + "/{id}", 9999)
                           .exchange()
-                          .expectStatus()
-                          .isNotFound()
+                          .expectStatus().isNotFound()
                           .expectBody(ErrorResponse.class)
                           .value(err -> {
                               assertThat(err.status()).isEqualTo(HttpStatus.NOT_FOUND.value());

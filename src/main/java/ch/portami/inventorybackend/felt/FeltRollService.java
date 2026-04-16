@@ -39,27 +39,27 @@ public class FeltRollService {
     }
 
     @Transactional(readOnly = true)
-    public List<FeltRollDto> getAllFeltRolls() {
+    public List<FeltRollDto> getFeltRollsByColorVariant(Long feltId, Long variantId, Long colorVariantId) {
+        FeltColorVariant colorVariant = findColorVariantOrThrow(colorVariantId);
+        validateColorVariantChain(colorVariant, feltId, variantId);
         return feltRollRepository
-            .findAll()
+            .findByFeltColorVariantId(colorVariantId)
             .stream()
             .map(this::toResponse)
             .toList();
     }
 
     @Transactional(readOnly = true)
-    public FeltRollDto getFeltRollById(Long id) {
-        return toResponse(findRollOrThrow(id));
+    public FeltRollDto getFeltRollById(Long id, Long feltId, Long variantId, Long colorVariantId) {
+        FeltRoll roll = findRollOrThrow(id);
+        validateRollBelongsToColorVariant(roll, feltId, variantId, colorVariantId);
+        return toResponse(roll);
     }
 
     @Transactional
-    public FeltRollDto createFeltRoll(CreateFeltRollDto request) {
-        FeltColorVariant colorVariant = feltColorVariantRepository
-            .findById(request.feltColorVariantId())
-            .orElseThrow(() ->
-                new ResponseStatusException(HttpStatus.NOT_FOUND,
-                    "FeltColorVariant not found: " + request.feltColorVariantId())
-            );
+    public FeltRollDto createFeltRoll(Long feltId, Long variantId, Long colorVariantId, CreateFeltRollDto request) {
+        FeltColorVariant colorVariant = findColorVariantOrThrow(colorVariantId);
+        validateColorVariantChain(colorVariant, feltId, variantId);
 
         Batch batch = null;
         if (request.batchId() != null) {
@@ -84,8 +84,9 @@ public class FeltRollService {
     }
 
     @Transactional
-    public FeltRollDto updateFeltRoll(Long id, UpdateFeltRollDto request) {
+    public FeltRollDto updateFeltRoll(Long id, Long feltId, Long variantId, Long colorVariantId, UpdateFeltRollDto request) {
         FeltRoll roll = findRollOrThrow(id);
+        validateRollBelongsToColorVariant(roll, feltId, variantId, colorVariantId);
 
         if (request.length() != null) {
             roll.setLength(request.length());
@@ -120,11 +121,34 @@ public class FeltRollService {
     }
 
     @Transactional
-    public void deleteFeltRoll(Long id) {
-        if (!feltRollRepository.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "FeltRoll not found: " + id);
-        }
+    public void deleteFeltRoll(Long id, Long feltId, Long variantId, Long colorVariantId) {
+        FeltRoll roll = findRollOrThrow(id);
+        validateRollBelongsToColorVariant(roll, feltId, variantId, colorVariantId);
         feltRollRepository.deleteById(id);
+    }
+
+    private void validateColorVariantChain(FeltColorVariant colorVariant, Long feltId, Long variantId) {
+        FeltVariant variant = colorVariant.getFeltVariant();
+        if (!variant.getId().equals(variantId) || !variant.getFelt().getId().equals(feltId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                "FeltColorVariant not found: " + colorVariant.getId());
+        }
+    }
+
+    private void validateRollBelongsToColorVariant(FeltRoll roll, Long feltId, Long variantId, Long colorVariantId) {
+        FeltColorVariant colorVariant = roll.getFeltColorVariant();
+        if (!colorVariant.getId().equals(colorVariantId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "FeltRoll not found: " + roll.getId());
+        }
+        validateColorVariantChain(colorVariant, feltId, variantId);
+    }
+
+    private FeltColorVariant findColorVariantOrThrow(Long id) {
+        return feltColorVariantRepository
+            .findById(id)
+            .orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "FeltColorVariant not found: " + id)
+            );
     }
 
     private FeltRoll findRollOrThrow(Long id) {
@@ -155,10 +179,8 @@ public class FeltRollService {
             feltVariant.getPrice(),
             felt.getId(),
             felt.getArticleNumber(),
-            felt.getFeltType()
-                .getName(),
-            felt.getSupplier()
-                .getName(),
+            felt.getFeltType().getName(),
+            felt.getSupplier().getName(),
             batch != null ? batch.getId() : null,
             batch != null ? batch.getName() : null,
             storage != null ? storage.getId() : null,

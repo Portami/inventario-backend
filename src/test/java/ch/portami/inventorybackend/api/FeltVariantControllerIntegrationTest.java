@@ -48,7 +48,6 @@ class FeltVariantControllerIntegrationTest {
             .withUsername("test")
             .withPassword("test");
 
-    private static final String BASE_URI = "/api/felt-variants";
     private static final ParameterizedTypeReference<List<FeltVariantDto>> VARIANT_LIST =
             new ParameterizedTypeReference<>() {};
 
@@ -59,6 +58,10 @@ class FeltVariantControllerIntegrationTest {
     @Autowired private SupplierRepository supplierRepository;
 
     private Long feltId;
+
+    private String baseUri() {
+        return "/api/felts/" + feltId + "/variants";
+    }
 
     @BeforeAll
     void setupHierarchy() {
@@ -73,11 +76,11 @@ class FeltVariantControllerIntegrationTest {
     }
 
     private CreateFeltVariantDto validRequest() {
-        return new CreateFeltVariantDto(feltId, 5.0, 300.0, new BigDecimal("12.99"));
+        return new CreateFeltVariantDto(5.0, 300.0, new BigDecimal("12.99"));
     }
 
     private Long createVariantAndGetId(CreateFeltVariantDto request) {
-        FeltVariantDto body = restTestClient.post().uri(BASE_URI)
+        FeltVariantDto body = restTestClient.post().uri(baseUri())
                                             .contentType(MediaType.APPLICATION_JSON)
                                             .body(request)
                                             .exchange()
@@ -95,13 +98,13 @@ class FeltVariantControllerIntegrationTest {
     }
 
     @Nested
-    @DisplayName("GET /api/felt-variants")
+    @DisplayName("GET /api/felts/{feltId}/variants")
     class GetAllFeltVariants {
 
         @Test
         @DisplayName("returns empty list when no variants exist")
         void returnsEmptyList() {
-            restTestClient.get().uri(BASE_URI)
+            restTestClient.get().uri(baseUri())
                     .exchange()
                     .expectStatus().isOk()
                     .expectBody(VARIANT_LIST)
@@ -109,27 +112,40 @@ class FeltVariantControllerIntegrationTest {
         }
 
         @Test
-        @DisplayName("returns all variants")
+        @DisplayName("returns all variants for the felt")
         void returnsAllVariants() {
             createVariant(validRequest());
-            createVariant(new CreateFeltVariantDto(feltId, 3.0, 200.0, new BigDecimal("8.50")));
+            createVariant(new CreateFeltVariantDto(3.0, 200.0, new BigDecimal("8.50")));
 
-            restTestClient.get().uri(BASE_URI)
+            restTestClient.get().uri(baseUri())
                     .exchange()
                     .expectStatus().isOk()
                     .expectBody(VARIANT_LIST)
                     .value(variants -> assertThat(variants).hasSize(2));
         }
+
+        @Test
+        @DisplayName("returns 404 when felt does not exist")
+        void returns404ForUnknownFelt() {
+            restTestClient.get().uri("/api/felts/9999/variants")
+                    .exchange()
+                    .expectStatus().isNotFound()
+                    .expectBody(ErrorResponse.class)
+                    .value(err -> {
+                        assertThat(err.status()).isEqualTo(HttpStatus.NOT_FOUND.value());
+                        assertThat(err.message()).contains("9999");
+                    });
+        }
     }
 
     @Nested
-    @DisplayName("POST /api/felt-variants")
+    @DisplayName("POST /api/felts/{feltId}/variants")
     class CreateFeltVariant {
 
         @Test
         @DisplayName("creates variant and returns 201 with full body")
         void createsVariant() {
-            restTestClient.post().uri(BASE_URI)
+            restTestClient.post().uri(baseUri())
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(validRequest())
                     .exchange()
@@ -148,28 +164,11 @@ class FeltVariantControllerIntegrationTest {
         }
 
         @Test
-        @DisplayName("returns 400 when feltId is missing")
-        void rejectsMissingFeltId() {
-            var invalid = new CreateFeltVariantDto(null, 5.0, 300.0, new BigDecimal("12.99"));
-
-            restTestClient.post().uri(BASE_URI)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(invalid)
-                    .exchange()
-                    .expectStatus().isBadRequest()
-                    .expectBody(ErrorResponse.class)
-                    .value(err -> {
-                        assertThat(err.status()).isEqualTo(HttpStatus.BAD_REQUEST.value());
-                        assertThat(err.message()).contains("feltId");
-                    });
-        }
-
-        @Test
         @DisplayName("returns 400 when thickness is missing")
         void rejectsMissingThickness() {
-            var invalid = new CreateFeltVariantDto(feltId, null, 300.0, new BigDecimal("12.99"));
+            var invalid = new CreateFeltVariantDto(null, 300.0, new BigDecimal("12.99"));
 
-            restTestClient.post().uri(BASE_URI)
+            restTestClient.post().uri(baseUri())
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(invalid)
                     .exchange()
@@ -181,9 +180,9 @@ class FeltVariantControllerIntegrationTest {
         @Test
         @DisplayName("returns 400 when density is missing")
         void rejectsMissingDensity() {
-            var invalid = new CreateFeltVariantDto(feltId, 5.0, null, new BigDecimal("12.99"));
+            var invalid = new CreateFeltVariantDto(5.0, null, new BigDecimal("12.99"));
 
-            restTestClient.post().uri(BASE_URI)
+            restTestClient.post().uri(baseUri())
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(invalid)
                     .exchange()
@@ -195,9 +194,9 @@ class FeltVariantControllerIntegrationTest {
         @Test
         @DisplayName("returns 400 when price is missing")
         void rejectsMissingPrice() {
-            var invalid = new CreateFeltVariantDto(feltId, 5.0, 300.0, null);
+            var invalid = new CreateFeltVariantDto(5.0, 300.0, null);
 
-            restTestClient.post().uri(BASE_URI)
+            restTestClient.post().uri(baseUri())
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(invalid)
                     .exchange()
@@ -209,9 +208,9 @@ class FeltVariantControllerIntegrationTest {
         @Test
         @DisplayName("returns 400 when thickness is not positive")
         void rejectsNonPositiveThickness() {
-            var invalid = new CreateFeltVariantDto(feltId, -1.0, 300.0, new BigDecimal("12.99"));
+            var invalid = new CreateFeltVariantDto(-1.0, 300.0, new BigDecimal("12.99"));
 
-            restTestClient.post().uri(BASE_URI)
+            restTestClient.post().uri(baseUri())
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(invalid)
                     .exchange()
@@ -221,13 +220,11 @@ class FeltVariantControllerIntegrationTest {
         }
 
         @Test
-        @DisplayName("returns 404 when feltId does not exist")
+        @DisplayName("returns 404 when felt does not exist")
         void returns404ForUnknownFelt() {
-            var invalid = new CreateFeltVariantDto(9999L, 5.0, 300.0, new BigDecimal("12.99"));
-
-            restTestClient.post().uri(BASE_URI)
+            restTestClient.post().uri("/api/felts/9999/variants")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .body(invalid)
+                    .body(validRequest())
                     .exchange()
                     .expectStatus().isNotFound()
                     .expectBody(ErrorResponse.class)
@@ -239,7 +236,7 @@ class FeltVariantControllerIntegrationTest {
     }
 
     @Nested
-    @DisplayName("GET /api/felt-variants/{id}")
+    @DisplayName("GET /api/felts/{feltId}/variants/{id}")
     class GetFeltVariantById {
 
         @Test
@@ -247,7 +244,7 @@ class FeltVariantControllerIntegrationTest {
         void returnsExistingVariant() {
             Long id = createVariantAndGetId(validRequest());
 
-            restTestClient.get().uri(BASE_URI + "/{id}", id)
+            restTestClient.get().uri(baseUri() + "/{id}", id)
                     .exchange()
                     .expectStatus().isOk()
                     .expectBody(FeltVariantDto.class)
@@ -261,7 +258,7 @@ class FeltVariantControllerIntegrationTest {
         @Test
         @DisplayName("returns 404 when variant does not exist")
         void returns404ForMissingVariant() {
-            restTestClient.get().uri(BASE_URI + "/{id}", 9999)
+            restTestClient.get().uri(baseUri() + "/{id}", 9999)
                     .exchange()
                     .expectStatus().isNotFound()
                     .expectBody(ErrorResponse.class)
@@ -273,7 +270,7 @@ class FeltVariantControllerIntegrationTest {
     }
 
     @Nested
-    @DisplayName("PUT /api/felt-variants/{id}")
+    @DisplayName("PUT /api/felts/{feltId}/variants/{id}")
     class UpdateFeltVariant {
 
         @Test
@@ -282,7 +279,7 @@ class FeltVariantControllerIntegrationTest {
             Long id = createVariantAndGetId(validRequest());
             var update = new UpdateFeltVariantDto(8.0, 400.0, new BigDecimal("19.99"));
 
-            restTestClient.put().uri(BASE_URI + "/{id}", id)
+            restTestClient.put().uri(baseUri() + "/{id}", id)
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(update)
                     .exchange()
@@ -302,7 +299,7 @@ class FeltVariantControllerIntegrationTest {
             Long id = createVariantAndGetId(validRequest());
             var update = new UpdateFeltVariantDto(8.0, null, null);
 
-            restTestClient.put().uri(BASE_URI + "/{id}", id)
+            restTestClient.put().uri(baseUri() + "/{id}", id)
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(update)
                     .exchange()
@@ -318,7 +315,7 @@ class FeltVariantControllerIntegrationTest {
         @Test
         @DisplayName("returns 404 when variant does not exist")
         void returns404ForMissingVariant() {
-            restTestClient.put().uri(BASE_URI + "/{id}", 9999)
+            restTestClient.put().uri(baseUri() + "/{id}", 9999)
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(new UpdateFeltVariantDto(8.0, null, null))
                     .exchange()
@@ -329,7 +326,7 @@ class FeltVariantControllerIntegrationTest {
     }
 
     @Nested
-    @DisplayName("DELETE /api/felt-variants/{id}")
+    @DisplayName("DELETE /api/felts/{feltId}/variants/{id}")
     class DeleteFeltVariant {
 
         @Test
@@ -337,11 +334,11 @@ class FeltVariantControllerIntegrationTest {
         void deletesExistingVariant() {
             Long id = createVariantAndGetId(validRequest());
 
-            restTestClient.delete().uri(BASE_URI + "/{id}", id)
+            restTestClient.delete().uri(baseUri() + "/{id}", id)
                     .exchange()
                     .expectStatus().isNoContent();
 
-            restTestClient.get().uri(BASE_URI + "/{id}", id)
+            restTestClient.get().uri(baseUri() + "/{id}", id)
                     .exchange()
                     .expectStatus().isNotFound();
         }
@@ -349,7 +346,7 @@ class FeltVariantControllerIntegrationTest {
         @Test
         @DisplayName("returns 404 when variant does not exist")
         void returns404ForMissingVariant() {
-            restTestClient.delete().uri(BASE_URI + "/{id}", 9999)
+            restTestClient.delete().uri(baseUri() + "/{id}", 9999)
                     .exchange()
                     .expectStatus().isNotFound()
                     .expectBody(ErrorResponse.class)
