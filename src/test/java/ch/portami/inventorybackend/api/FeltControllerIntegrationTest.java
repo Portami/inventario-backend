@@ -1,9 +1,9 @@
 package ch.portami.inventorybackend.api;
 
 import ch.portami.inventorybackend.core.exceptions.ErrorResponse;
-import ch.portami.inventorybackend.felt.dto.CreateFeltRequest;
-import ch.portami.inventorybackend.felt.dto.FeltResponse;
-import ch.portami.inventorybackend.felt.dto.UpdateFeltRequest;
+import ch.portami.inventorybackend.felt.dto.CreateFeltDto;
+import ch.portami.inventorybackend.felt.dto.FeltDto;
+import ch.portami.inventorybackend.felt.dto.UpdateFeltDto;
 import ch.portami.inventorybackend.felt.entity.FeltType;
 import ch.portami.inventorybackend.felt.entity.Supplier;
 import ch.portami.inventorybackend.felt.repository.FeltRepository;
@@ -46,7 +46,7 @@ class FeltControllerIntegrationTest {
             .withPassword("test");
 
     private static final String BASE_URI = "/api/felts";
-    private static final ParameterizedTypeReference<List<FeltResponse>> FELT_LIST =
+    private static final ParameterizedTypeReference<List<FeltDto>> FELT_LIST =
             new ParameterizedTypeReference<>() {};
 
     @Autowired private RestTestClient restTestClient;
@@ -70,25 +70,25 @@ class FeltControllerIntegrationTest {
         feltRepository.deleteAll();
     }
 
-    private CreateFeltRequest validRequest() {
-        return new CreateFeltRequest(feltTypeId, supplierId, "ART-001");
+    private CreateFeltDto validRequest() {
+        return new CreateFeltDto(feltTypeId, supplierId, "ART-001");
     }
 
-    private Long createFeltAndGetId(CreateFeltRequest request) {
-        FeltResponse body = restTestClient.post().uri(BASE_URI)
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(request)
-                .exchange()
-                .expectStatus().isCreated()
-                .expectBody(FeltResponse.class)
-                .returnResult()
-                .getResponseBody();
+    private Long createFeltAndGetId(CreateFeltDto request) {
+        FeltDto body = restTestClient.post().uri(BASE_URI)
+                                     .contentType(MediaType.APPLICATION_JSON)
+                                     .body(request)
+                                     .exchange()
+                                     .expectStatus().isCreated()
+                                     .expectBody(FeltDto.class)
+                                     .returnResult()
+                                     .getResponseBody();
 
         assertThat(body).isNotNull();
         return body.id();
     }
 
-    private void createFelt(CreateFeltRequest request) {
+    private void createFelt(CreateFeltDto request) {
         createFeltAndGetId(request);
     }
 
@@ -110,7 +110,7 @@ class FeltControllerIntegrationTest {
         @DisplayName("returns all felts")
         void returnsAllFelts() {
             createFelt(validRequest());
-            createFelt(new CreateFeltRequest(feltTypeId, supplierId, "ART-002"));
+            createFelt(new CreateFeltDto(feltTypeId, supplierId, "ART-002"));
 
             restTestClient.get().uri(BASE_URI)
                     .exchange()
@@ -132,7 +132,7 @@ class FeltControllerIntegrationTest {
                     .body(validRequest())
                     .exchange()
                     .expectStatus().isCreated()
-                    .expectBody(FeltResponse.class)
+                    .expectBody(FeltDto.class)
                     .value(felt -> {
                         assertThat(felt.id()).isGreaterThan(0);
                         assertThat(felt.articleNumber()).isEqualTo("ART-001");
@@ -146,7 +146,7 @@ class FeltControllerIntegrationTest {
         @Test
         @DisplayName("returns 400 when feltTypeId is missing")
         void rejectsMissingFeltTypeId() {
-            var invalid = new CreateFeltRequest(null, supplierId, "ART-001");
+            var invalid = new CreateFeltDto(null, supplierId, "ART-001");
 
             restTestClient.post().uri(BASE_URI)
                     .contentType(MediaType.APPLICATION_JSON)
@@ -163,7 +163,7 @@ class FeltControllerIntegrationTest {
         @Test
         @DisplayName("returns 400 when supplierId is missing")
         void rejectsMissingSupplierId() {
-            var invalid = new CreateFeltRequest(feltTypeId, null, "ART-001");
+            var invalid = new CreateFeltDto(feltTypeId, null, "ART-001");
 
             restTestClient.post().uri(BASE_URI)
                     .contentType(MediaType.APPLICATION_JSON)
@@ -177,7 +177,7 @@ class FeltControllerIntegrationTest {
         @Test
         @DisplayName("returns 400 when articleNumber is blank")
         void rejectsBlankArticleNumber() {
-            var invalid = new CreateFeltRequest(feltTypeId, supplierId, "");
+            var invalid = new CreateFeltDto(feltTypeId, supplierId, "");
 
             restTestClient.post().uri(BASE_URI)
                     .contentType(MediaType.APPLICATION_JSON)
@@ -191,7 +191,7 @@ class FeltControllerIntegrationTest {
         @Test
         @DisplayName("returns 404 when feltTypeId does not exist")
         void returns404ForUnknownFeltType() {
-            var invalid = new CreateFeltRequest(9999L, supplierId, "ART-001");
+            var invalid = new CreateFeltDto(9999L, supplierId, "ART-001");
 
             restTestClient.post().uri(BASE_URI)
                     .contentType(MediaType.APPLICATION_JSON)
@@ -208,7 +208,7 @@ class FeltControllerIntegrationTest {
         @Test
         @DisplayName("returns 404 when supplierId does not exist")
         void returns404ForUnknownSupplier() {
-            var invalid = new CreateFeltRequest(feltTypeId, 9999L, "ART-001");
+            var invalid = new CreateFeltDto(feltTypeId, 9999L, "ART-001");
 
             restTestClient.post().uri(BASE_URI)
                     .contentType(MediaType.APPLICATION_JSON)
@@ -235,7 +235,7 @@ class FeltControllerIntegrationTest {
             restTestClient.get().uri(BASE_URI + "/{id}", id)
                     .exchange()
                     .expectStatus().isOk()
-                    .expectBody(FeltResponse.class)
+                    .expectBody(FeltDto.class)
                     .value(felt -> {
                         assertThat(felt.id()).isEqualTo(id);
                         assertThat(felt.articleNumber()).isEqualTo("ART-001");
@@ -264,14 +264,14 @@ class FeltControllerIntegrationTest {
         @DisplayName("updates articleNumber")
         void updatesArticleNumber() {
             Long id = createFeltAndGetId(validRequest());
-            var update = new UpdateFeltRequest(null, null, "ART-999");
+            var update = new UpdateFeltDto(null, null, "ART-999");
 
             restTestClient.put().uri(BASE_URI + "/{id}", id)
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(update)
                     .exchange()
                     .expectStatus().isOk()
-                    .expectBody(FeltResponse.class)
+                    .expectBody(FeltDto.class)
                     .value(felt -> {
                         assertThat(felt.id()).isEqualTo(id);
                         assertThat(felt.articleNumber()).isEqualTo("ART-999");
@@ -283,14 +283,14 @@ class FeltControllerIntegrationTest {
         @DisplayName("updates feltTypeId")
         void updatesFeltType() {
             Long id = createFeltAndGetId(validRequest());
-            var update = new UpdateFeltRequest(altFeltTypeId, null, null);
+            var update = new UpdateFeltDto(altFeltTypeId, null, null);
 
             restTestClient.put().uri(BASE_URI + "/{id}", id)
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(update)
                     .exchange()
                     .expectStatus().isOk()
-                    .expectBody(FeltResponse.class)
+                    .expectBody(FeltDto.class)
                     .value(felt -> {
                         assertThat(felt.feltTypeId()).isEqualTo(altFeltTypeId);
                         assertThat(felt.feltTypeName()).isEqualTo("Synthetic");
@@ -302,7 +302,7 @@ class FeltControllerIntegrationTest {
         void returns404ForMissingFelt() {
             restTestClient.put().uri(BASE_URI + "/{id}", 9999)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .body(new UpdateFeltRequest(null, null, "ART-999"))
+                    .body(new UpdateFeltDto(null, null, "ART-999"))
                     .exchange()
                     .expectStatus().isNotFound()
                     .expectBody(ErrorResponse.class)
@@ -316,7 +316,7 @@ class FeltControllerIntegrationTest {
 
             restTestClient.put().uri(BASE_URI + "/{id}", id)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .body(new UpdateFeltRequest(9999L, null, null))
+                    .body(new UpdateFeltDto(9999L, null, null))
                     .exchange()
                     .expectStatus().isNotFound()
                     .expectBody(ErrorResponse.class)

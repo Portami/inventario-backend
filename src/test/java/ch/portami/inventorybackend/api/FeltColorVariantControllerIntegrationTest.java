@@ -1,9 +1,9 @@
 package ch.portami.inventorybackend.api;
 
 import ch.portami.inventorybackend.core.exceptions.ErrorResponse;
-import ch.portami.inventorybackend.felt.dto.CreateFeltColorVariantRequest;
-import ch.portami.inventorybackend.felt.dto.FeltColorVariantResponse;
-import ch.portami.inventorybackend.felt.dto.UpdateFeltColorVariantRequest;
+import ch.portami.inventorybackend.felt.dto.CreateFeltColorVariantDto;
+import ch.portami.inventorybackend.felt.dto.FeltColorVariantDto;
+import ch.portami.inventorybackend.felt.dto.UpdateFeltColorVariantDto;
 import ch.portami.inventorybackend.felt.entity.Felt;
 import ch.portami.inventorybackend.felt.entity.FeltType;
 import ch.portami.inventorybackend.felt.entity.FeltVariant;
@@ -51,7 +51,7 @@ class FeltColorVariantControllerIntegrationTest {
             .withPassword("test");
 
     private static final String BASE_URI = "/api/felt-color-variants";
-    private static final ParameterizedTypeReference<List<FeltColorVariantResponse>> COLOR_VARIANT_LIST =
+    private static final ParameterizedTypeReference<List<FeltColorVariantDto>> COLOR_VARIANT_LIST =
             new ParameterizedTypeReference<>() {};
 
     @Autowired private RestTestClient restTestClient;
@@ -78,25 +78,25 @@ class FeltColorVariantControllerIntegrationTest {
         feltColorVariantRepository.deleteAll();
     }
 
-    private CreateFeltColorVariantRequest validRequest() {
-        return new CreateFeltColorVariantRequest(feltVariantId, "Red", "R-001");
+    private CreateFeltColorVariantDto validRequest() {
+        return new CreateFeltColorVariantDto(feltVariantId, "Red", "R-001");
     }
 
-    private Long createColorVariantAndGetId(CreateFeltColorVariantRequest request) {
-        FeltColorVariantResponse body = restTestClient.post().uri(BASE_URI)
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(request)
-                .exchange()
-                .expectStatus().isCreated()
-                .expectBody(FeltColorVariantResponse.class)
-                .returnResult()
-                .getResponseBody();
+    private Long createColorVariantAndGetId(CreateFeltColorVariantDto request) {
+        FeltColorVariantDto body = restTestClient.post().uri(BASE_URI)
+                                                 .contentType(MediaType.APPLICATION_JSON)
+                                                 .body(request)
+                                                 .exchange()
+                                                 .expectStatus().isCreated()
+                                                 .expectBody(FeltColorVariantDto.class)
+                                                 .returnResult()
+                                                 .getResponseBody();
 
         assertThat(body).isNotNull();
         return body.id();
     }
 
-    private void createColorVariant(CreateFeltColorVariantRequest request) {
+    private void createColorVariant(CreateFeltColorVariantDto request) {
         createColorVariantAndGetId(request);
     }
 
@@ -118,7 +118,7 @@ class FeltColorVariantControllerIntegrationTest {
         @DisplayName("returns all color variants")
         void returnsAllColorVariants() {
             createColorVariant(validRequest());
-            createColorVariant(new CreateFeltColorVariantRequest(feltVariantId, "Blue", "B-001"));
+            createColorVariant(new CreateFeltColorVariantDto(feltVariantId, "Blue", "B-001"));
 
             restTestClient.get().uri(BASE_URI)
                     .exchange()
@@ -140,7 +140,7 @@ class FeltColorVariantControllerIntegrationTest {
                     .body(validRequest())
                     .exchange()
                     .expectStatus().isCreated()
-                    .expectBody(FeltColorVariantResponse.class)
+                    .expectBody(FeltColorVariantDto.class)
                     .value(cv -> {
                         assertThat(cv.id()).isGreaterThan(0);
                         assertThat(cv.color()).isEqualTo("Red");
@@ -156,7 +156,7 @@ class FeltColorVariantControllerIntegrationTest {
         @Test
         @DisplayName("returns 400 when feltVariantId is missing")
         void rejectsMissingFeltVariantId() {
-            var invalid = new CreateFeltColorVariantRequest(null, "Red", "R-001");
+            var invalid = new CreateFeltColorVariantDto(null, "Red", "R-001");
 
             restTestClient.post().uri(BASE_URI)
                     .contentType(MediaType.APPLICATION_JSON)
@@ -173,7 +173,7 @@ class FeltColorVariantControllerIntegrationTest {
         @Test
         @DisplayName("returns 400 when color is blank")
         void rejectsBlankColor() {
-            var invalid = new CreateFeltColorVariantRequest(feltVariantId, "", "R-001");
+            var invalid = new CreateFeltColorVariantDto(feltVariantId, "", "R-001");
 
             restTestClient.post().uri(BASE_URI)
                     .contentType(MediaType.APPLICATION_JSON)
@@ -187,7 +187,7 @@ class FeltColorVariantControllerIntegrationTest {
         @Test
         @DisplayName("returns 400 when supplierColor is blank")
         void rejectsBlankSupplierColor() {
-            var invalid = new CreateFeltColorVariantRequest(feltVariantId, "Red", "");
+            var invalid = new CreateFeltColorVariantDto(feltVariantId, "Red", "");
 
             restTestClient.post().uri(BASE_URI)
                     .contentType(MediaType.APPLICATION_JSON)
@@ -201,7 +201,7 @@ class FeltColorVariantControllerIntegrationTest {
         @Test
         @DisplayName("returns 404 when feltVariantId does not exist")
         void returns404ForUnknownFeltVariant() {
-            var invalid = new CreateFeltColorVariantRequest(9999L, "Red", "R-001");
+            var invalid = new CreateFeltColorVariantDto(9999L, "Red", "R-001");
 
             restTestClient.post().uri(BASE_URI)
                     .contentType(MediaType.APPLICATION_JSON)
@@ -228,7 +228,7 @@ class FeltColorVariantControllerIntegrationTest {
             restTestClient.get().uri(BASE_URI + "/{id}", id)
                     .exchange()
                     .expectStatus().isOk()
-                    .expectBody(FeltColorVariantResponse.class)
+                    .expectBody(FeltColorVariantDto.class)
                     .value(cv -> {
                         assertThat(cv.id()).isEqualTo(id);
                         assertThat(cv.color()).isEqualTo("Red");
@@ -258,14 +258,14 @@ class FeltColorVariantControllerIntegrationTest {
         @DisplayName("updates color and supplierColor")
         void updatesColorVariant() {
             Long id = createColorVariantAndGetId(validRequest());
-            var update = new UpdateFeltColorVariantRequest("Green", "G-001");
+            var update = new UpdateFeltColorVariantDto("Green", "G-001");
 
             restTestClient.put().uri(BASE_URI + "/{id}", id)
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(update)
                     .exchange()
                     .expectStatus().isOk()
-                    .expectBody(FeltColorVariantResponse.class)
+                    .expectBody(FeltColorVariantDto.class)
                     .value(cv -> {
                         assertThat(cv.id()).isEqualTo(id);
                         assertThat(cv.color()).isEqualTo("Green");
@@ -277,14 +277,14 @@ class FeltColorVariantControllerIntegrationTest {
         @DisplayName("partial update leaves unchanged fields intact")
         void partialUpdatePreservesFields() {
             Long id = createColorVariantAndGetId(validRequest());
-            var update = new UpdateFeltColorVariantRequest("Green", null);
+            var update = new UpdateFeltColorVariantDto("Green", null);
 
             restTestClient.put().uri(BASE_URI + "/{id}", id)
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(update)
                     .exchange()
                     .expectStatus().isOk()
-                    .expectBody(FeltColorVariantResponse.class)
+                    .expectBody(FeltColorVariantDto.class)
                     .value(cv -> {
                         assertThat(cv.color()).isEqualTo("Green");
                         assertThat(cv.supplierColor()).isEqualTo("R-001");
@@ -296,7 +296,7 @@ class FeltColorVariantControllerIntegrationTest {
         void returns404ForMissingColorVariant() {
             restTestClient.put().uri(BASE_URI + "/{id}", 9999)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .body(new UpdateFeltColorVariantRequest("Green", null))
+                    .body(new UpdateFeltColorVariantDto("Green", null))
                     .exchange()
                     .expectStatus().isNotFound()
                     .expectBody(ErrorResponse.class)

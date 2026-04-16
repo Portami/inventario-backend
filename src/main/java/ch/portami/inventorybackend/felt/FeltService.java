@@ -1,17 +1,17 @@
 package ch.portami.inventorybackend.felt;
 
-import ch.portami.inventorybackend.felt.dto.CreateFeltColorVariantRequest;
-import ch.portami.inventorybackend.felt.dto.CreateFeltRequest;
-import ch.portami.inventorybackend.felt.dto.CreateFeltTypeRequest;
-import ch.portami.inventorybackend.felt.dto.CreateFeltVariantRequest;
-import ch.portami.inventorybackend.felt.dto.FeltColorVariantResponse;
-import ch.portami.inventorybackend.felt.dto.FeltResponse;
-import ch.portami.inventorybackend.felt.dto.FeltTypeResponse;
-import ch.portami.inventorybackend.felt.dto.FeltVariantResponse;
-import ch.portami.inventorybackend.felt.dto.UpdateFeltColorVariantRequest;
-import ch.portami.inventorybackend.felt.dto.UpdateFeltRequest;
-import ch.portami.inventorybackend.felt.dto.UpdateFeltTypeRequest;
-import ch.portami.inventorybackend.felt.dto.UpdateFeltVariantRequest;
+import ch.portami.inventorybackend.felt.dto.CreateFeltColorVariantDto;
+import ch.portami.inventorybackend.felt.dto.CreateFeltDto;
+import ch.portami.inventorybackend.felt.dto.CreateFeltTypeDto;
+import ch.portami.inventorybackend.felt.dto.CreateFeltVariantDto;
+import ch.portami.inventorybackend.felt.dto.FeltColorVariantDto;
+import ch.portami.inventorybackend.felt.dto.FeltDto;
+import ch.portami.inventorybackend.felt.dto.FeltTypeDto;
+import ch.portami.inventorybackend.felt.dto.FeltVariantDto;
+import ch.portami.inventorybackend.felt.dto.UpdateFeltColorVariantDto;
+import ch.portami.inventorybackend.felt.dto.UpdateFeltDto;
+import ch.portami.inventorybackend.felt.dto.UpdateFeltTypeDto;
+import ch.portami.inventorybackend.felt.dto.UpdateFeltVariantDto;
 import ch.portami.inventorybackend.felt.entity.Felt;
 import ch.portami.inventorybackend.felt.entity.FeltColorVariant;
 import ch.portami.inventorybackend.felt.entity.FeltType;
@@ -52,7 +52,7 @@ public class FeltService {
     }
 
     // region FeltTypes
-    public List<FeltTypeResponse> getAllFeltTypes() {
+    public List<FeltTypeDto> getAllFeltTypes() {
         return feltTypeRepository
             .findAll()
             .stream()
@@ -60,18 +60,18 @@ public class FeltService {
             .toList();
     }
 
-    public FeltTypeResponse getFeltTypeById(Long id) {
+    public FeltTypeDto getFeltTypeById(Long id) {
         return toFeltTypeResponse(findFeltTypeOrThrow(id));
     }
 
     @Transactional
-    public FeltTypeResponse createFeltType(CreateFeltTypeRequest request) {
+    public FeltTypeDto createFeltType(CreateFeltTypeDto request) {
         FeltType feltType = new FeltType(request.name());
         return toFeltTypeResponse(feltTypeRepository.save(feltType));
     }
 
     @Transactional
-    public FeltTypeResponse updateFeltType(Long id, UpdateFeltTypeRequest request) {
+    public FeltTypeDto updateFeltType(Long id, UpdateFeltTypeDto request) {
         FeltType feltType = findFeltTypeOrThrow(id);
         if (request.name() != null) {
             feltType.setName(request.name());
@@ -90,7 +90,7 @@ public class FeltService {
 
     // region Felts
     @Transactional(readOnly = true)
-    public List<FeltResponse> getAllFelts() {
+    public List<FeltDto> getAllFelts() {
         return feltRepository
             .findAll()
             .stream()
@@ -99,12 +99,12 @@ public class FeltService {
     }
 
     @Transactional(readOnly = true)
-    public FeltResponse getFeltById(Long id) {
+    public FeltDto getFeltById(Long id) {
         return toFeltResponse(findFeltOrThrow(id));
     }
 
     @Transactional
-    public FeltResponse createFelt(CreateFeltRequest request) {
+    public FeltDto createFelt(CreateFeltDto request) {
         FeltType feltType = findFeltTypeOrThrow(request.feltTypeId());
         Supplier supplier = findSupplierOrThrow(request.supplierId());
         Felt felt = new Felt(feltType, supplier, request.articleNumber());
@@ -112,7 +112,7 @@ public class FeltService {
     }
 
     @Transactional
-    public FeltResponse updateFelt(Long id, UpdateFeltRequest request) {
+    public FeltDto updateFelt(Long id, UpdateFeltDto request) {
         Felt felt = findFeltOrThrow(id);
         if (request.feltTypeId() != null) {
             felt.setFeltType(findFeltTypeOrThrow(request.feltTypeId()));
@@ -137,7 +137,7 @@ public class FeltService {
 
     // region FeltVariants
     @Transactional(readOnly = true)
-    public List<FeltVariantResponse> getAllFeltVariants() {
+    public List<FeltVariantDto> getAllFeltVariants() {
         return feltVariantRepository
             .findAll()
             .stream()
@@ -146,19 +146,19 @@ public class FeltService {
     }
 
     @Transactional(readOnly = true)
-    public FeltVariantResponse getFeltVariantById(Long id) {
+    public FeltVariantDto getFeltVariantById(Long id) {
         return toFeltVariantResponse(findFeltVariantOrThrow(id));
     }
 
     @Transactional
-    public FeltVariantResponse createFeltVariant(CreateFeltVariantRequest request) {
+    public FeltVariantDto createFeltVariant(CreateFeltVariantDto request) {
         Felt felt = findFeltOrThrow(request.feltId());
         FeltVariant variant = new FeltVariant(felt, request.thickness(), request.density(), request.price());
         return toFeltVariantResponse(feltVariantRepository.save(variant));
     }
 
     @Transactional
-    public FeltVariantResponse updateFeltVariant(Long id, UpdateFeltVariantRequest request) {
+    public FeltVariantDto updateFeltVariant(Long id, UpdateFeltVariantDto request) {
         FeltVariant variant = findFeltVariantOrThrow(id);
         if (request.thickness() != null) {
             variant.setThickness(request.thickness());
@@ -183,7 +183,7 @@ public class FeltService {
 
     // region FeltColorVariants
     @Transactional(readOnly = true)
-    public List<FeltColorVariantResponse> getAllFeltColorVariants() {
+    public List<FeltColorVariantDto> getAllFeltColorVariants() {
         return feltColorVariantRepository
             .findAll()
             .stream()
@@ -192,12 +192,12 @@ public class FeltService {
     }
 
     @Transactional(readOnly = true)
-    public FeltColorVariantResponse getFeltColorVariantById(Long id) {
+    public FeltColorVariantDto getFeltColorVariantById(Long id) {
         return toFeltColorVariantResponse(findFeltColorVariantOrThrow(id));
     }
 
     @Transactional
-    public FeltColorVariantResponse createFeltColorVariant(CreateFeltColorVariantRequest request) {
+    public FeltColorVariantDto createFeltColorVariant(CreateFeltColorVariantDto request) {
         FeltVariant variant = findFeltVariantOrThrow(request.feltVariantId());
         FeltColorVariant colorVariant = new FeltColorVariant(variant, request.color());
         colorVariant.setSupplierColor(request.supplierColor());
@@ -205,7 +205,7 @@ public class FeltService {
     }
 
     @Transactional
-    public FeltColorVariantResponse updateFeltColorVariant(Long id, UpdateFeltColorVariantRequest request) {
+    public FeltColorVariantDto updateFeltColorVariant(Long id, UpdateFeltColorVariantDto request) {
         FeltColorVariant colorVariant = findFeltColorVariantOrThrow(id);
         if (request.color() != null) {
             colorVariant.setColor(request.color());
@@ -265,15 +265,15 @@ public class FeltService {
             );
     }
 
-    private FeltTypeResponse toFeltTypeResponse(FeltType feltType) {
-        return new FeltTypeResponse(
+    private FeltTypeDto toFeltTypeResponse(FeltType feltType) {
+        return new FeltTypeDto(
             feltType.getId(),
             feltType.getName()
         );
     }
 
-    private FeltResponse toFeltResponse(Felt felt) {
-        return new FeltResponse(
+    private FeltDto toFeltResponse(Felt felt) {
+        return new FeltDto(
             felt.getId(),
             felt.getArticleNumber(),
             felt.getFeltType().getId(),
@@ -283,9 +283,9 @@ public class FeltService {
         );
     }
 
-    private FeltVariantResponse toFeltVariantResponse(FeltVariant variant) {
+    private FeltVariantDto toFeltVariantResponse(FeltVariant variant) {
         Felt felt = variant.getFelt();
-        return new FeltVariantResponse(
+        return new FeltVariantDto(
             variant.getId(),
             felt.getId(),
             felt.getArticleNumber(),
@@ -297,10 +297,10 @@ public class FeltService {
         );
     }
 
-    private FeltColorVariantResponse toFeltColorVariantResponse(FeltColorVariant colorVariant) {
+    private FeltColorVariantDto toFeltColorVariantResponse(FeltColorVariant colorVariant) {
         FeltVariant variant = colorVariant.getFeltVariant();
         Felt felt = variant.getFelt();
-        return new FeltColorVariantResponse(
+        return new FeltColorVariantDto(
             colorVariant.getId(),
             colorVariant.getColor(),
             colorVariant.getSupplierColor(),

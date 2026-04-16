@@ -2,9 +2,9 @@ package ch.portami.inventorybackend.felt;
 
 import ch.portami.inventorybackend.core.entity.Storage;
 import ch.portami.inventorybackend.core.repository.StorageRepository;
-import ch.portami.inventorybackend.felt.dto.CreateFeltRollRequest;
-import ch.portami.inventorybackend.felt.dto.FeltRollResponse;
-import ch.portami.inventorybackend.felt.dto.UpdateFeltRollRequest;
+import ch.portami.inventorybackend.felt.dto.CreateFeltRollDto;
+import ch.portami.inventorybackend.felt.dto.FeltRollDto;
+import ch.portami.inventorybackend.felt.dto.UpdateFeltRollDto;
 import ch.portami.inventorybackend.felt.entity.Batch;
 import ch.portami.inventorybackend.felt.entity.FeltColorVariant;
 import ch.portami.inventorybackend.felt.entity.FeltRoll;
@@ -39,7 +39,7 @@ public class FeltRollService {
     }
 
     @Transactional(readOnly = true)
-    public List<FeltRollResponse> getAllFeltRolls() {
+    public List<FeltRollDto> getAllFeltRolls() {
         return feltRollRepository
             .findAll()
             .stream()
@@ -48,12 +48,12 @@ public class FeltRollService {
     }
 
     @Transactional(readOnly = true)
-    public FeltRollResponse getFeltRollById(Long id) {
+    public FeltRollDto getFeltRollById(Long id) {
         return toResponse(findRollOrThrow(id));
     }
 
     @Transactional
-    public FeltRollResponse createFeltRoll(CreateFeltRollRequest request) {
+    public FeltRollDto createFeltRoll(CreateFeltRollDto request) {
         FeltColorVariant colorVariant = feltColorVariantRepository
             .findById(request.feltColorVariantId())
             .orElseThrow(() ->
@@ -84,7 +84,7 @@ public class FeltRollService {
     }
 
     @Transactional
-    public FeltRollResponse updateFeltRoll(Long id, UpdateFeltRollRequest request) {
+    public FeltRollDto updateFeltRoll(Long id, UpdateFeltRollDto request) {
         FeltRoll roll = findRollOrThrow(id);
 
         if (request.length() != null) {
@@ -135,14 +135,14 @@ public class FeltRollService {
             );
     }
 
-    private FeltRollResponse toResponse(FeltRoll roll) {
+    private FeltRollDto toResponse(FeltRoll roll) {
         FeltColorVariant colorVariant = roll.getFeltColorVariant();
         FeltVariant feltVariant = colorVariant.getFeltVariant();
         var felt = feltVariant.getFelt();
         Batch batch = roll.getBatch();
         Storage storage = roll.getStorage();
 
-        return new FeltRollResponse(
+        return new FeltRollDto(
             roll.getId(),
             roll.getLength(),
             roll.getWidth(),

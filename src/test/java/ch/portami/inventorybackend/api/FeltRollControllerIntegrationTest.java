@@ -3,9 +3,9 @@ package ch.portami.inventorybackend.api;
 import ch.portami.inventorybackend.core.entity.Storage;
 import ch.portami.inventorybackend.core.exceptions.ErrorResponse;
 import ch.portami.inventorybackend.core.repository.StorageRepository;
-import ch.portami.inventorybackend.felt.dto.CreateFeltRollRequest;
-import ch.portami.inventorybackend.felt.dto.FeltRollResponse;
-import ch.portami.inventorybackend.felt.dto.UpdateFeltRollRequest;
+import ch.portami.inventorybackend.felt.dto.CreateFeltRollDto;
+import ch.portami.inventorybackend.felt.dto.FeltRollDto;
+import ch.portami.inventorybackend.felt.dto.UpdateFeltRollDto;
 import ch.portami.inventorybackend.felt.entity.Batch;
 import ch.portami.inventorybackend.felt.entity.Felt;
 import ch.portami.inventorybackend.felt.entity.FeltColorVariant;
@@ -57,7 +57,7 @@ class FeltRollControllerIntegrationTest {
         .withPassword("test");
 
     private static final String BASE_URI = "/api/felt-rolls";
-    private static final ParameterizedTypeReference<List<FeltRollResponse>> ROLL_LIST =
+    private static final ParameterizedTypeReference<List<FeltRollDto>> ROLL_LIST =
         new ParameterizedTypeReference<>() {
         };
 
@@ -108,27 +108,27 @@ class FeltRollControllerIntegrationTest {
         feltRollRepository.deleteAll();
     }
 
-    private CreateFeltRollRequest validRequest() {
-        return new CreateFeltRollRequest(colorVariantId, 100.0, 200.0, null, null);
+    private CreateFeltRollDto validRequest() {
+        return new CreateFeltRollDto(colorVariantId, 100.0, 200.0, null, null);
     }
 
-    private Long createRollAndGetId(CreateFeltRollRequest request) {
-        FeltRollResponse body = restTestClient.post()
-                                              .uri(BASE_URI)
-                                              .contentType(MediaType.APPLICATION_JSON)
-                                              .body(request)
-                                              .exchange()
-                                              .expectStatus()
-                                              .isCreated()
-                                              .expectBody(FeltRollResponse.class)
-                                              .returnResult()
-                                              .getResponseBody();
+    private Long createRollAndGetId(CreateFeltRollDto request) {
+        FeltRollDto body = restTestClient.post()
+                                         .uri(BASE_URI)
+                                         .contentType(MediaType.APPLICATION_JSON)
+                                         .body(request)
+                                         .exchange()
+                                         .expectStatus()
+                                         .isCreated()
+                                         .expectBody(FeltRollDto.class)
+                                         .returnResult()
+                                         .getResponseBody();
 
         assertThat(body).isNotNull();
         return body.id();
     }
 
-    private void createRoll(CreateFeltRollRequest request) {
+    private void createRoll(CreateFeltRollDto request) {
         createRollAndGetId(request);
     }
 
@@ -152,7 +152,7 @@ class FeltRollControllerIntegrationTest {
         @DisplayName("returns all rolls")
         void returnsAllRolls() {
             createRoll(validRequest());
-            createRoll(new CreateFeltRollRequest(colorVariantId, 50.0, 75.0, null, null));
+            createRoll(new CreateFeltRollDto(colorVariantId, 50.0, 75.0, null, null));
 
             restTestClient.get()
                           .uri(BASE_URI)
@@ -178,7 +178,7 @@ class FeltRollControllerIntegrationTest {
                           .exchange()
                           .expectStatus()
                           .isCreated()
-                          .expectBody(FeltRollResponse.class)
+                          .expectBody(FeltRollDto.class)
                           .value(roll -> {
                               assertThat(roll.id()).isGreaterThan(0);
                               assertThat(roll.length()).isEqualTo(100.0);
@@ -195,7 +195,7 @@ class FeltRollControllerIntegrationTest {
         @Test
         @DisplayName("creates roll with optional batch and storage")
         void createsRollWithBatchAndStorage() {
-            var request = new CreateFeltRollRequest(colorVariantId, 100.0, 200.0, batchId, storageId);
+            var request = new CreateFeltRollDto(colorVariantId, 100.0, 200.0, batchId, storageId);
 
             restTestClient.post()
                           .uri(BASE_URI)
@@ -204,7 +204,7 @@ class FeltRollControllerIntegrationTest {
                           .exchange()
                           .expectStatus()
                           .isCreated()
-                          .expectBody(FeltRollResponse.class)
+                          .expectBody(FeltRollDto.class)
                           .value(roll -> {
                               assertThat(roll.batchId()).isEqualTo(batchId);
                               assertThat(roll.batchName()).isEqualTo("Batch-1");
@@ -216,7 +216,7 @@ class FeltRollControllerIntegrationTest {
         @Test
         @DisplayName("returns 400 when feltColorVariantId is missing")
         void rejectsMissingColorVariantId() {
-            var invalid = new CreateFeltRollRequest(null, 100.0, 200.0, null, null);
+            var invalid = new CreateFeltRollDto(null, 100.0, 200.0, null, null);
 
             restTestClient.post()
                           .uri(BASE_URI)
@@ -235,7 +235,7 @@ class FeltRollControllerIntegrationTest {
         @Test
         @DisplayName("returns 400 when length is missing")
         void rejectsMissingLength() {
-            var invalid = new CreateFeltRollRequest(colorVariantId, null, 200.0, null, null);
+            var invalid = new CreateFeltRollDto(colorVariantId, null, 200.0, null, null);
 
             restTestClient.post()
                           .uri(BASE_URI)
@@ -251,7 +251,7 @@ class FeltRollControllerIntegrationTest {
         @Test
         @DisplayName("returns 400 when width is missing")
         void rejectsMissingWidth() {
-            var invalid = new CreateFeltRollRequest(colorVariantId, 100.0, null, null, null);
+            var invalid = new CreateFeltRollDto(colorVariantId, 100.0, null, null, null);
 
             restTestClient.post()
                           .uri(BASE_URI)
@@ -267,7 +267,7 @@ class FeltRollControllerIntegrationTest {
         @Test
         @DisplayName("returns 400 when length is not positive")
         void rejectsNonPositiveLength() {
-            var invalid = new CreateFeltRollRequest(colorVariantId, -1.0, 200.0, null, null);
+            var invalid = new CreateFeltRollDto(colorVariantId, -1.0, 200.0, null, null);
 
             restTestClient.post()
                           .uri(BASE_URI)
@@ -283,7 +283,7 @@ class FeltRollControllerIntegrationTest {
         @Test
         @DisplayName("returns 404 when feltColorVariantId does not exist")
         void returns404ForUnknownColorVariant() {
-            var invalid = new CreateFeltRollRequest(9999L, 100.0, 200.0, null, null);
+            var invalid = new CreateFeltRollDto(9999L, 100.0, 200.0, null, null);
 
             restTestClient.post()
                           .uri(BASE_URI)
@@ -314,7 +314,7 @@ class FeltRollControllerIntegrationTest {
                           .exchange()
                           .expectStatus()
                           .isOk()
-                          .expectBody(FeltRollResponse.class)
+                          .expectBody(FeltRollDto.class)
                           .value(roll -> {
                               assertThat(roll.id()).isEqualTo(id);
                               assertThat(roll.feltColorVariantId()).isEqualTo(colorVariantId);
@@ -345,7 +345,7 @@ class FeltRollControllerIntegrationTest {
         @DisplayName("updates length and width")
         void updatesLengthAndWidth() {
             Long id = createRollAndGetId(validRequest());
-            var update = new UpdateFeltRollRequest(75.0, 125.0, null, null);
+            var update = new UpdateFeltRollDto(75.0, 125.0, null, null);
 
             restTestClient.put()
                           .uri(BASE_URI + "/{id}", id)
@@ -354,7 +354,7 @@ class FeltRollControllerIntegrationTest {
                           .exchange()
                           .expectStatus()
                           .isOk()
-                          .expectBody(FeltRollResponse.class)
+                          .expectBody(FeltRollDto.class)
                           .value(roll -> {
                               assertThat(roll.id()).isEqualTo(id);
                               assertThat(roll.length()).isEqualTo(75.0);
@@ -366,7 +366,7 @@ class FeltRollControllerIntegrationTest {
         @DisplayName("assigns batch and storage")
         void assignsBatchAndStorage() {
             Long id = createRollAndGetId(validRequest());
-            var update = new UpdateFeltRollRequest(null, null, batchId, storageId);
+            var update = new UpdateFeltRollDto(null, null, batchId, storageId);
 
             restTestClient.put()
                           .uri(BASE_URI + "/{id}", id)
@@ -375,7 +375,7 @@ class FeltRollControllerIntegrationTest {
                           .exchange()
                           .expectStatus()
                           .isOk()
-                          .expectBody(FeltRollResponse.class)
+                          .expectBody(FeltRollDto.class)
                           .value(roll -> {
                               assertThat(roll.batchId()).isEqualTo(batchId);
                               assertThat(roll.storageId()).isEqualTo(storageId);
@@ -386,8 +386,8 @@ class FeltRollControllerIntegrationTest {
         @DisplayName("clears batch and storage when ids are null")
         void clearsBatchAndStorage() {
             Long id = createRollAndGetId(
-                new CreateFeltRollRequest(colorVariantId, 100.0, 200.0, batchId, storageId));
-            var update = new UpdateFeltRollRequest(null, null, null, null);
+                new CreateFeltRollDto(colorVariantId, 100.0, 200.0, batchId, storageId));
+            var update = new UpdateFeltRollDto(null, null, null, null);
 
             restTestClient.put()
                           .uri(BASE_URI + "/{id}", id)
@@ -396,7 +396,7 @@ class FeltRollControllerIntegrationTest {
                           .exchange()
                           .expectStatus()
                           .isOk()
-                          .expectBody(FeltRollResponse.class)
+                          .expectBody(FeltRollDto.class)
                           .value(roll -> {
                               assertThat(roll.batchId()).isNull();
                               assertThat(roll.storageId()).isNull();
@@ -406,7 +406,7 @@ class FeltRollControllerIntegrationTest {
         @Test
         @DisplayName("returns 404 when roll does not exist")
         void returns404ForMissingRoll() {
-            var update = new UpdateFeltRollRequest(100.0, 200.0, null, null);
+            var update = new UpdateFeltRollDto(100.0, 200.0, null, null);
 
             restTestClient.put()
                           .uri(BASE_URI + "/{id}", 9999)

@@ -2,7 +2,7 @@ package ch.portami.inventorybackend.felt.dto;
 
 import jakarta.validation.constraints.NotBlank;
 
-public record UpdateFeltTypeRequest(
+public record UpdateFeltTypeDto(
     @NotBlank String name
 ) {
 

@@ -1,9 +1,9 @@
 package ch.portami.inventorybackend.api;
 
 import ch.portami.inventorybackend.core.exceptions.ErrorResponse;
-import ch.portami.inventorybackend.felt.dto.CreateFeltVariantRequest;
-import ch.portami.inventorybackend.felt.dto.FeltVariantResponse;
-import ch.portami.inventorybackend.felt.dto.UpdateFeltVariantRequest;
+import ch.portami.inventorybackend.felt.dto.CreateFeltVariantDto;
+import ch.portami.inventorybackend.felt.dto.FeltVariantDto;
+import ch.portami.inventorybackend.felt.dto.UpdateFeltVariantDto;
 import ch.portami.inventorybackend.felt.entity.Felt;
 import ch.portami.inventorybackend.felt.entity.FeltType;
 import ch.portami.inventorybackend.felt.entity.Supplier;
@@ -49,7 +49,7 @@ class FeltVariantControllerIntegrationTest {
             .withPassword("test");
 
     private static final String BASE_URI = "/api/felt-variants";
-    private static final ParameterizedTypeReference<List<FeltVariantResponse>> VARIANT_LIST =
+    private static final ParameterizedTypeReference<List<FeltVariantDto>> VARIANT_LIST =
             new ParameterizedTypeReference<>() {};
 
     @Autowired private RestTestClient restTestClient;
@@ -72,25 +72,25 @@ class FeltVariantControllerIntegrationTest {
         feltVariantRepository.deleteAll();
     }
 
-    private CreateFeltVariantRequest validRequest() {
-        return new CreateFeltVariantRequest(feltId, 5.0, 300.0, new BigDecimal("12.99"));
+    private CreateFeltVariantDto validRequest() {
+        return new CreateFeltVariantDto(feltId, 5.0, 300.0, new BigDecimal("12.99"));
     }
 
-    private Long createVariantAndGetId(CreateFeltVariantRequest request) {
-        FeltVariantResponse body = restTestClient.post().uri(BASE_URI)
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(request)
-                .exchange()
-                .expectStatus().isCreated()
-                .expectBody(FeltVariantResponse.class)
-                .returnResult()
-                .getResponseBody();
+    private Long createVariantAndGetId(CreateFeltVariantDto request) {
+        FeltVariantDto body = restTestClient.post().uri(BASE_URI)
+                                            .contentType(MediaType.APPLICATION_JSON)
+                                            .body(request)
+                                            .exchange()
+                                            .expectStatus().isCreated()
+                                            .expectBody(FeltVariantDto.class)
+                                            .returnResult()
+                                            .getResponseBody();
 
         assertThat(body).isNotNull();
         return body.id();
     }
 
-    private void createVariant(CreateFeltVariantRequest request) {
+    private void createVariant(CreateFeltVariantDto request) {
         createVariantAndGetId(request);
     }
 
@@ -112,7 +112,7 @@ class FeltVariantControllerIntegrationTest {
         @DisplayName("returns all variants")
         void returnsAllVariants() {
             createVariant(validRequest());
-            createVariant(new CreateFeltVariantRequest(feltId, 3.0, 200.0, new BigDecimal("8.50")));
+            createVariant(new CreateFeltVariantDto(feltId, 3.0, 200.0, new BigDecimal("8.50")));
 
             restTestClient.get().uri(BASE_URI)
                     .exchange()
@@ -134,7 +134,7 @@ class FeltVariantControllerIntegrationTest {
                     .body(validRequest())
                     .exchange()
                     .expectStatus().isCreated()
-                    .expectBody(FeltVariantResponse.class)
+                    .expectBody(FeltVariantDto.class)
                     .value(variant -> {
                         assertThat(variant.id()).isGreaterThan(0);
                         assertThat(variant.feltId()).isEqualTo(feltId);
@@ -150,7 +150,7 @@ class FeltVariantControllerIntegrationTest {
         @Test
         @DisplayName("returns 400 when feltId is missing")
         void rejectsMissingFeltId() {
-            var invalid = new CreateFeltVariantRequest(null, 5.0, 300.0, new BigDecimal("12.99"));
+            var invalid = new CreateFeltVariantDto(null, 5.0, 300.0, new BigDecimal("12.99"));
 
             restTestClient.post().uri(BASE_URI)
                     .contentType(MediaType.APPLICATION_JSON)
@@ -167,7 +167,7 @@ class FeltVariantControllerIntegrationTest {
         @Test
         @DisplayName("returns 400 when thickness is missing")
         void rejectsMissingThickness() {
-            var invalid = new CreateFeltVariantRequest(feltId, null, 300.0, new BigDecimal("12.99"));
+            var invalid = new CreateFeltVariantDto(feltId, null, 300.0, new BigDecimal("12.99"));
 
             restTestClient.post().uri(BASE_URI)
                     .contentType(MediaType.APPLICATION_JSON)
@@ -181,7 +181,7 @@ class FeltVariantControllerIntegrationTest {
         @Test
         @DisplayName("returns 400 when density is missing")
         void rejectsMissingDensity() {
-            var invalid = new CreateFeltVariantRequest(feltId, 5.0, null, new BigDecimal("12.99"));
+            var invalid = new CreateFeltVariantDto(feltId, 5.0, null, new BigDecimal("12.99"));
 
             restTestClient.post().uri(BASE_URI)
                     .contentType(MediaType.APPLICATION_JSON)
@@ -195,7 +195,7 @@ class FeltVariantControllerIntegrationTest {
         @Test
         @DisplayName("returns 400 when price is missing")
         void rejectsMissingPrice() {
-            var invalid = new CreateFeltVariantRequest(feltId, 5.0, 300.0, null);
+            var invalid = new CreateFeltVariantDto(feltId, 5.0, 300.0, null);
 
             restTestClient.post().uri(BASE_URI)
                     .contentType(MediaType.APPLICATION_JSON)
@@ -209,7 +209,7 @@ class FeltVariantControllerIntegrationTest {
         @Test
         @DisplayName("returns 400 when thickness is not positive")
         void rejectsNonPositiveThickness() {
-            var invalid = new CreateFeltVariantRequest(feltId, -1.0, 300.0, new BigDecimal("12.99"));
+            var invalid = new CreateFeltVariantDto(feltId, -1.0, 300.0, new BigDecimal("12.99"));
 
             restTestClient.post().uri(BASE_URI)
                     .contentType(MediaType.APPLICATION_JSON)
@@ -223,7 +223,7 @@ class FeltVariantControllerIntegrationTest {
         @Test
         @DisplayName("returns 404 when feltId does not exist")
         void returns404ForUnknownFelt() {
-            var invalid = new CreateFeltVariantRequest(9999L, 5.0, 300.0, new BigDecimal("12.99"));
+            var invalid = new CreateFeltVariantDto(9999L, 5.0, 300.0, new BigDecimal("12.99"));
 
             restTestClient.post().uri(BASE_URI)
                     .contentType(MediaType.APPLICATION_JSON)
@@ -250,7 +250,7 @@ class FeltVariantControllerIntegrationTest {
             restTestClient.get().uri(BASE_URI + "/{id}", id)
                     .exchange()
                     .expectStatus().isOk()
-                    .expectBody(FeltVariantResponse.class)
+                    .expectBody(FeltVariantDto.class)
                     .value(variant -> {
                         assertThat(variant.id()).isEqualTo(id);
                         assertThat(variant.feltId()).isEqualTo(feltId);
@@ -280,14 +280,14 @@ class FeltVariantControllerIntegrationTest {
         @DisplayName("updates thickness, density and price")
         void updatesVariant() {
             Long id = createVariantAndGetId(validRequest());
-            var update = new UpdateFeltVariantRequest(8.0, 400.0, new BigDecimal("19.99"));
+            var update = new UpdateFeltVariantDto(8.0, 400.0, new BigDecimal("19.99"));
 
             restTestClient.put().uri(BASE_URI + "/{id}", id)
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(update)
                     .exchange()
                     .expectStatus().isOk()
-                    .expectBody(FeltVariantResponse.class)
+                    .expectBody(FeltVariantDto.class)
                     .value(variant -> {
                         assertThat(variant.id()).isEqualTo(id);
                         assertThat(variant.thickness()).isEqualTo(8.0);
@@ -300,14 +300,14 @@ class FeltVariantControllerIntegrationTest {
         @DisplayName("partial update leaves unchanged fields intact")
         void partialUpdatePreservesFields() {
             Long id = createVariantAndGetId(validRequest());
-            var update = new UpdateFeltVariantRequest(8.0, null, null);
+            var update = new UpdateFeltVariantDto(8.0, null, null);
 
             restTestClient.put().uri(BASE_URI + "/{id}", id)
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(update)
                     .exchange()
                     .expectStatus().isOk()
-                    .expectBody(FeltVariantResponse.class)
+                    .expectBody(FeltVariantDto.class)
                     .value(variant -> {
                         assertThat(variant.thickness()).isEqualTo(8.0);
                         assertThat(variant.density()).isEqualTo(300.0);
@@ -320,7 +320,7 @@ class FeltVariantControllerIntegrationTest {
         void returns404ForMissingVariant() {
             restTestClient.put().uri(BASE_URI + "/{id}", 9999)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .body(new UpdateFeltVariantRequest(8.0, null, null))
+                    .body(new UpdateFeltVariantDto(8.0, null, null))
                     .exchange()
                     .expectStatus().isNotFound()
                     .expectBody(ErrorResponse.class)

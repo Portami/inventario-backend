@@ -1,9 +1,9 @@
 package ch.portami.inventorybackend.api;
 
 import ch.portami.inventorybackend.core.exceptions.ErrorResponse;
-import ch.portami.inventorybackend.felt.dto.CreateFeltTypeRequest;
-import ch.portami.inventorybackend.felt.dto.FeltTypeResponse;
-import ch.portami.inventorybackend.felt.dto.UpdateFeltTypeRequest;
+import ch.portami.inventorybackend.felt.dto.CreateFeltTypeDto;
+import ch.portami.inventorybackend.felt.dto.FeltTypeDto;
+import ch.portami.inventorybackend.felt.dto.UpdateFeltTypeDto;
 import ch.portami.inventorybackend.felt.repository.FeltTypeRepository;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,7 +41,7 @@ class FeltTypeControllerIntegrationTest {
             .withPassword("test");
 
     private static final String BASE_URI = "/api/felt-types";
-    private static final ParameterizedTypeReference<List<FeltTypeResponse>> TYPE_LIST =
+    private static final ParameterizedTypeReference<List<FeltTypeDto>> TYPE_LIST =
             new ParameterizedTypeReference<>() {};
 
     @Autowired private RestTestClient restTestClient;
@@ -53,14 +53,14 @@ class FeltTypeControllerIntegrationTest {
     }
 
     private Long createTypeAndGetId(String name) {
-        FeltTypeResponse body = restTestClient.post().uri(BASE_URI)
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(new CreateFeltTypeRequest(name))
-                .exchange()
-                .expectStatus().isCreated()
-                .expectBody(FeltTypeResponse.class)
-                .returnResult()
-                .getResponseBody();
+        FeltTypeDto body = restTestClient.post().uri(BASE_URI)
+                                         .contentType(MediaType.APPLICATION_JSON)
+                                         .body(new CreateFeltTypeDto(name))
+                                         .exchange()
+                                         .expectStatus().isCreated()
+                                         .expectBody(FeltTypeDto.class)
+                                         .returnResult()
+                                         .getResponseBody();
 
         assertThat(body).isNotNull();
         return body.id();
@@ -103,10 +103,10 @@ class FeltTypeControllerIntegrationTest {
         void createsType() {
             restTestClient.post().uri(BASE_URI)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .body(new CreateFeltTypeRequest("Wool"))
+                    .body(new CreateFeltTypeDto("Wool"))
                     .exchange()
                     .expectStatus().isCreated()
-                    .expectBody(FeltTypeResponse.class)
+                    .expectBody(FeltTypeDto.class)
                     .value(type -> {
                         assertThat(type.id()).isGreaterThan(0);
                         assertThat(type.name()).isEqualTo("Wool");
@@ -118,7 +118,7 @@ class FeltTypeControllerIntegrationTest {
         void rejectsBlankName() {
             restTestClient.post().uri(BASE_URI)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .body(new CreateFeltTypeRequest(""))
+                    .body(new CreateFeltTypeDto(""))
                     .exchange()
                     .expectStatus().isBadRequest()
                     .expectBody(ErrorResponse.class)
@@ -133,7 +133,7 @@ class FeltTypeControllerIntegrationTest {
         void rejectsNullName() {
             restTestClient.post().uri(BASE_URI)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .body(new CreateFeltTypeRequest(null))
+                    .body(new CreateFeltTypeDto(null))
                     .exchange()
                     .expectStatus().isBadRequest()
                     .expectBody(ErrorResponse.class)
@@ -153,7 +153,7 @@ class FeltTypeControllerIntegrationTest {
             restTestClient.get().uri(BASE_URI + "/{id}", id)
                     .exchange()
                     .expectStatus().isOk()
-                    .expectBody(FeltTypeResponse.class)
+                    .expectBody(FeltTypeDto.class)
                     .value(type -> {
                         assertThat(type.id()).isEqualTo(id);
                         assertThat(type.name()).isEqualTo("Wool");
@@ -185,10 +185,10 @@ class FeltTypeControllerIntegrationTest {
 
             restTestClient.put().uri(BASE_URI + "/{id}", id)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .body(new UpdateFeltTypeRequest("Synthetic"))
+                    .body(new UpdateFeltTypeDto("Synthetic"))
                     .exchange()
                     .expectStatus().isOk()
-                    .expectBody(FeltTypeResponse.class)
+                    .expectBody(FeltTypeDto.class)
                     .value(type -> {
                         assertThat(type.id()).isEqualTo(id);
                         assertThat(type.name()).isEqualTo("Synthetic");
@@ -202,7 +202,7 @@ class FeltTypeControllerIntegrationTest {
 
             restTestClient.put().uri(BASE_URI + "/{id}", id)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .body(new UpdateFeltTypeRequest(""))
+                    .body(new UpdateFeltTypeDto(""))
                     .exchange()
                     .expectStatus().isBadRequest()
                     .expectBody(ErrorResponse.class)
@@ -214,7 +214,7 @@ class FeltTypeControllerIntegrationTest {
         void returns404ForMissingType() {
             restTestClient.put().uri(BASE_URI + "/{id}", 9999)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .body(new UpdateFeltTypeRequest("Synthetic"))
+                    .body(new UpdateFeltTypeDto("Synthetic"))
                     .exchange()
                     .expectStatus().isNotFound()
                     .expectBody(ErrorResponse.class)

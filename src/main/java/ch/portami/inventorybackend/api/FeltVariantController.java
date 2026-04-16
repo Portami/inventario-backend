@@ -1,9 +1,9 @@
 package ch.portami.inventorybackend.api;
 
 import ch.portami.inventorybackend.felt.FeltService;
-import ch.portami.inventorybackend.felt.dto.CreateFeltVariantRequest;
-import ch.portami.inventorybackend.felt.dto.FeltVariantResponse;
-import ch.portami.inventorybackend.felt.dto.UpdateFeltVariantRequest;
+import ch.portami.inventorybackend.felt.dto.CreateFeltVariantDto;
+import ch.portami.inventorybackend.felt.dto.FeltVariantDto;
+import ch.portami.inventorybackend.felt.dto.UpdateFeltVariantDto;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.HttpStatus;
@@ -28,25 +28,25 @@ public class FeltVariantController {
     }
 
     @GetMapping
-    public List<FeltVariantResponse> getAllFeltVariants() {
+    public List<FeltVariantDto> getAllFeltVariants() {
         return feltService.getAllFeltVariants();
     }
 
     @GetMapping("/{id}")
-    public FeltVariantResponse getFeltVariant(@PathVariable Long id) {
+    public FeltVariantDto getFeltVariant(@PathVariable Long id) {
         return feltService.getFeltVariantById(id);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public FeltVariantResponse createFeltVariant(@Valid @RequestBody CreateFeltVariantRequest request) {
+    public FeltVariantDto createFeltVariant(@Valid @RequestBody CreateFeltVariantDto request) {
         return feltService.createFeltVariant(request);
     }
 
     @PutMapping("/{id}")
-    public FeltVariantResponse updateFeltVariant(
+    public FeltVariantDto updateFeltVariant(
         @PathVariable Long id,
-        @Valid @RequestBody UpdateFeltVariantRequest request
+        @Valid @RequestBody UpdateFeltVariantDto request
     ) {
         return feltService.updateFeltVariant(id, request);
     }

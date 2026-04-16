@@ -1,9 +1,9 @@
 package ch.portami.inventorybackend.api;
 
 import ch.portami.inventorybackend.felt.FeltService;
-import ch.portami.inventorybackend.felt.dto.CreateFeltRequest;
-import ch.portami.inventorybackend.felt.dto.FeltResponse;
-import ch.portami.inventorybackend.felt.dto.UpdateFeltRequest;
+import ch.portami.inventorybackend.felt.dto.CreateFeltDto;
+import ch.portami.inventorybackend.felt.dto.FeltDto;
+import ch.portami.inventorybackend.felt.dto.UpdateFeltDto;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.HttpStatus;
@@ -28,25 +28,25 @@ public class FeltController {
     }
 
     @GetMapping
-    public List<FeltResponse> getAllFelts() {
+    public List<FeltDto> getAllFelts() {
         return feltService.getAllFelts();
     }
 
     @GetMapping("/{id}")
-    public FeltResponse getFelt(@PathVariable Long id) {
+    public FeltDto getFelt(@PathVariable Long id) {
         return feltService.getFeltById(id);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public FeltResponse createFelt(@Valid @RequestBody CreateFeltRequest request) {
+    public FeltDto createFelt(@Valid @RequestBody CreateFeltDto request) {
         return feltService.createFelt(request);
     }
 
     @PutMapping("/{id}")
-    public FeltResponse updateFelt(
+    public FeltDto updateFelt(
         @PathVariable Long id,
-        @Valid @RequestBody UpdateFeltRequest request
+        @Valid @RequestBody UpdateFeltDto request
     ) {
         return feltService.updateFelt(id, request);
     }

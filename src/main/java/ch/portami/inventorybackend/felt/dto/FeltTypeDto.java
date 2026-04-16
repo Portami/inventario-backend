@@ -1,6 +1,6 @@
 package ch.portami.inventorybackend.felt.dto;
 
-public record FeltTypeResponse(
+public record FeltTypeDto(
     Long id,
     String name
 ) {

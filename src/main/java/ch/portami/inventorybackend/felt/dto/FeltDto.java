@@ -1,13 +1,11 @@
 package ch.portami.inventorybackend.felt.dto;
 
-public record FeltColorVariantResponse(
+public record FeltDto(
     Long id,
-    String color,
-    String supplierColor,
-    Long feltVariantId,
-    Long feltId,
     String articleNumber,
+    Long feltTypeId,
     String feltTypeName,
+    Long supplierId,
     String supplierName
 ) {
 

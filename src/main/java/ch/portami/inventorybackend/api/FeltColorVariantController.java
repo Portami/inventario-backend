@@ -1,9 +1,9 @@
 package ch.portami.inventorybackend.api;
 
 import ch.portami.inventorybackend.felt.FeltService;
-import ch.portami.inventorybackend.felt.dto.CreateFeltColorVariantRequest;
-import ch.portami.inventorybackend.felt.dto.FeltColorVariantResponse;
-import ch.portami.inventorybackend.felt.dto.UpdateFeltColorVariantRequest;
+import ch.portami.inventorybackend.felt.dto.CreateFeltColorVariantDto;
+import ch.portami.inventorybackend.felt.dto.FeltColorVariantDto;
+import ch.portami.inventorybackend.felt.dto.UpdateFeltColorVariantDto;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.HttpStatus;
@@ -28,27 +28,27 @@ public class FeltColorVariantController {
     }
 
     @GetMapping
-    public List<FeltColorVariantResponse> getAllFeltColorVariants() {
+    public List<FeltColorVariantDto> getAllFeltColorVariants() {
         return feltService.getAllFeltColorVariants();
     }
 
     @GetMapping("/{id}")
-    public FeltColorVariantResponse getFeltColorVariant(@PathVariable Long id) {
+    public FeltColorVariantDto getFeltColorVariant(@PathVariable Long id) {
         return feltService.getFeltColorVariantById(id);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public FeltColorVariantResponse createFeltColorVariant(
-        @Valid @RequestBody CreateFeltColorVariantRequest request
+    public FeltColorVariantDto createFeltColorVariant(
+        @Valid @RequestBody CreateFeltColorVariantDto request
     ) {
         return feltService.createFeltColorVariant(request);
     }
 
     @PutMapping("/{id}")
-    public FeltColorVariantResponse updateFeltColorVariant(
+    public FeltColorVariantDto updateFeltColorVariant(
         @PathVariable Long id,
-        @Valid @RequestBody UpdateFeltColorVariantRequest request
+        @Valid @RequestBody UpdateFeltColorVariantDto request
     ) {
         return feltService.updateFeltColorVariant(id, request);
     }

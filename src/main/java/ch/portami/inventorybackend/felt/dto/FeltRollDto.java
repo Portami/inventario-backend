@@ -2,7 +2,7 @@ package ch.portami.inventorybackend.felt.dto;
 
 import java.math.BigDecimal;
 
-public record FeltRollResponse(
+public record FeltRollDto(
     Long id,
     Double length,
     Double width,

@@ -1,6 +1,6 @@
 package ch.portami.inventorybackend.felt.dto;
 
-public record UpdateFeltRequest(
+public record UpdateFeltDto(
     Long feltTypeId,
     Long supplierId,
     String articleNumber
