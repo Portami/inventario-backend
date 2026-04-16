@@ -28,6 +28,9 @@ public class Product {
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
+    @Column(nullable = false)
+    private String name;
+
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private final List<ProductAttribute> productAttributes = new ArrayList<>();
 
@@ -41,6 +44,9 @@ public class Product {
     }
 
     public Long getId() { return id; }
+
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
 
     // Fixed: was getProductType/setProductType — the field is `category`.
     public Category getCategory() { return category; }
