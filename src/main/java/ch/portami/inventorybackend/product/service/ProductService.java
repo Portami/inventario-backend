@@ -9,6 +9,7 @@ import ch.portami.inventorybackend.product.repository.CategoryRepository;
 import ch.portami.inventorybackend.product.repository.ProductRepository;
 import java.util.List;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ProductService {
@@ -23,24 +24,28 @@ public class ProductService {
         this.categoryRepository = categoryRepository;
     }
 
+    @Transactional
     public ProductDto createProduct(CreateProductDto createProductDto) {
         Product product = productMapper.toProduct(createProductDto, categoryRepository);
         Product savedProduct = productRepository.save(product);
         return productMapper.toProductDto(savedProduct);
     }
 
+    @Transactional(readOnly = true)
     public ProductDto getProductById(long id) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
         return productMapper.toProductDto(product);
     }
 
+    @Transactional(readOnly = true)
     public List<ProductDto> getAllProducts() {
         return productRepository.findAll().stream()
                 .map(productMapper::toProductDto)
                 .toList();
     }
 
+    @Transactional
     public ProductDto updateProduct(long id, UpdateProductDto updateProductDto) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
@@ -49,9 +54,11 @@ public class ProductService {
         return productMapper.toProductDto(updatedProduct);
     }
 
+    @Transactional
     public void deleteProduct(long id) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
         productRepository.delete(product);
     }
+
 }

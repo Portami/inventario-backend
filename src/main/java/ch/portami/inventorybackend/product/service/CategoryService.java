@@ -8,6 +8,7 @@ import ch.portami.inventorybackend.product.entity.Category;
 import ch.portami.inventorybackend.product.repository.CategoryRepository;
 import java.util.List;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class CategoryService {
@@ -20,24 +21,28 @@ public class CategoryService {
         this.categoryMapper = categoryMapper;
     }
 
+    @Transactional
     public CategoryDto createCategory(CreateCategoryDto createCategoryDto) {
         Category category = categoryMapper.toCategory(createCategoryDto);
         Category savedCategory = categoryRepository.save(category);
         return categoryMapper.toCategoryDto(savedCategory);
     }
 
+    @Transactional(readOnly = true)
     public CategoryDto getCategoryById(long id) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Category not found with id: " + id));
         return categoryMapper.toCategoryDto(category);
     }
 
+    @Transactional(readOnly = true)
     public List<CategoryDto> getAllCategories() {
         return categoryRepository.findAll().stream()
                 .map(categoryMapper::toCategoryDto)
                 .toList();
     }
 
+    @Transactional
     public CategoryDto updateCategory(long id, UpdateCategoryDto updateCategoryDto) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Category not found with id: " + id));
@@ -46,9 +51,11 @@ public class CategoryService {
         return categoryMapper.toCategoryDto(updatedCategory);
     }
 
+    @Transactional
     public void deleteCategory(long id) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Category not found with id: " + id));
         categoryRepository.delete(category);
     }
+
 }

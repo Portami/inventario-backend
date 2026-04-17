@@ -10,6 +10,7 @@ import ch.portami.inventorybackend.product.repository.ProductRepository;
 import ch.portami.inventorybackend.product.repository.ProductVariantRepository;
 import java.util.List;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ProductVariantService {
@@ -24,6 +25,7 @@ public class ProductVariantService {
         this.productRepository = productRepository;
     }
 
+    @Transactional
     public ProductVariantDto createProductVariant(long productId, CreateProductVariantDto createProductVariantDto) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
@@ -33,6 +35,7 @@ public class ProductVariantService {
         return productVariantMapper.toProductVariantDto(savedVariant);
     }
 
+    @Transactional(readOnly = true)
     public ProductVariantDto getProductVariantById(long productId, long variantId) {
         ProductVariant productVariant = productVariantRepository.findById(variantId)
                 .orElseThrow(() -> new RuntimeException("Product variant not found with id: " + variantId));
@@ -42,6 +45,7 @@ public class ProductVariantService {
         return productVariantMapper.toProductVariantDto(productVariant);
     }
 
+    @Transactional(readOnly = true)
     public List<ProductVariantDto> getAllProductVariants(long productId) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
@@ -50,6 +54,7 @@ public class ProductVariantService {
                 .toList();
     }
 
+    @Transactional
     public ProductVariantDto updateProductVariant(long productId, long variantId, UpdateProductVariantDto updateProductVariantDto) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
@@ -63,6 +68,7 @@ public class ProductVariantService {
         return productVariantMapper.toProductVariantDto(updatedVariant);
     }
 
+    @Transactional
     public void deleteProductVariant(long productId, long variantId) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
@@ -74,4 +80,5 @@ public class ProductVariantService {
         product.removeProductVariant(productVariant);
         productVariantRepository.delete(productVariant);
     }
+
 }
