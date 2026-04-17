@@ -1,8 +1,54 @@
 package ch.portami.inventorybackend.product.service;
 
+import ch.portami.inventorybackend.product.dto.category.CategoryDto;
+import ch.portami.inventorybackend.product.dto.category.CategoryMapper;
+import ch.portami.inventorybackend.product.dto.category.CreateCategoryDto;
+import ch.portami.inventorybackend.product.dto.category.UpdateCategoryDto;
+import ch.portami.inventorybackend.product.entity.Category;
+import ch.portami.inventorybackend.product.repository.CategoryRepository;
+import java.util.List;
 import org.springframework.stereotype.Service;
 
 @Service
 public class CategoryService {
 
+    private final CategoryRepository categoryRepository;
+    private final CategoryMapper categoryMapper;
+
+    public CategoryService(CategoryRepository categoryRepository, CategoryMapper categoryMapper) {
+        this.categoryRepository = categoryRepository;
+        this.categoryMapper = categoryMapper;
+    }
+
+    public CategoryDto createCategory(CreateCategoryDto createCategoryDto) {
+        Category category = categoryMapper.toCategory(createCategoryDto);
+        Category savedCategory = categoryRepository.save(category);
+        return categoryMapper.toCategoryDto(savedCategory);
+    }
+
+    public CategoryDto getCategoryById(long id) {
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Category not found with id: " + id));
+        return categoryMapper.toCategoryDto(category);
+    }
+
+    public List<CategoryDto> getAllCategories() {
+        return categoryRepository.findAll().stream()
+                .map(categoryMapper::toCategoryDto)
+                .toList();
+    }
+
+    public CategoryDto updateCategory(long id, UpdateCategoryDto updateCategoryDto) {
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Category not found with id: " + id));
+        categoryMapper.updateCategory(updateCategoryDto, category);
+        Category updatedCategory = categoryRepository.save(category);
+        return categoryMapper.toCategoryDto(updatedCategory);
+    }
+
+    public void deleteCategory(long id) {
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Category not found with id: " + id));
+        categoryRepository.delete(category);
+    }
 }
