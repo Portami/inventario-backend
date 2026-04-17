@@ -5,8 +5,9 @@ import ch.portami.inventorybackend.felt.dto.CreateFeltDto;
 import ch.portami.inventorybackend.felt.dto.FeltDto;
 import ch.portami.inventorybackend.felt.dto.UpdateFeltDto;
 import jakarta.validation.Valid;
+import java.net.URI;
 import java.util.List;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -14,7 +15,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -28,32 +28,30 @@ public class FeltController {
     }
 
     @GetMapping
-    public List<FeltDto> getAllFelts() {
-        return feltService.getAllFelts();
+    public ResponseEntity<List<FeltDto>> getAll() {
+        return ResponseEntity.ok(feltService.findAll());
     }
 
     @GetMapping("/{id}")
-    public FeltDto getFelt(@PathVariable Long id) {
-        return feltService.getFeltById(id);
+    public ResponseEntity<FeltDto> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(feltService.findById(id));
     }
 
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public FeltDto createFelt(@Valid @RequestBody CreateFeltDto request) {
-        return feltService.createFelt(request);
+    public ResponseEntity<FeltDto> create(@RequestBody @Valid CreateFeltDto dto) {
+        FeltDto created = feltService.create(dto);
+        URI location = URI.create("/api/felts/" + created.id());
+        return ResponseEntity.created(location).body(created);
     }
 
     @PutMapping("/{id}")
-    public FeltDto updateFelt(
-        @PathVariable Long id,
-        @Valid @RequestBody UpdateFeltDto request
-    ) {
-        return feltService.updateFelt(id, request);
+    public ResponseEntity<FeltDto> update(@PathVariable Long id, @RequestBody @Valid UpdateFeltDto dto) {
+        return ResponseEntity.ok(feltService.update(id, dto));
     }
 
     @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteFelt(@PathVariable Long id) {
-        feltService.deleteFelt(id);
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        feltService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 }

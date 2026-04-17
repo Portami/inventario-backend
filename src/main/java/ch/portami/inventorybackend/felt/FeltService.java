@@ -1,17 +1,8 @@
 package ch.portami.inventorybackend.felt;
 
-import ch.portami.inventorybackend.felt.dto.CreateFeltColorVariantDto;
 import ch.portami.inventorybackend.felt.dto.CreateFeltDto;
-import ch.portami.inventorybackend.felt.dto.CreateFeltTypeDto;
-import ch.portami.inventorybackend.felt.dto.CreateFeltVariantDto;
-import ch.portami.inventorybackend.felt.dto.FeltColorVariantDto;
 import ch.portami.inventorybackend.felt.dto.FeltDto;
-import ch.portami.inventorybackend.felt.dto.FeltTypeDto;
-import ch.portami.inventorybackend.felt.dto.FeltVariantDto;
-import ch.portami.inventorybackend.felt.dto.UpdateFeltColorVariantDto;
 import ch.portami.inventorybackend.felt.dto.UpdateFeltDto;
-import ch.portami.inventorybackend.felt.dto.UpdateFeltTypeDto;
-import ch.portami.inventorybackend.felt.dto.UpdateFeltVariantDto;
 import ch.portami.inventorybackend.felt.entity.Felt;
 import ch.portami.inventorybackend.felt.entity.FeltColorVariant;
 import ch.portami.inventorybackend.felt.entity.FeltType;
@@ -29,307 +20,187 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
+@Transactional(readOnly = true)
 public class FeltService {
 
-    private final FeltRepository feltRepository;
-    private final FeltTypeRepository feltTypeRepository;
-    private final FeltVariantRepository feltVariantRepository;
-    private final FeltColorVariantRepository feltColorVariantRepository;
-    private final SupplierRepository supplierRepository;
+    private final FeltTypeRepository feltTypeRepo;
+    private final FeltRepository feltRepo;
+    private final FeltVariantRepository feltVariantRepo;
+    private final FeltColorVariantRepository feltColorVariantRepo;
+    private final SupplierRepository supplierRepo;
 
     public FeltService(
-        FeltRepository feltRepository,
-        FeltTypeRepository feltTypeRepository,
-        FeltVariantRepository feltVariantRepository,
-        FeltColorVariantRepository feltColorVariantRepository,
-        SupplierRepository supplierRepository
+        FeltTypeRepository feltTypeRepo,
+        FeltRepository feltRepo,
+        FeltVariantRepository feltVariantRepo,
+        FeltColorVariantRepository feltColorVariantRepo,
+        SupplierRepository supplierRepo
     ) {
-        this.feltRepository = feltRepository;
-        this.feltTypeRepository = feltTypeRepository;
-        this.feltVariantRepository = feltVariantRepository;
-        this.feltColorVariantRepository = feltColorVariantRepository;
-        this.supplierRepository = supplierRepository;
+        this.feltTypeRepo = feltTypeRepo;
+        this.feltRepo = feltRepo;
+        this.feltVariantRepo = feltVariantRepo;
+        this.feltColorVariantRepo = feltColorVariantRepo;
+        this.supplierRepo = supplierRepo;
     }
 
-    // region FeltTypes
-    public List<FeltTypeDto> getAllFeltTypes() {
-        return feltTypeRepository
+    public List<FeltDto> findAll() {
+        return feltColorVariantRepo
             .findAll()
             .stream()
-            .map(this::toFeltTypeResponse)
+            .map(this::toDto)
             .toList();
     }
 
-    public FeltTypeDto getFeltTypeById(Long id) {
-        return toFeltTypeResponse(findFeltTypeOrThrow(id));
+    public FeltDto findById(Long id) {
+        return feltColorVariantRepo
+            .findById(id)
+            .map(this::toDto)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Felt not found")
+            );
     }
 
     @Transactional
-    public FeltTypeDto createFeltType(CreateFeltTypeDto request) {
-        FeltType feltType = new FeltType(request.name());
-        return toFeltTypeResponse(feltTypeRepository.save(feltType));
+    public FeltDto create(CreateFeltDto dto) {
+        Supplier supplier = supplierRepo
+            .findById(dto.supplierId())
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Supplier not found")
+            );
+
+        FeltType feltType = feltTypeRepo
+            .findByName(dto.feltTypeName())
+            .orElseGet(
+                () -> feltTypeRepo.save(new FeltType(dto.feltTypeName()))
+            );
+
+        Felt felt = feltRepo
+            .findByFeltTypeAndSupplierAndArticleNumber(feltType, supplier, dto.articleNumber())
+            .orElseGet(
+                () -> feltRepo.save(new Felt(feltType, supplier, dto.articleNumber()))
+            );
+
+        FeltVariant feltVariant = feltVariantRepo
+            .findByFeltAndThicknessAndDensityAndPrice(felt, dto.thickness(), dto.density(), dto.price())
+            .orElseGet(
+                () -> feltVariantRepo.save(new FeltVariant(felt, dto.thickness(), dto.density(), dto.price()))
+            );
+
+        FeltColorVariant feltColorVariant = new FeltColorVariant(feltVariant, dto.color());
+        feltColorVariant.setSupplierColor(dto.supplierColor());
+        feltColorVariant = feltColorVariantRepo.save(feltColorVariant);
+
+        return toDto(feltColorVariant);
     }
 
-    @Transactional
-    public FeltTypeDto updateFeltType(Long id, UpdateFeltTypeDto request) {
-        FeltType feltType = findFeltTypeOrThrow(id);
-        if (request.name() != null) {
-            feltType.setName(request.name());
+    private FeltType updateType(UpdateFeltDto dto, Felt felt) {
+        FeltType type = felt.getFeltType();
+        boolean hasChanges = !type.getName().equals(dto.feltTypeName());
+
+        if (hasChanges) {
+            FeltType targetFeltType = feltTypeRepo
+                .findByName(dto.feltTypeName())
+                .orElseGet(() -> feltTypeRepo.save(
+                    new FeltType(dto.feltTypeName())
+                ));
+            // Set FK directly — do not touch in-memory collections to avoid orphan-removal trap
+            felt.setFeltType(targetFeltType);
+            return targetFeltType;
         }
-        return toFeltTypeResponse(feltTypeRepository.save(feltType));
+        return type;
     }
 
-    @Transactional
-    public void deleteFeltType(Long id) {
-        if (!feltTypeRepository.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "FeltType not found: " + id);
+    private Felt updateFelt(UpdateFeltDto dto, FeltVariant feltVariant) {
+        Felt felt = feltVariant.getFelt();
+        FeltType type = updateType(dto, felt);
+        boolean hasChanges = !felt.getArticleNumber().equals(dto.articleNumber());
+
+        if (hasChanges) {
+            Felt targetFelt = feltRepo
+                .findByArticleNumber(dto.articleNumber())
+                .orElseGet(() -> feltRepo.save(
+                    new Felt(type, felt.getSupplier(), dto.articleNumber())
+                ));
+            // Set FK directly — do not touch in-memory collections to avoid orphan-removal trap
+            feltVariant.setFelt(targetFelt);
+            return targetFelt;
         }
-        feltTypeRepository.deleteById(id);
-    }
-    // endregion
-
-    // region Felts
-    @Transactional(readOnly = true)
-    public List<FeltDto> getAllFelts() {
-        return feltRepository
-            .findAll()
-            .stream()
-            .map(this::toFeltResponse)
-            .toList();
+        return felt;
     }
 
-    @Transactional(readOnly = true)
-    public FeltDto getFeltById(Long id) {
-        return toFeltResponse(findFeltOrThrow(id));
-    }
-
-    @Transactional
-    public FeltDto createFelt(CreateFeltDto request) {
-        FeltType feltType = findFeltTypeOrThrow(request.feltTypeId());
-        Supplier supplier = findSupplierOrThrow(request.supplierId());
-        Felt felt = new Felt(feltType, supplier, request.articleNumber());
-        return toFeltResponse(feltRepository.save(felt));
-    }
-
-    @Transactional
-    public FeltDto updateFelt(Long id, UpdateFeltDto request) {
-        Felt felt = findFeltOrThrow(id);
-        if (request.feltTypeId() != null) {
-            felt.setFeltType(findFeltTypeOrThrow(request.feltTypeId()));
-        }
-        if (request.supplierId() != null) {
-            felt.setSupplier(findSupplierOrThrow(request.supplierId()));
-        }
-        if (request.articleNumber() != null) {
-            felt.setArticleNumber(request.articleNumber());
-        }
-        return toFeltResponse(feltRepository.save(felt));
-    }
-
-    @Transactional
-    public void deleteFelt(Long id) {
-        if (!feltRepository.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Felt not found: " + id);
-        }
-        feltRepository.deleteById(id);
-    }
-    // endregion
-
-    // region FeltVariants
-    @Transactional(readOnly = true)
-    public List<FeltVariantDto> getFeltVariantsByFelt(Long feltId) {
-        findFeltOrThrow(feltId);
-        return feltVariantRepository
-            .findByFeltId(feltId)
-            .stream()
-            .map(this::toFeltVariantResponse)
-            .toList();
-    }
-
-    @Transactional(readOnly = true)
-    public FeltVariantDto getFeltVariantById(Long id, Long feltId) {
-        FeltVariant variant = findFeltVariantOrThrow(id);
-        validateVariantBelongsToFelt(variant, feltId);
-        return toFeltVariantResponse(variant);
-    }
-
-    @Transactional
-    public FeltVariantDto createFeltVariant(Long feltId, CreateFeltVariantDto request) {
-        Felt felt = findFeltOrThrow(feltId);
-        FeltVariant variant = new FeltVariant(felt, request.thickness(), request.density(), request.price());
-        return toFeltVariantResponse(feltVariantRepository.save(variant));
-    }
-
-    @Transactional
-    public FeltVariantDto updateFeltVariant(Long id, Long feltId, UpdateFeltVariantDto request) {
-        FeltVariant variant = findFeltVariantOrThrow(id);
-        validateVariantBelongsToFelt(variant, feltId);
-        if (request.thickness() != null) {
-            variant.setThickness(request.thickness());
-        }
-        if (request.density() != null) {
-            variant.setDensity(request.density());
-        }
-        if (request.price() != null) {
-            variant.setPrice(request.price());
-        }
-        return toFeltVariantResponse(feltVariantRepository.save(variant));
-    }
-
-    @Transactional
-    public void deleteFeltVariant(Long id, Long feltId) {
-        FeltVariant variant = findFeltVariantOrThrow(id);
-        validateVariantBelongsToFelt(variant, feltId);
-        feltVariantRepository.deleteById(id);
-    }
-
-    private void validateVariantBelongsToFelt(FeltVariant variant, Long feltId) {
-        if (!variant.getFelt().getId().equals(feltId)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "FeltVariant not found: " + variant.getId());
-        }
-    }
-    // endregion
-
-    // region FeltColorVariants
-    @Transactional(readOnly = true)
-    public List<FeltColorVariantDto> getFeltColorVariantsByVariant(Long feltId, Long variantId) {
-        FeltVariant variant = findFeltVariantOrThrow(variantId);
-        validateVariantBelongsToFelt(variant, feltId);
-        return feltColorVariantRepository
-            .findByFeltVariantId(variantId)
-            .stream()
-            .map(this::toFeltColorVariantResponse)
-            .toList();
-    }
-
-    @Transactional(readOnly = true)
-    public FeltColorVariantDto getFeltColorVariantById(Long id, Long feltId, Long variantId) {
-        FeltColorVariant colorVariant = findFeltColorVariantOrThrow(id);
-        validateColorVariantBelongsToVariant(colorVariant, feltId, variantId);
-        return toFeltColorVariantResponse(colorVariant);
-    }
-
-    @Transactional
-    public FeltColorVariantDto createFeltColorVariant(Long feltId, Long variantId, CreateFeltColorVariantDto request) {
-        FeltVariant variant = findFeltVariantOrThrow(variantId);
-        validateVariantBelongsToFelt(variant, feltId);
-        FeltColorVariant colorVariant = new FeltColorVariant(variant, request.color());
-        colorVariant.setSupplierColor(request.supplierColor());
-        return toFeltColorVariantResponse(feltColorVariantRepository.save(colorVariant));
-    }
-
-    @Transactional
-    public FeltColorVariantDto updateFeltColorVariant(Long id, Long feltId, Long variantId, UpdateFeltColorVariantDto request) {
-        FeltColorVariant colorVariant = findFeltColorVariantOrThrow(id);
-        validateColorVariantBelongsToVariant(colorVariant, feltId, variantId);
-        if (request.color() != null) {
-            colorVariant.setColor(request.color());
-        }
-        if (request.supplierColor() != null) {
-            colorVariant.setSupplierColor(request.supplierColor());
-        }
-        return toFeltColorVariantResponse(feltColorVariantRepository.save(colorVariant));
-    }
-
-    @Transactional
-    public void deleteFeltColorVariant(Long id, Long feltId, Long variantId) {
-        FeltColorVariant colorVariant = findFeltColorVariantOrThrow(id);
-        validateColorVariantBelongsToVariant(colorVariant, feltId, variantId);
-        feltColorVariantRepository.deleteById(id);
-    }
-
-    private void validateColorVariantBelongsToVariant(FeltColorVariant colorVariant, Long feltId, Long variantId) {
+    private FeltVariant updateVariant(UpdateFeltDto dto, FeltColorVariant colorVariant) {
         FeltVariant variant = colorVariant.getFeltVariant();
-        if (!variant.getId().equals(variantId) || !variant.getFelt().getId().equals(feltId)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "FeltColorVariant not found: " + colorVariant.getId());
+        Felt felt = updateFelt(dto, variant);
+
+        boolean hasChanges = !variant.getThickness().equals(dto.thickness())
+            || !variant.getDensity().equals(dto.density())
+            || variant.getPrice().compareTo(dto.price()) != 0;
+
+        if (hasChanges) {
+            int count = feltColorVariantRepo.countByFeltVariantId(variant.getId());
+            if (count > 1) {
+                FeltVariant targetVariant = feltVariantRepo
+                    .findByFeltAndThicknessAndDensityAndPrice(felt, dto.thickness(), dto.density(), dto.price())
+                    .orElseGet(() -> feltVariantRepo.save(
+                        new FeltVariant(felt, dto.thickness(), dto.density(), dto.price())
+                    ));
+                // Set FK directly — do not touch in-memory collections to avoid orphan-removal trap
+                colorVariant.setFeltVariant(targetVariant);
+                return  targetVariant;
+            } else {
+                variant.setFelt(felt);
+                variant.setThickness(dto.thickness());
+                variant.setDensity(dto.density());
+                variant.setPrice(dto.price());
+            }
         }
+        return variant;
     }
-    // endregion
 
-    private FeltType findFeltTypeOrThrow(Long id) {
-        return feltTypeRepository
+    @Transactional
+    public FeltDto update(Long id, UpdateFeltDto dto) {
+        FeltColorVariant feltColorVariant = feltColorVariantRepo
             .findById(id)
-            .orElseThrow(() ->
-                new ResponseStatusException(HttpStatus.NOT_FOUND, "FeltType not found: " + id)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Felt not found")
             );
+
+        feltColorVariant.setColor(dto.color());
+        feltColorVariant.setSupplierColor(dto.supplierColor());
+
+        updateVariant(dto, feltColorVariant);
+
+        return toDto(feltColorVariant);
     }
 
-    private Felt findFeltOrThrow(Long id) {
-        return feltRepository
-            .findById(id)
-            .orElseThrow(() ->
-                new ResponseStatusException(HttpStatus.NOT_FOUND, "Felt not found: " + id)
-            );
+    @Transactional
+    public void delete(Long id) {
+        if (!feltColorVariantRepo.existsById(id)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Felt not found");
+        }
+        feltColorVariantRepo.deleteById(id);
     }
 
-    private FeltVariant findFeltVariantOrThrow(Long id) {
-        return feltVariantRepository
-            .findById(id)
-            .orElseThrow(() ->
-                new ResponseStatusException(HttpStatus.NOT_FOUND, "FeltVariant not found: " + id)
-            );
-    }
+    private FeltDto toDto(FeltColorVariant feltColorVariant) {
+        FeltVariant feltVariant = feltColorVariant.getFeltVariant();
+        Felt felt = feltVariant.getFelt();
+        FeltType feltType = felt.getFeltType();
+        Supplier supplier = felt.getSupplier();
 
-    private FeltColorVariant findFeltColorVariantOrThrow(Long id) {
-        return feltColorVariantRepository
-            .findById(id)
-            .orElseThrow(() ->
-                new ResponseStatusException(HttpStatus.NOT_FOUND, "FeltColorVariant not found: " + id)
-            );
-    }
-
-    private Supplier findSupplierOrThrow(Long id) {
-        return supplierRepository
-            .findById(id)
-            .orElseThrow(() ->
-                new ResponseStatusException(HttpStatus.NOT_FOUND, "Supplier not found: " + id)
-            );
-    }
-
-    private FeltTypeDto toFeltTypeResponse(FeltType feltType) {
-        return new FeltTypeDto(
+        return new FeltDto(
+            feltColorVariant.getId(),
+            feltColorVariant.getColor(),
+            feltColorVariant.getSupplierColor(),
+            feltVariant.getThickness(),
+            feltVariant.getDensity(),
+            feltVariant.getPrice(),
+            feltVariant.getId(),
+            felt.getArticleNumber(),
+            supplier.getId(),
+            supplier.getName(),
+            felt.getId(),
             feltType.getId(),
             feltType.getName()
-        );
-    }
-
-    private FeltDto toFeltResponse(Felt felt) {
-        return new FeltDto(
-            felt.getId(),
-            felt.getArticleNumber(),
-            felt.getFeltType().getId(),
-            felt.getFeltType().getName(),
-            felt.getSupplier().getId(),
-            felt.getSupplier().getName()
-        );
-    }
-
-    private FeltVariantDto toFeltVariantResponse(FeltVariant variant) {
-        Felt felt = variant.getFelt();
-        return new FeltVariantDto(
-            variant.getId(),
-            felt.getId(),
-            felt.getArticleNumber(),
-            felt.getFeltType().getName(),
-            felt.getSupplier().getName(),
-            variant.getThickness(),
-            variant.getDensity(),
-            variant.getPrice()
-        );
-    }
-
-    private FeltColorVariantDto toFeltColorVariantResponse(FeltColorVariant colorVariant) {
-        FeltVariant variant = colorVariant.getFeltVariant();
-        Felt felt = variant.getFelt();
-        return new FeltColorVariantDto(
-            colorVariant.getId(),
-            colorVariant.getColor(),
-            colorVariant.getSupplierColor(),
-            variant.getId(),
-            felt.getId(),
-            felt.getArticleNumber(),
-            felt.getFeltType().getName(),
-            felt.getSupplier().getName()
         );
     }
 }

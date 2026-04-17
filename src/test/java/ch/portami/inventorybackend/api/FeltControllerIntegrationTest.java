@@ -4,11 +4,13 @@ import ch.portami.inventorybackend.core.exceptions.ErrorResponse;
 import ch.portami.inventorybackend.felt.dto.CreateFeltDto;
 import ch.portami.inventorybackend.felt.dto.FeltDto;
 import ch.portami.inventorybackend.felt.dto.UpdateFeltDto;
-import ch.portami.inventorybackend.felt.entity.FeltType;
 import ch.portami.inventorybackend.felt.entity.Supplier;
+import ch.portami.inventorybackend.felt.repository.FeltColorVariantRepository;
 import ch.portami.inventorybackend.felt.repository.FeltRepository;
 import ch.portami.inventorybackend.felt.repository.FeltTypeRepository;
+import ch.portami.inventorybackend.felt.repository.FeltVariantRepository;
 import ch.portami.inventorybackend.felt.repository.SupplierRepository;
+import java.math.BigDecimal;
 import java.util.List;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,51 +47,52 @@ class FeltControllerIntegrationTest {
             .withUsername("test")
             .withPassword("test");
 
-    private static final String BASE_URI = "/api/felts";
     private static final ParameterizedTypeReference<List<FeltDto>> FELT_LIST =
             new ParameterizedTypeReference<>() {};
 
     @Autowired private RestTestClient restTestClient;
+    @Autowired private FeltColorVariantRepository feltColorVariantRepository;
+    @Autowired private FeltVariantRepository feltVariantRepository;
     @Autowired private FeltRepository feltRepository;
     @Autowired private FeltTypeRepository feltTypeRepository;
     @Autowired private SupplierRepository supplierRepository;
 
-    private Long feltTypeId;
-    private Long altFeltTypeId;
     private Long supplierId;
 
     @BeforeAll
-    void setupHierarchy() {
-        feltTypeId = feltTypeRepository.save(new FeltType("Wool")).getId();
-        altFeltTypeId = feltTypeRepository.save(new FeltType("Synthetic")).getId();
-        supplierId = supplierRepository.save(new Supplier("Supplier A")).getId();
+    void setupSupplier() {
+        Supplier supplier = supplierRepository.save(new Supplier("Test Supplier"));
+        supplierId = supplier.getId();
     }
 
     @BeforeEach
     void resetFelts() {
+        feltColorVariantRepository.deleteAll();
+        feltVariantRepository.deleteAll();
         feltRepository.deleteAll();
+        feltTypeRepository.deleteAll();
     }
 
-    private CreateFeltDto validRequest() {
-        return new CreateFeltDto(feltTypeId, supplierId, "ART-001");
+    private CreateFeltDto validCreate() {
+        return new CreateFeltDto(
+                "Red", "Supplier Red",
+                2.0, 300.0, new BigDecimal("12.50"),
+                "ART-001", supplierId, "Wool"
+        );
     }
 
-    private Long createFeltAndGetId(CreateFeltDto request) {
-        FeltDto body = restTestClient.post().uri(BASE_URI)
-                                     .contentType(MediaType.APPLICATION_JSON)
-                                     .body(request)
-                                     .exchange()
-                                     .expectStatus().isCreated()
-                                     .expectBody(FeltDto.class)
-                                     .returnResult()
-                                     .getResponseBody();
+    private FeltDto postFelt(CreateFeltDto dto) {
+        FeltDto body = restTestClient.post().uri("/api/felts")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(dto)
+                .exchange()
+                .expectStatus().isCreated()
+                .expectBody(FeltDto.class)
+                .returnResult()
+                .getResponseBody();
 
         assertThat(body).isNotNull();
-        return body.id();
-    }
-
-    private void createFelt(CreateFeltDto request) {
-        createFeltAndGetId(request);
+        return body;
     }
 
     @Nested
@@ -99,7 +102,7 @@ class FeltControllerIntegrationTest {
         @Test
         @DisplayName("returns empty list when no felts exist")
         void returnsEmptyList() {
-            restTestClient.get().uri(BASE_URI)
+            restTestClient.get().uri("/api/felts")
                     .exchange()
                     .expectStatus().isOk()
                     .expectBody(FELT_LIST)
@@ -107,119 +110,20 @@ class FeltControllerIntegrationTest {
         }
 
         @Test
-        @DisplayName("returns all felts")
+        @DisplayName("returns all created felts")
         void returnsAllFelts() {
-            createFelt(validRequest());
-            createFelt(new CreateFeltDto(feltTypeId, supplierId, "ART-002"));
+            postFelt(validCreate());
+            postFelt(new CreateFeltDto(
+                    "Blue", "Supplier Blue",
+                    3.0, 400.0, new BigDecimal("15.00"),
+                    "ART-002", supplierId, "Cotton"
+            ));
 
-            restTestClient.get().uri(BASE_URI)
+            restTestClient.get().uri("/api/felts")
                     .exchange()
                     .expectStatus().isOk()
                     .expectBody(FELT_LIST)
                     .value(felts -> assertThat(felts).hasSize(2));
-        }
-    }
-
-    @Nested
-    @DisplayName("POST /api/felts")
-    class CreateFelt {
-
-        @Test
-        @DisplayName("creates felt and returns 201 with full body")
-        void createsFelt() {
-            restTestClient.post().uri(BASE_URI)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(validRequest())
-                    .exchange()
-                    .expectStatus().isCreated()
-                    .expectBody(FeltDto.class)
-                    .value(felt -> {
-                        assertThat(felt.id()).isGreaterThan(0);
-                        assertThat(felt.articleNumber()).isEqualTo("ART-001");
-                        assertThat(felt.feltTypeId()).isEqualTo(feltTypeId);
-                        assertThat(felt.feltTypeName()).isEqualTo("Wool");
-                        assertThat(felt.supplierId()).isEqualTo(supplierId);
-                        assertThat(felt.supplierName()).isEqualTo("Supplier A");
-                    });
-        }
-
-        @Test
-        @DisplayName("returns 400 when feltTypeId is missing")
-        void rejectsMissingFeltTypeId() {
-            var invalid = new CreateFeltDto(null, supplierId, "ART-001");
-
-            restTestClient.post().uri(BASE_URI)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(invalid)
-                    .exchange()
-                    .expectStatus().isBadRequest()
-                    .expectBody(ErrorResponse.class)
-                    .value(err -> {
-                        assertThat(err.status()).isEqualTo(HttpStatus.BAD_REQUEST.value());
-                        assertThat(err.message()).contains("feltTypeId");
-                    });
-        }
-
-        @Test
-        @DisplayName("returns 400 when supplierId is missing")
-        void rejectsMissingSupplierId() {
-            var invalid = new CreateFeltDto(feltTypeId, null, "ART-001");
-
-            restTestClient.post().uri(BASE_URI)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(invalid)
-                    .exchange()
-                    .expectStatus().isBadRequest()
-                    .expectBody(ErrorResponse.class)
-                    .value(err -> assertThat(err.message()).contains("supplierId"));
-        }
-
-        @Test
-        @DisplayName("returns 400 when articleNumber is blank")
-        void rejectsBlankArticleNumber() {
-            var invalid = new CreateFeltDto(feltTypeId, supplierId, "");
-
-            restTestClient.post().uri(BASE_URI)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(invalid)
-                    .exchange()
-                    .expectStatus().isBadRequest()
-                    .expectBody(ErrorResponse.class)
-                    .value(err -> assertThat(err.message()).contains("articleNumber"));
-        }
-
-        @Test
-        @DisplayName("returns 404 when feltTypeId does not exist")
-        void returns404ForUnknownFeltType() {
-            var invalid = new CreateFeltDto(9999L, supplierId, "ART-001");
-
-            restTestClient.post().uri(BASE_URI)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(invalid)
-                    .exchange()
-                    .expectStatus().isNotFound()
-                    .expectBody(ErrorResponse.class)
-                    .value(err -> {
-                        assertThat(err.status()).isEqualTo(HttpStatus.NOT_FOUND.value());
-                        assertThat(err.message()).contains("9999");
-                    });
-        }
-
-        @Test
-        @DisplayName("returns 404 when supplierId does not exist")
-        void returns404ForUnknownSupplier() {
-            var invalid = new CreateFeltDto(feltTypeId, 9999L, "ART-001");
-
-            restTestClient.post().uri(BASE_URI)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(invalid)
-                    .exchange()
-                    .expectStatus().isNotFound()
-                    .expectBody(ErrorResponse.class)
-                    .value(err -> {
-                        assertThat(err.status()).isEqualTo(HttpStatus.NOT_FOUND.value());
-                        assertThat(err.message()).contains("9999");
-                    });
         }
     }
 
@@ -230,29 +134,128 @@ class FeltControllerIntegrationTest {
         @Test
         @DisplayName("returns felt when it exists")
         void returnsExistingFelt() {
-            Long id = createFeltAndGetId(validRequest());
+            FeltDto created = postFelt(validCreate());
 
-            restTestClient.get().uri(BASE_URI + "/{id}", id)
+            restTestClient.get().uri("/api/felts/{id}", created.id())
                     .exchange()
                     .expectStatus().isOk()
                     .expectBody(FeltDto.class)
                     .value(felt -> {
-                        assertThat(felt.id()).isEqualTo(id);
-                        assertThat(felt.articleNumber()).isEqualTo("ART-001");
+                        assertThat(felt.id()).isEqualTo(created.id());
+                        assertThat(felt.color()).isEqualTo("Red");
+                        assertThat(felt.feltTypeName()).isEqualTo("Wool");
+                        assertThat(felt.supplierId()).isEqualTo(supplierId);
                     });
         }
 
         @Test
         @DisplayName("returns 404 when felt does not exist")
-        void returns404ForMissingFelt() {
-            restTestClient.get().uri(BASE_URI + "/{id}", 9999)
+        void returns404ForUnknownFelt() {
+            restTestClient.get().uri("/api/felts/{id}", 99999)
                     .exchange()
                     .expectStatus().isNotFound()
                     .expectBody(ErrorResponse.class)
-                    .value(err -> {
-                        assertThat(err.status()).isEqualTo(HttpStatus.NOT_FOUND.value());
-                        assertThat(err.message()).contains("9999");
+                    .value(err -> assertThat(err.status()).isEqualTo(HttpStatus.NOT_FOUND.value()));
+        }
+    }
+
+    @Nested
+    @DisplayName("POST /api/felts")
+    class CreateFelt {
+
+        @Test
+        @DisplayName("creates felt and returns 201 with full body and Location header")
+        void createsFelt() {
+            var response = restTestClient.post().uri("/api/felts")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(validCreate())
+                    .exchange();
+
+            response.expectStatus().isCreated()
+                    .expectBody(FeltDto.class)
+                    .value(felt -> {
+                        assertThat(felt.id()).isNotNull();
+                        assertThat(felt.color()).isEqualTo("Red");
+                        assertThat(felt.supplierColor()).isEqualTo("Supplier Red");
+                        assertThat(felt.thickness()).isEqualTo(2.0);
+                        assertThat(felt.density()).isEqualTo(300.0);
+                        assertThat(felt.price()).isEqualByComparingTo(new BigDecimal("12.50"));
+                        assertThat(felt.articleNumber()).isEqualTo("ART-001");
+                        assertThat(felt.supplierId()).isEqualTo(supplierId);
+                        assertThat(felt.feltTypeName()).isEqualTo("Wool");
                     });
+
+            var location = response.returnResult(FeltDto.class).getResponseHeaders().getLocation();
+            assertThat(location).isNotNull();
+            assertThat(location.toString()).contains("/api/felts/");
+        }
+
+        @Test
+        @DisplayName("reuses existing FeltType when feltTypeName matches")
+        void reusesExistingFeltType() {
+            FeltDto first = postFelt(validCreate());
+            FeltDto second = postFelt(new CreateFeltDto(
+                    "Blue", "Supplier Blue",
+                    3.0, 400.0, new BigDecimal("15.00"),
+                    "ART-002", supplierId, "Wool"
+            ));
+
+            assertThat(first.feltTypeId()).isEqualTo(second.feltTypeId());
+        }
+
+        @Test
+        @DisplayName("reuses existing Felt and FeltVariant when properties match")
+        void reusesExistingFeltAndVariant() {
+            FeltDto first = postFelt(validCreate());
+            FeltDto second = postFelt(new CreateFeltDto(
+                    "Blue", "Supplier Blue",
+                    2.0, 300.0, new BigDecimal("12.50"),
+                    "ART-001", supplierId, "Wool"
+            ));
+            FeltDto third = postFelt(new CreateFeltDto(
+                    "Green", "Supplier Green",
+                    2.0, 300.0, new BigDecimal("12.50"),
+                    "ART-001", supplierId, "Wool"
+            ));
+
+            assertThat(first.feltId()).isEqualTo(second.feltId()).isEqualTo(third.feltId());
+            assertThat(first.feltVariantId()).isEqualTo(second.feltVariantId()).isEqualTo(third.feltVariantId());
+        }
+
+        @Test
+        @DisplayName("returns 400 when color is blank")
+        void rejectsBlankColor() {
+            var invalid = new CreateFeltDto(
+                    "", "Supplier Red",
+                    2.0, 300.0, new BigDecimal("12.50"),
+                    "ART-001", supplierId, "Wool"
+            );
+
+            restTestClient.post().uri("/api/felts")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(invalid)
+                    .exchange()
+                    .expectStatus().isBadRequest()
+                    .expectBody(ErrorResponse.class)
+                    .value(err -> assertThat(err.message()).contains("color"));
+        }
+
+        @Test
+        @DisplayName("returns 404 when supplier does not exist")
+        void returns404ForUnknownSupplier() {
+            var dto = new CreateFeltDto(
+                    "Red", "Supplier Red",
+                    2.0, 300.0, new BigDecimal("12.50"),
+                    "ART-001", 99999L, "Wool"
+            );
+
+            restTestClient.post().uri("/api/felts")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(dto)
+                    .exchange()
+                    .expectStatus().isNotFound()
+                    .expectBody(ErrorResponse.class)
+                    .value(err -> assertThat(err.status()).isEqualTo(HttpStatus.NOT_FOUND.value()));
         }
     }
 
@@ -261,66 +264,143 @@ class FeltControllerIntegrationTest {
     class UpdateFelt {
 
         @Test
-        @DisplayName("updates articleNumber")
-        void updatesArticleNumber() {
-            Long id = createFeltAndGetId(validRequest());
-            var update = new UpdateFeltDto(null, null, "ART-999");
+        @DisplayName("updates color without changing FeltVariant")
+        void updatesColorOnly() {
+            FeltDto created = postFelt(validCreate());
+            var update = new UpdateFeltDto(
+                    "Purple", "Supplier Purple",
+                    created.thickness(), created.density(), created.price(),
+                    created.articleNumber(), created.supplierId(), created.feltTypeName()
+            );
 
-            restTestClient.put().uri(BASE_URI + "/{id}", id)
+            restTestClient.put().uri("/api/felts/{id}", created.id())
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(update)
                     .exchange()
                     .expectStatus().isOk()
                     .expectBody(FeltDto.class)
                     .value(felt -> {
-                        assertThat(felt.id()).isEqualTo(id);
-                        assertThat(felt.articleNumber()).isEqualTo("ART-999");
-                        assertThat(felt.feltTypeId()).isEqualTo(feltTypeId);
+                        assertThat(felt.color()).isEqualTo("Purple");
+                        assertThat(felt.feltVariantId()).isEqualTo(created.feltVariantId());
                     });
         }
 
         @Test
-        @DisplayName("updates feltTypeId")
-        void updatesFeltType() {
-            Long id = createFeltAndGetId(validRequest());
-            var update = new UpdateFeltDto(altFeltTypeId, null, null);
+        @DisplayName("re-points to a new FeltVariant when thickness changes and variant is shared")
+        void rePointsVariantWhenShared() {
+            FeltDto first = postFelt(validCreate());
+            FeltDto second = postFelt(new CreateFeltDto(
+                    "Blue", "Supplier Blue",
+                    2.0, 300.0, new BigDecimal("12.50"),
+                    "ART-001", supplierId, "Wool"
+            ));
+            assertThat(first.feltVariantId()).isEqualTo(second.feltVariantId());
 
-            restTestClient.put().uri(BASE_URI + "/{id}", id)
+            var update = new UpdateFeltDto(
+                    first.color(), first.supplierColor(),
+                    5.0, first.density(), first.price(),
+                    first.articleNumber(), first.supplierId(), first.feltTypeName()
+            );
+
+            restTestClient.put().uri("/api/felts/{id}", first.id())
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(update)
                     .exchange()
                     .expectStatus().isOk()
                     .expectBody(FeltDto.class)
                     .value(felt -> {
-                        assertThat(felt.feltTypeId()).isEqualTo(altFeltTypeId);
-                        assertThat(felt.feltTypeName()).isEqualTo("Synthetic");
+                        assertThat(felt.thickness()).isEqualTo(5.0);
+                        assertThat(felt.feltVariantId()).isNotEqualTo(second.feltVariantId());
                     });
+
+            // second felt must still point to its original variant
+            restTestClient.get().uri("/api/felts/{id}", second.id())
+                    .exchange()
+                    .expectStatus().isOk()
+                    .expectBody(FeltDto.class)
+                    .value(felt -> assertThat(felt.feltVariantId()).isEqualTo(second.feltVariantId()));
+        }
+
+        @Test
+        @DisplayName("mutates FeltVariant in-place when it is not shared")
+        void mutatesVariantInPlaceWhenExclusive() {
+            FeltDto created = postFelt(validCreate());
+            var update = new UpdateFeltDto(
+                    created.color(), created.supplierColor(),
+                    5.0, created.density(), new BigDecimal("99.00"),
+                    created.articleNumber(), created.supplierId(), created.feltTypeName()
+            );
+
+            restTestClient.put().uri("/api/felts/{id}", created.id())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(update)
+                    .exchange()
+                    .expectStatus().isOk()
+                    .expectBody(FeltDto.class)
+                    .value(felt -> {
+                        assertThat(felt.feltVariantId()).isEqualTo(created.feltVariantId());
+                        assertThat(felt.thickness()).isEqualTo(5.0);
+                        assertThat(felt.price()).isEqualByComparingTo(new BigDecimal("99.00"));
+                    });
+        }
+
+        @Test
+        @DisplayName("creates new FeltType when feltTypeName does not exist yet")
+        void createsNewFeltType() {
+            FeltDto created = postFelt(validCreate());
+            var update = new UpdateFeltDto(
+                    created.color(), created.supplierColor(),
+                    created.thickness(), created.density(), created.price(),
+                    created.articleNumber(), created.supplierId(), "Polyester"
+            );
+
+            restTestClient.put().uri("/api/felts/{id}", created.id())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(update)
+                    .exchange()
+                    .expectStatus().isOk()
+                    .expectBody(FeltDto.class)
+                    .value(felt -> {
+                        assertThat(felt.feltTypeName()).isEqualTo("Polyester");
+                        assertThat(felt.feltTypeId()).isNotEqualTo(created.feltTypeId());
+                    });
+        }
+
+        @Test
+        @DisplayName("returns 400 when thickness is null")
+        void rejectsNullThickness() {
+            FeltDto created = postFelt(validCreate());
+            var invalid = new UpdateFeltDto(
+                    "Red", "Supplier Red",
+                    null, 300.0, new BigDecimal("12.50"),
+                    "ART-001", supplierId, "Wool"
+            );
+
+            restTestClient.put().uri("/api/felts/{id}", created.id())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(invalid)
+                    .exchange()
+                    .expectStatus().isBadRequest()
+                    .expectBody(ErrorResponse.class)
+                    .value(err -> assertThat(err.message()).contains("thickness"));
         }
 
         @Test
         @DisplayName("returns 404 when felt does not exist")
-        void returns404ForMissingFelt() {
-            restTestClient.put().uri(BASE_URI + "/{id}", 9999)
+        void returns404ForUnknownFelt() {
+            var update = new UpdateFeltDto(
+                    "Red", "Supplier Red",
+                    2.0, 300.0, new BigDecimal("12.50"),
+                    "ART-001", supplierId, "Wool"
+            );
+
+            restTestClient.put().uri("/api/felts/{id}", 99999)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .body(new UpdateFeltDto(null, null, "ART-999"))
+                    .body(update)
                     .exchange()
                     .expectStatus().isNotFound()
                     .expectBody(ErrorResponse.class)
                     .value(err -> assertThat(err.status()).isEqualTo(HttpStatus.NOT_FOUND.value()));
-        }
-
-        @Test
-        @DisplayName("returns 404 when updated feltTypeId does not exist")
-        void returns404ForUnknownFeltType() {
-            Long id = createFeltAndGetId(validRequest());
-
-            restTestClient.put().uri(BASE_URI + "/{id}", id)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(new UpdateFeltDto(9999L, null, null))
-                    .exchange()
-                    .expectStatus().isNotFound()
-                    .expectBody(ErrorResponse.class)
-                    .value(err -> assertThat(err.message()).contains("9999"));
         }
     }
 
@@ -331,28 +411,47 @@ class FeltControllerIntegrationTest {
         @Test
         @DisplayName("deletes existing felt and returns 204")
         void deletesExistingFelt() {
-            Long id = createFeltAndGetId(validRequest());
+            FeltDto created = postFelt(validCreate());
 
-            restTestClient.delete().uri(BASE_URI + "/{id}", id)
+            restTestClient.delete().uri("/api/felts/{id}", created.id())
                     .exchange()
                     .expectStatus().isNoContent();
 
-            restTestClient.get().uri(BASE_URI + "/{id}", id)
+            restTestClient.get().uri("/api/felts/{id}", created.id())
                     .exchange()
                     .expectStatus().isNotFound();
         }
 
         @Test
+        @DisplayName("does not cascade to shared FeltVariant")
+        void doesNotCascadeToSharedVariant() {
+            FeltDto first = postFelt(validCreate());
+            FeltDto second = postFelt(new CreateFeltDto(
+                    "Blue", "Supplier Blue",
+                    2.0, 300.0, new BigDecimal("12.50"),
+                    "ART-001", supplierId, "Wool"
+            ));
+            assertThat(first.feltVariantId()).isEqualTo(second.feltVariantId());
+
+            restTestClient.delete().uri("/api/felts/{id}", first.id())
+                    .exchange()
+                    .expectStatus().isNoContent();
+
+            restTestClient.get().uri("/api/felts/{id}", second.id())
+                    .exchange()
+                    .expectStatus().isOk()
+                    .expectBody(FeltDto.class)
+                    .value(felt -> assertThat(felt.feltVariantId()).isEqualTo(second.feltVariantId()));
+        }
+
+        @Test
         @DisplayName("returns 404 when felt does not exist")
-        void returns404ForMissingFelt() {
-            restTestClient.delete().uri(BASE_URI + "/{id}", 9999)
+        void returns404ForUnknownFelt() {
+            restTestClient.delete().uri("/api/felts/{id}", 99999)
                     .exchange()
                     .expectStatus().isNotFound()
                     .expectBody(ErrorResponse.class)
-                    .value(err -> {
-                        assertThat(err.status()).isEqualTo(HttpStatus.NOT_FOUND.value());
-                        assertThat(err.message()).contains("9999");
-                    });
+                    .value(err -> assertThat(err.status()).isEqualTo(HttpStatus.NOT_FOUND.value()));
         }
     }
 }
