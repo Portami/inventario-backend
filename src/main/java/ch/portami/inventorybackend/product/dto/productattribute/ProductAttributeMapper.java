@@ -9,4 +9,8 @@ public interface ProductAttributeMapper {
 
     ProductAttributeDto toProductAttributeDto(ProductAttribute productAttribute);
 
+    @Mapping(target = "product", ignore = true)
+    @Mapping(target = "productAttributeValues", ignore = true)
+    ProductAttribute toProductAttribute(CreateProductAttributeDto createProductAttributeDto);
+
 }
