@@ -1,12 +1,12 @@
 package ch.portami.inventorybackend.product.dto.product;
 
-import ch.portami.inventorybackend.product.entity.ProductAttribute;
+import ch.portami.inventorybackend.product.dto.productattribute.CreateProductAttributeDto;
 import java.util.List;
 
 public record CreateProductDto(
         String name,
         long categoryId,
-        List<ProductAttribute> attributes
+        List<CreateProductAttributeDto> attributes
 ) {
 
 }
