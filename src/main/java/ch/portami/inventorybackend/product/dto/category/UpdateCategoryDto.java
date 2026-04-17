@@ -1,6 +1,6 @@
 package ch.portami.inventorybackend.product.dto.category;
 
-public record CategoryRequest(
+public record UpdateCategoryDto(
         String name
 ) {
 }

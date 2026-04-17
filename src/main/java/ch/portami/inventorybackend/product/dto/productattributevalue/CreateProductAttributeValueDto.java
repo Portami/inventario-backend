@@ -1,6 +1,6 @@
 package ch.portami.inventorybackend.product.dto.productattributevalue;
 
-public record ProductAttributeValueRequest(
+public record CreateProductAttributeValueDto(
         long productAttributeId,
         String value
 ) {

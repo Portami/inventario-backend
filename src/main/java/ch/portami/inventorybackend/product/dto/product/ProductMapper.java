@@ -1,7 +1,7 @@
 package ch.portami.inventorybackend.product.dto.product;
 
 import ch.portami.inventorybackend.product.dto.productattribute.ProductAttributeMapper;
-import ch.portami.inventorybackend.product.dto.productattribute.ProductAttributeRequest;
+import ch.portami.inventorybackend.product.dto.productattribute.ProductAttributeChangeDto;
 import ch.portami.inventorybackend.product.dto.productvariant.ProductVariantMapper;
 import ch.portami.inventorybackend.product.entity.Category;
 import ch.portami.inventorybackend.product.entity.Product;
@@ -25,31 +25,31 @@ public interface ProductMapper {
     @Mapping(target = "category", ignore = true)
     @Mapping(target = "productVariants", ignore = true)
     @Mapping(source = "attributes", target = "productAttributes")
-    Product toProduct(ProductRequest productRequest, @Context CategoryRepository categoryRepository);
+    Product toProduct(CreateProductDto createProductDto, @Context CategoryRepository categoryRepository);
 
     @BeanMapping(nullValuePropertyMappingStrategy = org.mapstruct.NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "category", ignore = true)
     @Mapping(target = "productVariants", ignore = true)
     @Mapping(source = "attributes", target = "productAttributes", ignore = true)
-    void updateProductFromPatchRequest(ProductPatchRequest productPatchRequest, @MappingTarget Product product, @Context CategoryRepository categoryRepository);
+    void updateProduct(UpdateProductDto updateProductDto, @MappingTarget Product product, @Context CategoryRepository categoryRepository);
 
     @AfterMapping
-    default void setSpecialProperties(ProductRequest productRequest, @MappingTarget Product product, @Context CategoryRepository categoryRepository) {
-        setCategory(product, productRequest.categoryId(), categoryRepository);
+    default void setSpecialProperties(CreateProductDto createProductDto, @MappingTarget Product product, @Context CategoryRepository categoryRepository) {
+        setCategory(product, createProductDto.categoryId(), categoryRepository);
     }
 
     @AfterMapping
-    default void updateSpecialProperties(ProductPatchRequest productPatchRequest, @MappingTarget Product product, @Context CategoryRepository categoryRepository) {
+    default void updateSpecialProperties(UpdateProductDto updateProductDto, @MappingTarget Product product, @Context CategoryRepository categoryRepository) {
 
-        if (productPatchRequest.categoryId() != null) {
-            setCategory(product, productPatchRequest.categoryId(), categoryRepository);
+        if (updateProductDto.categoryId() != null) {
+            setCategory(product, updateProductDto.categoryId(), categoryRepository);
         }
 
-        if(productPatchRequest.attributes() != null) {
+        if(updateProductDto.attributes() != null) {
 
             LinkedList<ProductAttribute> attributesToRemove = new LinkedList<>(product.getProductAttributes());
 
-            for(ProductAttributeRequest attribute : productPatchRequest.attributes()) {
+            for(ProductAttributeChangeDto attribute : updateProductDto.attributes()) {
 
                 if(attribute.id() != null) {
                     ProductAttribute existingAttribute = attributesToRemove.stream().filter(a -> a.getId().equals(attribute.id())).findFirst().orElseThrow();

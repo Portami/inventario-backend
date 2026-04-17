@@ -13,10 +13,10 @@ public interface CategoryMapper {
     CategoryDto toCategoryDto(Category category);
 
     @Mapping(target = "products", ignore = true)
-    Category toCategory(CategoryRequest categoryRequest);
+    Category toCategory(CreateCategoryDto createCategoryDto);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "products", ignore = true)
-    void updateCategoryFromPatchRequest(CategoryPatchRequest categoryPatchRequest, @MappingTarget Category category);
+    void updateCategory(UpdateCategoryDto updateCategoryDto, @MappingTarget Category category);
 
 }
