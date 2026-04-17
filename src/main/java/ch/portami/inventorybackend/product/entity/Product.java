@@ -14,6 +14,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import java.util.Optional;
 
 @Entity
 @Table(name = "product")
@@ -39,8 +40,9 @@ public class Product {
 
     public Product() {}
 
-    public Product(Category category) {
+    public Product(Category category, String name) {
         this.category = category;
+        this.name = name;
     }
 
     public Long getId() { return id; }
@@ -53,6 +55,12 @@ public class Product {
     public void setCategory(Category category) { this.category = category; }
 
     public List<ProductAttribute> getProductAttributes() { return productAttributes; }
+
+    public Optional<ProductAttribute> getProductAttributeById(Long attributeId) {
+        return productAttributes.stream()
+                .filter(attr -> Objects.equals(attr.getId(), attributeId))
+                .findFirst();
+    }
 
     public List<ProductVariant> getProductVariants() { return productVariants; }
 
