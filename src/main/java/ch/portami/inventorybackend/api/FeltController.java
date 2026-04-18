@@ -15,9 +15,9 @@ import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -62,7 +62,8 @@ public class FeltController {
         summary = "Create a felt",
         description = """
             Creates a new felt color variant using a find-or-create cascade:
-            - FeltType is looked up by name; created if it does not exist.
+            - FeltType is looked up by ID; a 404 is returned if it does not exist.
+            - Supplier is looked up by ID; a 404 is returned if it does not exist.
             - Felt is looked up by (feltType, supplier, articleNumber); created if not found.
             - FeltVariant is looked up by (felt, thickness, density, price); created if not found.
             - FeltColorVariant is always created as a new record.
@@ -74,7 +75,7 @@ public class FeltController {
     @ApiResponses({
         @ApiResponse(responseCode = "201", description = "Felt created — Location header points to the new resource"),
         @ApiResponse(responseCode = "400", description = "Validation error in the request body"),
-        @ApiResponse(responseCode = "404", description = "Supplier not found")
+        @ApiResponse(responseCode = "404", description = "FeltType or Supplier not found")
     })
     @PostMapping
     public ResponseEntity<FeltDto> create(@RequestBody @Valid CreateFeltDto dto) {
@@ -84,24 +85,32 @@ public class FeltController {
     }
 
     @Operation(
-        summary = "Update a felt",
+        summary = "Partially update a felt",
         description = """
-            Updates an existing felt color variant. The update logic is hierarchy-aware:
-            - Color and supplierColor are always updated directly on the color variant.
+            Partially updates an existing felt color variant. Every field is optional — omit any \
+            field (or send it as null) to leave it unchanged.
+
+            The update logic is hierarchy-aware:
+            - color and supplierColor are updated directly on the color variant.
             - If feltType, supplier, or articleNumber change, a matching Felt is found or created.
-              The old Felt is left intact so sibling color variants are unaffected.
+              The service checks whether the underlying Felt and FeltVariant are shared before \
+              deciding whether to mutate them in-place or re-point this color variant to a \
+              different entity.
             - If thickness, density, or price change:
-                - When the FeltVariant is shared by other color variants, a new matching variant
-                  is found or created and this color variant is re-pointed to it.
+                - When the FeltVariant is shared by other color variants, a matching variant is \
+                  found or created and this color variant is re-pointed to it.
                 - When the FeltVariant is exclusive to this color variant, it is mutated in-place.
+
+            Sibling color variants (those sharing the same underlying Felt or FeltVariant) are \
+            never affected by an update to a single color variant.
             """
     )
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Felt updated"),
-        @ApiResponse(responseCode = "400", description = "Validation error in the request body"),
-        @ApiResponse(responseCode = "404", description = "Felt or supplier not found")
+        @ApiResponse(responseCode = "400", description = "Validation error in the request body (e.g. non-positive thickness)"),
+        @ApiResponse(responseCode = "404", description = "Felt, FeltType, or Supplier not found")
     })
-    @PutMapping("/{id}")
+    @PatchMapping("/{id}")
     public ResponseEntity<FeltDto> update(
         @Parameter(description = "Felt (color variant) ID") @PathVariable Long id,
         @RequestBody @Valid UpdateFeltDto dto

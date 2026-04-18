@@ -9,9 +9,11 @@ import ch.portami.inventorybackend.felt.dto.FeltDto;
 import ch.portami.inventorybackend.felt.dto.FeltRollDto;
 import ch.portami.inventorybackend.felt.dto.UpdateFeltRollDto;
 import ch.portami.inventorybackend.felt.entity.Batch;
+import ch.portami.inventorybackend.felt.entity.FeltType;
 import ch.portami.inventorybackend.felt.entity.Supplier;
 import ch.portami.inventorybackend.felt.repository.BatchRepository;
 import ch.portami.inventorybackend.felt.repository.FeltRollRepository;
+import ch.portami.inventorybackend.felt.repository.FeltTypeRepository;
 import ch.portami.inventorybackend.felt.repository.SupplierRepository;
 import java.math.BigDecimal;
 import java.util.List;
@@ -56,6 +58,7 @@ class FeltRollControllerIntegrationTest {
     @Autowired private RestTestClient restTestClient;
     @Autowired private FeltRollRepository feltRollRepository;
     @Autowired private SupplierRepository supplierRepository;
+    @Autowired private FeltTypeRepository feltTypeRepository;
     @Autowired private BatchRepository batchRepository;
     @Autowired private StorageRepository storageRepository;
 
@@ -66,13 +69,14 @@ class FeltRollControllerIntegrationTest {
     @BeforeAll
     void setup() {
         Supplier supplier = supplierRepository.save(new Supplier("Test Supplier"));
+        FeltType feltType = feltTypeRepository.save(new FeltType("Wool"));
 
         FeltDto felt = restTestClient.post().uri("/api/felts")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(new CreateFeltDto(
                         "Red", "Supplier Red",
                         2.0, 300.0, new BigDecimal("12.50"),
-                        "ART-001", supplier.getId(), "Wool"
+                        "ART-001", supplier.getId(), feltType.getId()
                 ))
                 .exchange()
                 .expectStatus().isCreated()
@@ -83,7 +87,7 @@ class FeltRollControllerIntegrationTest {
         assertThat(felt).isNotNull();
         feltId = felt.id();
 
-        batchId = batchRepository.save(new Batch("Batch-001")).getId();
+        batchId   = batchRepository.save(new Batch("Batch-001")).getId();
         storageId = storageRepository.save(new Storage("Shelf-A")).getId();
     }
 
@@ -108,6 +112,8 @@ class FeltRollControllerIntegrationTest {
         assertThat(body).isNotNull();
         return body;
     }
+
+    // ── GET /api/felts/{feltId}/rolls ───────────────────────────────────────
 
     @Nested
     @DisplayName("GET /api/felts/{feltId}/rolls")
@@ -146,6 +152,8 @@ class FeltRollControllerIntegrationTest {
                     .value(err -> assertThat(err.status()).isEqualTo(HttpStatus.NOT_FOUND.value()));
         }
     }
+
+    // ── POST /api/rolls ─────────────────────────────────────────────────────
 
     @Nested
     @DisplayName("POST /api/rolls")
@@ -253,6 +261,8 @@ class FeltRollControllerIntegrationTest {
         }
     }
 
+    // ── GET /api/rolls/{id} ─────────────────────────────────────────────────
+
     @Nested
     @DisplayName("GET /api/rolls/{id}")
     class GetRollById {
@@ -289,16 +299,36 @@ class FeltRollControllerIntegrationTest {
         }
     }
 
+    // ── PATCH /api/rolls/{id} ───────────────────────────────────────────────
+
     @Nested
-    @DisplayName("PUT /api/rolls/{id}")
+    @DisplayName("PATCH /api/rolls/{id}")
     class UpdateRoll {
 
         @Test
-        @DisplayName("updates dimensions")
+        @DisplayName("updates only length when only length is sent")
+        void updatesLengthOnly() {
+            FeltRollDto created = postRoll(validRequest());
+
+            restTestClient.patch().uri("/api/rolls/{id}", created.id())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(new UpdateFeltRollDto(25.0, null, null, null))
+                    .exchange()
+                    .expectStatus().isOk()
+                    .expectBody(FeltRollDto.class)
+                    .value(roll -> {
+                        assertThat(roll.id()).isEqualTo(created.id());
+                        assertThat(roll.length()).isEqualTo(25.0);
+                        assertThat(roll.width()).isEqualTo(1.5); // unchanged
+                    });
+        }
+
+        @Test
+        @DisplayName("updates both dimensions when both are provided")
         void updatesDimensions() {
             FeltRollDto created = postRoll(validRequest());
 
-            restTestClient.put().uri("/api/rolls/{id}", created.id())
+            restTestClient.patch().uri("/api/rolls/{id}", created.id())
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(new UpdateFeltRollDto(25.0, 3.0, null, null))
                     .exchange()
@@ -312,28 +342,29 @@ class FeltRollControllerIntegrationTest {
         }
 
         @Test
-        @DisplayName("clears batch and storage when ids are null")
-        void clearsBatchAndStorage() {
+        @DisplayName("null batchId in PATCH body leaves existing batch unchanged")
+        void nullBatchIdPreservesExistingBatch() {
             FeltRollDto created = postRoll(new CreateFeltRollDto(feltId, 10.0, 1.5, batchId, storageId));
             assertThat(created.batchId()).isEqualTo(batchId);
             assertThat(created.storageId()).isEqualTo(storageId);
 
-            restTestClient.put().uri("/api/rolls/{id}", created.id())
+            restTestClient.patch().uri("/api/rolls/{id}", created.id())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .body(new UpdateFeltRollDto(10.0, 1.5, null, null))
+                    .body(new UpdateFeltRollDto(20.0, null, null, null))
                     .exchange()
                     .expectStatus().isOk()
                     .expectBody(FeltRollDto.class)
                     .value(roll -> {
-                        assertThat(roll.batchId()).isNull();
-                        assertThat(roll.storageId()).isNull();
+                        assertThat(roll.length()).isEqualTo(20.0);
+                        assertThat(roll.batchId()).isEqualTo(batchId);    // preserved
+                        assertThat(roll.storageId()).isEqualTo(storageId); // preserved
                     });
         }
 
         @Test
         @DisplayName("returns 404 when roll does not exist")
         void returns404ForMissingRoll() {
-            restTestClient.put().uri("/api/rolls/99999")
+            restTestClient.patch().uri("/api/rolls/99999")
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(new UpdateFeltRollDto(10.0, 1.5, null, null))
                     .exchange()
@@ -342,6 +373,8 @@ class FeltRollControllerIntegrationTest {
                     .value(err -> assertThat(err.status()).isEqualTo(HttpStatus.NOT_FOUND.value()));
         }
     }
+
+    // ── DELETE /api/rolls/{id} ──────────────────────────────────────────────
 
     @Nested
     @DisplayName("DELETE /api/rolls/{id}")

@@ -30,8 +30,8 @@ public record CreateFeltDto(
     @Schema(description = "ID of an existing supplier. A 404 is returned if the supplier does not exist.")
     @NotNull Long supplierId,
 
-    @Schema(description = "Felt type name (e.g. 'Wool'). A matching FeltType is looked up by name; a new one is created automatically if none exists.", example = "Wool")
-    @NotBlank String feltTypeName
+    @Schema(description = "ID of an existing felt type. A 404 is returned if the felt type does not exist.")
+    @NotNull Long feltTypeId
 ) {
 
 }

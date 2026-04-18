@@ -14,9 +14,9 @@ import java.net.URI;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -68,19 +68,22 @@ public class RollController {
     }
 
     @Operation(
-        summary = "Update a roll",
+        summary = "Partially update a roll",
         description = """
-            Updates the dimensions and/or the batch and storage assignment of an existing roll.
-            The felt a roll belongs to cannot be changed — delete and re-create the roll if reassignment is needed.
-            Pass null for batchId or storageId to clear those associations.
+            Partially updates an existing roll. Every field is optional — omit any field \
+            (or send it as null) to leave it unchanged.
+
+            The felt a roll belongs to cannot be changed — delete and re-create the roll if \
+            reassignment is needed. Sending null for batchId or storageId leaves the current \
+            assignment unchanged; to clear an assignment, use the dedicated clear endpoints.
             """
     )
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Roll updated"),
-        @ApiResponse(responseCode = "400", description = "Validation error in the request body"),
+        @ApiResponse(responseCode = "400", description = "Validation error in the request body (e.g. non-positive length)"),
         @ApiResponse(responseCode = "404", description = "Roll, batch, or storage not found")
     })
-    @PutMapping("/{id}")
+    @PatchMapping("/{id}")
     public ResponseEntity<FeltRollDto> update(
         @Parameter(description = "Roll ID") @PathVariable Long id,
         @RequestBody @Valid UpdateFeltRollDto dto

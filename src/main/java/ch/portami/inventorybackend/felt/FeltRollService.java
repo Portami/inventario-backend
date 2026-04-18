@@ -77,10 +77,10 @@ public class FeltRollService {
         FeltRoll roll = feltRollRepo.findById(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Roll not found"));
 
-        roll.setLength(dto.length());
-        roll.setWidth(dto.width());
-        roll.setBatch(resolveOptionalBatch(dto.batchId()));
-        roll.setStorage(resolveOptionalStorage(dto.storageId()));
+        if (dto.length()    != null) roll.setLength(dto.length());
+        if (dto.width()     != null) roll.setWidth(dto.width());
+        if (dto.batchId()   != null) roll.setBatch(resolveOptionalBatch(dto.batchId()));
+        if (dto.storageId() != null) roll.setStorage(resolveOptionalStorage(dto.storageId()));
 
         return toDto(roll);
     }

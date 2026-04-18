@@ -10,4 +10,6 @@ public interface FeltVariantRepository extends JpaRepository<FeltVariant, Long> 
 
     Optional<FeltVariant> findByFeltAndThicknessAndDensityAndPrice(
             Felt felt, Double thickness, Double density, BigDecimal price);
+
+    int countByFelt(Felt felt);
 }
