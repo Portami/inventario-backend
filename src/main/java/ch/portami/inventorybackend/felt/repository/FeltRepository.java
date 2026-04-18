@@ -11,5 +11,4 @@ public interface FeltRepository extends JpaRepository<Felt, Long> {
     Optional<Felt> findByFeltTypeAndSupplierAndArticleNumber(
             FeltType feltType, Supplier supplier, String articleNumber);
 
-    Optional<Felt> findByArticleNumber(String articleNumber);
 }

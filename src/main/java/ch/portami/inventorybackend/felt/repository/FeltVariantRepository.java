@@ -9,8 +9,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface FeltVariantRepository extends JpaRepository<FeltVariant, Long> {
 
-    List<FeltVariant> findByFeltId(Long feltId);
-
     Optional<FeltVariant> findByFeltAndThicknessAndDensityAndPrice(
             Felt felt, Double thickness, Double density, BigDecimal price);
 }
