@@ -1,7 +1,9 @@
 package ch.portami.inventorybackend.product.dto.productattributevalue;
 
+import jakarta.validation.constraints.NotNull;
+
 public record CreateProductAttributeValueDto(
-        long attributeId,
+        @NotNull Long attributeId,
         String value
 ) {
 

@@ -4,6 +4,7 @@ import ch.portami.inventorybackend.product.dto.product.CreateProductDto;
 import ch.portami.inventorybackend.product.dto.product.ProductDto;
 import ch.portami.inventorybackend.product.dto.product.UpdateProductDto;
 import ch.portami.inventorybackend.product.service.ProductService;
+import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,7 +28,7 @@ public class ProductController {
     }
 
     @PostMapping
-    public ResponseEntity<ProductDto> createProduct(@RequestBody CreateProductDto createProductDto) {
+    public ResponseEntity<ProductDto> createProduct(@RequestBody @Valid CreateProductDto createProductDto) {
         ProductDto productDto = productService.createProduct(createProductDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(productDto);
     }
@@ -47,7 +48,7 @@ public class ProductController {
     @PatchMapping("/{id}")
     public ResponseEntity<ProductDto> updateProduct(
             @PathVariable long id,
-            @RequestBody UpdateProductDto updateProductDto
+            @RequestBody @Valid UpdateProductDto updateProductDto
     ) {
         ProductDto productDto = productService.updateProduct(id, updateProductDto);
         return ResponseEntity.ok(productDto);

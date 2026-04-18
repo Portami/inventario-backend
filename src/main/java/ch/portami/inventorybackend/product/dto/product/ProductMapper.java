@@ -44,6 +44,10 @@ public interface ProductMapper {
     default void setSpecialProperties(CreateProductDto createProductDto, @MappingTarget Product product, @Context CategoryRepository categoryRepository) {
         setCategory(product, createProductDto.categoryId(), categoryRepository);
 
+        if(createProductDto.attributes() == null) {
+            return;
+        }
+
         for(CreateProductAttributeDto attributeDto : createProductDto.attributes())    {
             ProductAttribute attribute = new ProductAttribute(product, attributeDto.name());
             product.addProductAttribute(attribute);
@@ -86,7 +90,7 @@ public interface ProductMapper {
 
     }
 
-    private static void setCategory(Product product, long categoryId, @Context CategoryRepository categoryRepository) {
+    private static void setCategory(Product product, Long categoryId, @Context CategoryRepository categoryRepository) {
         Category category = categoryRepository.findById(categoryId).orElseThrow();
         product.setCategory(category);
     }

@@ -48,6 +48,10 @@ public interface ProductVariantMapper {
 
         productVariant.setProduct(product);
 
+        if(createProductVariantDto.attributes() == null) {
+            return;
+        }
+
         for (CreateProductAttributeValueDto attributeDto : createProductVariantDto.attributes()) {
             ProductAttributeValue attributeValue = new ProductAttributeValue(
                     productVariant,

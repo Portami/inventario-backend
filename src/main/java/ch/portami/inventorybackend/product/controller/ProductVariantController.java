@@ -4,6 +4,7 @@ import ch.portami.inventorybackend.product.dto.productvariant.CreateProductVaria
 import ch.portami.inventorybackend.product.dto.productvariant.ProductVariantDto;
 import ch.portami.inventorybackend.product.dto.productvariant.UpdateProductVariantDto;
 import ch.portami.inventorybackend.product.service.ProductVariantService;
+import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,7 +30,7 @@ public class ProductVariantController {
     @PostMapping
     public ResponseEntity<ProductVariantDto> createProductVariant(
             @PathVariable long productId,
-            @RequestBody CreateProductVariantDto createProductVariantDto
+            @RequestBody @Valid CreateProductVariantDto createProductVariantDto
     ) {
         ProductVariantDto productVariantDto = productVariantService.createProductVariant(productId, createProductVariantDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(productVariantDto);
@@ -54,7 +55,7 @@ public class ProductVariantController {
     public ResponseEntity<ProductVariantDto> updateProductVariant(
             @PathVariable long productId,
             @PathVariable long variantId,
-            @RequestBody UpdateProductVariantDto updateProductVariantDto
+            @RequestBody @Valid UpdateProductVariantDto updateProductVariantDto
     ) {
         ProductVariantDto productVariantDto = productVariantService.updateProductVariant(productId, variantId, updateProductVariantDto);
         return ResponseEntity.ok(productVariantDto);

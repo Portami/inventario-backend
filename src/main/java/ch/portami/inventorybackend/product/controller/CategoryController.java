@@ -4,6 +4,7 @@ import ch.portami.inventorybackend.product.dto.category.CategoryDto;
 import ch.portami.inventorybackend.product.dto.category.CreateCategoryDto;
 import ch.portami.inventorybackend.product.dto.category.UpdateCategoryDto;
 import ch.portami.inventorybackend.product.service.CategoryService;
+import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,7 +28,7 @@ public class CategoryController {
     }
 
     @PostMapping
-    public ResponseEntity<CategoryDto> createCategory(@RequestBody CreateCategoryDto createCategoryDto) {
+    public ResponseEntity<CategoryDto> createCategory(@RequestBody @Valid CreateCategoryDto createCategoryDto) {
         CategoryDto categoryDto = categoryService.createCategory(createCategoryDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(categoryDto);
     }
@@ -47,7 +48,7 @@ public class CategoryController {
     @PatchMapping("/{id}")
     public ResponseEntity<CategoryDto> updateCategory(
             @PathVariable long id,
-            @RequestBody UpdateCategoryDto updateCategoryDto
+            @RequestBody @Valid UpdateCategoryDto updateCategoryDto
     ) {
         CategoryDto categoryDto = categoryService.updateCategory(id, updateCategoryDto);
         return ResponseEntity.ok(categoryDto);

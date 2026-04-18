@@ -1,6 +1,8 @@
 package ch.portami.inventorybackend.product.dto.category;
 
+import jakarta.validation.constraints.NotNull;
+
 public record CreateCategoryDto(
-        String name
+        @NotNull String name
 ) {
 }
