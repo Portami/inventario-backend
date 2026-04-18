@@ -31,8 +31,7 @@ public class CategoryService {
 
     @Transactional(readOnly = true)
     public CategoryDto getCategoryById(long id) {
-        Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new CategoryNotFoundException(id));
+        Category category = getCategoryOrThrow(id);
         return categoryMapper.toCategoryDto(category);
     }
 
@@ -45,18 +44,19 @@ public class CategoryService {
 
     @Transactional
     public CategoryDto updateCategory(long id, UpdateCategoryDto updateCategoryDto) {
-        Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new CategoryNotFoundException(id));
+        Category category = getCategoryOrThrow(id);
         categoryMapper.updateCategory(updateCategoryDto, category);
         Category updatedCategory = categoryRepository.save(category);
         return categoryMapper.toCategoryDto(updatedCategory);
     }
 
-    @Transactional
     public void deleteCategory(long id) {
-        Category category = categoryRepository.findById(id)
+        categoryRepository.deleteById(id);
+    }
+
+    private Category getCategoryOrThrow(long id) {
+        return categoryRepository.findById(id)
                 .orElseThrow(() -> new CategoryNotFoundException(id));
-        categoryRepository.delete(category);
     }
 
 }

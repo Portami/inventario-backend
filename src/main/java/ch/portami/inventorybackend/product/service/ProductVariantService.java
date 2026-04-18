@@ -11,6 +11,7 @@ import ch.portami.inventorybackend.product.exception.ProductVariantNotFoundExcep
 import ch.portami.inventorybackend.product.repository.ProductRepository;
 import ch.portami.inventorybackend.product.repository.ProductVariantRepository;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,8 +30,7 @@ public class ProductVariantService {
 
     @Transactional
     public ProductVariantDto createProductVariant(long productId, CreateProductVariantDto createProductVariantDto) {
-        Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new ProductNotFoundException(productId));
+        Product product = getProductOrThrow(productId);
         ProductVariant productVariant = productVariantMapper.toProductVariant(createProductVariantDto, product);
         product.addProductVariant(productVariant);
         ProductVariant savedVariant = productVariantRepository.save(productVariant);
@@ -41,16 +41,13 @@ public class ProductVariantService {
     public ProductVariantDto getProductVariantById(long productId, long variantId) {
         ProductVariant productVariant = productVariantRepository.findById(variantId)
                 .orElseThrow(() -> new ProductVariantNotFoundException(productId, variantId));
-        if (!productVariant.getProduct().getId().equals(productId)) {
-            throw new ProductVariantNotFoundException(productId, variantId);
-        }
+        checkProductVariantBelongsToProduct(productId, productVariant);
         return productVariantMapper.toProductVariantDto(productVariant);
     }
 
     @Transactional(readOnly = true)
     public List<ProductVariantDto> getAllProductVariants(long productId) {
-        Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new ProductNotFoundException(productId));
+        Product product = getProductOrThrow(productId);
         return product.getProductVariants().stream()
                 .map(productVariantMapper::toProductVariantDto)
                 .toList();
@@ -58,29 +55,34 @@ public class ProductVariantService {
 
     @Transactional
     public ProductVariantDto updateProductVariant(long productId, long variantId, UpdateProductVariantDto updateProductVariantDto) {
-        Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new ProductNotFoundException(productId));
         ProductVariant productVariant = productVariantRepository.findById(variantId)
                 .orElseThrow(() -> new ProductVariantNotFoundException(productId, variantId));
-        if (!productVariant.getProduct().getId().equals(productId)) {
-            throw new ProductVariantNotFoundException(productId, variantId);
-        }
-        productVariantMapper.updateProductVariant(updateProductVariantDto, productVariant, product);
+        checkProductVariantBelongsToProduct(productId, productVariant);
+        productVariantMapper.updateProductVariant(updateProductVariantDto, productVariant);
         ProductVariant updatedVariant = productVariantRepository.save(productVariant);
         return productVariantMapper.toProductVariantDto(updatedVariant);
     }
 
     @Transactional
     public void deleteProductVariant(long productId, long variantId) {
-        Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new ProductNotFoundException(productId));
-        ProductVariant productVariant = productVariantRepository.findById(variantId)
-                .orElseThrow(() -> new ProductVariantNotFoundException(productId, variantId));
-        if (!productVariant.getProduct().getId().equals(productId)) {
-            throw new ProductVariantNotFoundException(productId, variantId);
+        Optional<ProductVariant> productVariantOpt = productVariantRepository.findById(variantId);
+        if(productVariantOpt.isEmpty()) {
+            return;
         }
-        product.removeProductVariant(productVariant);
+        ProductVariant productVariant = productVariantOpt.get();
+        checkProductVariantBelongsToProduct(productId, productVariant);
         productVariantRepository.delete(productVariant);
+    }
+
+    private Product getProductOrThrow(long productId) {
+        return productRepository.findById(productId)
+                .orElseThrow(() -> new ProductNotFoundException(productId));
+    }
+
+    private void checkProductVariantBelongsToProduct(long productId, ProductVariant productVariant) {
+        if (!productVariant.getProduct().getId().equals(productId)) {
+            throw new ProductVariantNotFoundException(productId, productVariant.getId());
+        }
     }
 
 }

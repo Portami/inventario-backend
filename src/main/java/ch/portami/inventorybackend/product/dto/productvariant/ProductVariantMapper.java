@@ -36,8 +36,7 @@ public interface ProductVariantMapper {
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateProductVariant(
             UpdateProductVariantDto updateProductVariantDto,
-            @MappingTarget ProductVariant productVariant,
-            @Context Product product
+            @MappingTarget ProductVariant productVariant
     );
 
     @AfterMapping
@@ -69,9 +68,10 @@ public interface ProductVariantMapper {
     @AfterMapping
     default void updateSpecialProperties(
             UpdateProductVariantDto updateProductVariantDto,
-            @MappingTarget ProductVariant productVariant,
-            @Context Product product
+            @MappingTarget ProductVariant productVariant
     ) {
+
+        Product product = productVariant.getProduct();
 
         if (updateProductVariantDto.attributes() != null) {
 
