@@ -8,6 +8,7 @@ import ch.portami.inventorybackend.product.entity.ProductAttribute;
 import ch.portami.inventorybackend.product.entity.ProductAttributeValue;
 import ch.portami.inventorybackend.product.entity.ProductVariant;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.mapstruct.AfterMapping;
 import org.mapstruct.BeanMapping;
@@ -68,12 +69,16 @@ public interface ProductVariantMapper {
 
         if (updateProductVariantDto.attributes() != null) {
 
-            Map<Long, ProductAttributeValue> attributeValueMap = productVariant.getProductAttributeValues().stream()
-                    .collect(Collectors.toMap(av -> av.getProductAttribute().getId(), av -> av));
+            Map<Long, ProductAttributeValue> untouchedAttributeValues = productVariant.getProductAttributeValues().stream()
+                    .collect(Collectors.toMap(av -> av.getProductAttribute().getId(), Function.identity()));
 
             for (ProductAttributeValueChangeDto attributeValueDto : updateProductVariantDto.attributes()) {
 
-                ProductAttributeValue existingAttributeValue = attributeValueMap.remove(attributeValueDto.attributeId());
+                ProductAttributeValue existingAttributeValue = untouchedAttributeValues.remove(attributeValueDto.attributeId());
+
+                if(existingAttributeValue == null) {
+                    existingAttributeValue = productVariant.getProductAttributeValueByAttributeId(attributeValueDto.attributeId()).orElse(null);
+                }
 
                 if (existingAttributeValue != null) {
                     existingAttributeValue.setValue(attributeValueDto.value());
@@ -91,9 +96,7 @@ public interface ProductVariantMapper {
 
             }
 
-            for (ProductAttributeValue attributeValue : attributeValueMap.values()) {
-                productVariant.removeProductAttributeValue(attributeValue);
-            }
+            untouchedAttributeValues.values().forEach(productVariant::removeProductAttributeValue);
 
         }
 

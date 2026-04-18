@@ -56,9 +56,10 @@ public class Product {
 
     public List<ProductAttribute> getProductAttributes() { return productAttributes; }
 
-    public Optional<ProductAttribute> getProductAttributeById(Long attributeId) {
+    public Optional<ProductAttribute> getProductAttributeById(long attributeId) {
+        Long attributeIdLong = attributeId;
         return productAttributes.stream()
-                .filter(attr -> Objects.equals(attr.getId(), attributeId))
+                .filter(attr -> attributeIdLong.equals(attr.getId()))
                 .findFirst();
     }
 

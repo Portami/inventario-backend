@@ -9,6 +9,7 @@ import ch.portami.inventorybackend.product.entity.Product;
 import ch.portami.inventorybackend.product.entity.ProductAttribute;
 import ch.portami.inventorybackend.product.repository.CategoryRepository;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.mapstruct.AfterMapping;
 import org.mapstruct.BeanMapping;
@@ -58,16 +59,17 @@ public interface ProductMapper {
 
         if(updateProductDto.attributes() != null) {
 
-            Map<Long, ProductAttribute> attributeMap = product.getProductAttributes().stream().collect(
-                    Collectors.toMap(ProductAttribute::getId, a -> a));
+            Map<Long, ProductAttribute> untouchedAttributes = product.getProductAttributes().stream()
+                    .collect(Collectors.toMap(ProductAttribute::getId, Function.identity()));
 
             for(ProductAttributeChangeDto attribute : updateProductDto.attributes()) {
 
                 if(attribute.id() != null) {
-                    ProductAttribute existingAttribute = attributeMap.remove(attribute.id());
+                    ProductAttribute existingAttribute = untouchedAttributes.remove(attribute.id());
 
                     if(existingAttribute == null) {
-                        throw new RuntimeException("No attribute with id " + attribute.id() + " found for product " + product.getId());
+                        existingAttribute = product.getProductAttributeById(attribute.id())
+                                                   .orElseThrow();
                     }
 
                     existingAttribute.setName(attribute.name());
@@ -78,9 +80,7 @@ public interface ProductMapper {
 
             }
 
-            for(ProductAttribute attribute : attributeMap.values()) {
-                product.removeProductAttribute(attribute);
-            }
+            untouchedAttributes.values().forEach(product::removeProductAttribute);
 
         }
 

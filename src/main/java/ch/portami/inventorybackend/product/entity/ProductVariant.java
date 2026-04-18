@@ -15,6 +15,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import java.util.Optional;
 
 @Entity
 @Table(name = "product_variant")
@@ -62,6 +63,13 @@ public class ProductVariant {
     public void setPrice(BigDecimal price) { this.price = price; }
 
     public List<ProductAttributeValue> getProductAttributeValues() { return productAttributeValues; }
+
+    public Optional<ProductAttributeValue> getProductAttributeValueByAttributeId(long attributeId) {
+        Long attributeIdLong = attributeId;
+        return productAttributeValues.stream()
+                .filter(av -> attributeIdLong.equals(av.getProductAttribute().getId()))
+                .findFirst();
+    }
 
     public List<ProductInventory> getProductInventories() { return productInventories; }
 
