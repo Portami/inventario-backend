@@ -117,10 +117,26 @@ public class FeltService {
     
     @Transactional
     public void delete(Long id) {
-        if (!feltColorVariantRepo.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Felt not found");
+        FeltColorVariant colorVariant = feltColorVariantRepo
+            .findById(id).orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Felt not found")
+            );
+
+        FeltVariant variant = colorVariant.getFeltVariant();
+        Felt felt = variant.getFelt();
+
+        feltColorVariantRepo.delete(colorVariant);
+        feltColorVariantRepo.flush();
+
+        if (feltColorVariantRepo.countByFeltVariantId(variant.getId()) == 0) {
+            feltVariantRepo.delete(variant);
+            feltVariantRepo.flush();
+
+            // if no more variants use this felt, delete the felt
+            if (feltVariantRepo.countByFelt(felt) == 0) {
+                feltRepo.delete(felt);
+            }
         }
-        feltColorVariantRepo.deleteById(id);
     }
 
     /**

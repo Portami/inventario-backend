@@ -122,7 +122,7 @@ public class FeltController {
         summary = "Delete a felt",
         description = """
             Deletes the felt color variant. Does not cascade to the underlying FeltVariant, Felt,
-            or FeltType — those are shared resources and remain if still referenced by other color variants.
+            or FeltType unless no other FeltColorVariants or FeltVariants are attached to them.
             Any rolls that belong to this felt must be deleted first; otherwise a 409 is returned.
             """
     )
