@@ -6,6 +6,8 @@ import ch.portami.inventorybackend.product.dto.productvariant.ProductVariantMapp
 import ch.portami.inventorybackend.product.dto.productvariant.UpdateProductVariantDto;
 import ch.portami.inventorybackend.product.entity.Product;
 import ch.portami.inventorybackend.product.entity.ProductVariant;
+import ch.portami.inventorybackend.product.exception.ProductNotFoundException;
+import ch.portami.inventorybackend.product.exception.ProductVariantNotFoundException;
 import ch.portami.inventorybackend.product.repository.ProductRepository;
 import ch.portami.inventorybackend.product.repository.ProductVariantRepository;
 import java.util.List;
@@ -28,7 +30,7 @@ public class ProductVariantService {
     @Transactional
     public ProductVariantDto createProductVariant(long productId, CreateProductVariantDto createProductVariantDto) {
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
+                .orElseThrow(() -> new ProductNotFoundException(productId));
         ProductVariant productVariant = productVariantMapper.toProductVariant(createProductVariantDto, product);
         product.addProductVariant(productVariant);
         ProductVariant savedVariant = productVariantRepository.save(productVariant);
@@ -38,9 +40,9 @@ public class ProductVariantService {
     @Transactional(readOnly = true)
     public ProductVariantDto getProductVariantById(long productId, long variantId) {
         ProductVariant productVariant = productVariantRepository.findById(variantId)
-                .orElseThrow(() -> new RuntimeException("Product variant not found with id: " + variantId));
+                .orElseThrow(() -> new ProductVariantNotFoundException(productId, variantId));
         if (!productVariant.getProduct().getId().equals(productId)) {
-            throw new RuntimeException("Product variant does not belong to product with id: " + productId);
+            throw new ProductVariantNotFoundException(productId, variantId);
         }
         return productVariantMapper.toProductVariantDto(productVariant);
     }
@@ -48,7 +50,7 @@ public class ProductVariantService {
     @Transactional(readOnly = true)
     public List<ProductVariantDto> getAllProductVariants(long productId) {
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
+                .orElseThrow(() -> new ProductNotFoundException(productId));
         return product.getProductVariants().stream()
                 .map(productVariantMapper::toProductVariantDto)
                 .toList();
@@ -57,11 +59,11 @@ public class ProductVariantService {
     @Transactional
     public ProductVariantDto updateProductVariant(long productId, long variantId, UpdateProductVariantDto updateProductVariantDto) {
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
+                .orElseThrow(() -> new ProductNotFoundException(productId));
         ProductVariant productVariant = productVariantRepository.findById(variantId)
-                .orElseThrow(() -> new RuntimeException("Product variant not found with id: " + variantId));
+                .orElseThrow(() -> new ProductVariantNotFoundException(productId, variantId));
         if (!productVariant.getProduct().getId().equals(productId)) {
-            throw new RuntimeException("Product variant does not belong to product with id: " + productId);
+            throw new ProductVariantNotFoundException(productId, variantId);
         }
         productVariantMapper.updateProductVariant(updateProductVariantDto, productVariant, product);
         ProductVariant updatedVariant = productVariantRepository.save(productVariant);
@@ -71,11 +73,11 @@ public class ProductVariantService {
     @Transactional
     public void deleteProductVariant(long productId, long variantId) {
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
+                .orElseThrow(() -> new ProductNotFoundException(productId));
         ProductVariant productVariant = productVariantRepository.findById(variantId)
-                .orElseThrow(() -> new RuntimeException("Product variant not found with id: " + variantId));
+                .orElseThrow(() -> new ProductVariantNotFoundException(productId, variantId));
         if (!productVariant.getProduct().getId().equals(productId)) {
-            throw new RuntimeException("Product variant does not belong to product with id: " + productId);
+            throw new ProductVariantNotFoundException(productId, variantId);
         }
         product.removeProductVariant(productVariant);
         productVariantRepository.delete(productVariant);

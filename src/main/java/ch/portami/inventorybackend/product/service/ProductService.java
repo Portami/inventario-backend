@@ -5,6 +5,7 @@ import ch.portami.inventorybackend.product.dto.product.ProductDto;
 import ch.portami.inventorybackend.product.dto.product.ProductMapper;
 import ch.portami.inventorybackend.product.dto.product.UpdateProductDto;
 import ch.portami.inventorybackend.product.entity.Product;
+import ch.portami.inventorybackend.product.exception.ProductNotFoundException;
 import ch.portami.inventorybackend.product.repository.CategoryRepository;
 import ch.portami.inventorybackend.product.repository.ProductRepository;
 import java.util.List;
@@ -34,7 +35,7 @@ public class ProductService {
     @Transactional(readOnly = true)
     public ProductDto getProductById(long id) {
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
+                .orElseThrow(() -> new ProductNotFoundException(id));
         return productMapper.toProductDto(product);
     }
 
@@ -48,7 +49,7 @@ public class ProductService {
     @Transactional
     public ProductDto updateProduct(long id, UpdateProductDto updateProductDto) {
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
+                .orElseThrow(() -> new ProductNotFoundException(id));
         productMapper.updateProduct(updateProductDto, product, categoryRepository);
         Product updatedProduct = productRepository.save(product);
         return productMapper.toProductDto(updatedProduct);
@@ -57,7 +58,7 @@ public class ProductService {
     @Transactional
     public void deleteProduct(long id) {
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
+                .orElseThrow(() -> new ProductNotFoundException(id));
         productRepository.delete(product);
     }
 

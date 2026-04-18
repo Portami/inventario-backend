@@ -7,6 +7,7 @@ import ch.portami.inventorybackend.product.entity.Product;
 import ch.portami.inventorybackend.product.entity.ProductAttribute;
 import ch.portami.inventorybackend.product.entity.ProductAttributeValue;
 import ch.portami.inventorybackend.product.entity.ProductVariant;
+import ch.portami.inventorybackend.product.exception.ProductAttributeNotFound;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -55,7 +56,8 @@ public interface ProductVariantMapper {
         for (CreateProductAttributeValueDto attributeDto : createProductVariantDto.attributes()) {
             ProductAttributeValue attributeValue = new ProductAttributeValue(
                     productVariant,
-                    product.getProductAttributeById(attributeDto.attributeId()).orElseThrow(),
+                    product.getProductAttributeById(attributeDto.attributeId())
+                            .orElseThrow(() -> new ProductAttributeNotFound(product.getId(), attributeDto.attributeId())),
                     attributeDto.value()
             );
 
@@ -88,7 +90,7 @@ public interface ProductVariantMapper {
                     existingAttributeValue.setValue(attributeValueDto.value());
                 } else {
                     ProductAttribute attribute = product.getProductAttributeById(attributeValueDto.attributeId())
-                                                        .orElseThrow();
+                            .orElseThrow(() -> new ProductAttributeNotFound(product.getId(), attributeValueDto.attributeId()));
 
                     ProductAttributeValue newAttributeValue = new ProductAttributeValue(
                             productVariant,
