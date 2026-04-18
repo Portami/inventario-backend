@@ -46,22 +46,27 @@ public class FeltRollService {
         if (!feltColorVariantRepo.existsById(feltId)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Felt not found");
         }
-        return feltRollRepo.findByFeltColorVariantId(feltId)
+        return feltRollRepo
+            .findByFeltColorVariantId(feltId)
             .stream()
             .map(this::toDto)
             .toList();
     }
 
     public FeltRollDto findById(Long id) {
-        return feltRollRepo.findById(id)
+        return feltRollRepo
+            .findById(id)
             .map(this::toDto)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Roll not found"));
     }
 
     @Transactional
     public FeltRollDto create(CreateFeltRollDto dto) {
-        FeltColorVariant colorVariant = feltColorVariantRepo.findById(dto.feltId())
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Felt not found"));
+        FeltColorVariant colorVariant = feltColorVariantRepo
+            .findById(dto.feltId())
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Felt not found")
+            );
 
         Batch batch = resolveOptionalBatch(dto.batchId());
         Storage storage = resolveOptionalStorage(dto.storageId());
@@ -74,13 +79,24 @@ public class FeltRollService {
 
     @Transactional
     public FeltRollDto update(Long id, UpdateFeltRollDto dto) {
-        FeltRoll roll = feltRollRepo.findById(id)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Roll not found"));
+        FeltRoll roll = feltRollRepo
+            .findById(id)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Roll not found")
+            );
 
-        if (dto.length()    != null) roll.setLength(dto.length());
-        if (dto.width()     != null) roll.setWidth(dto.width());
-        if (dto.batchId()   != null) roll.setBatch(resolveOptionalBatch(dto.batchId()));
-        if (dto.storageId() != null) roll.setStorage(resolveOptionalStorage(dto.storageId()));
+        if (dto.length() != null) {
+            roll.setLength(dto.length());
+        }
+        if (dto.width() != null) {
+            roll.setWidth(dto.width());
+        }
+        if (dto.batchId() != null) {
+            roll.setBatch(resolveOptionalBatch(dto.batchId()));
+        }
+        if (dto.storageId() != null) {
+            roll.setStorage(resolveOptionalStorage(dto.storageId()));
+        }
 
         return toDto(roll);
     }
@@ -94,21 +110,27 @@ public class FeltRollService {
     }
 
     private Batch resolveOptionalBatch(Long batchId) {
-        if (batchId == null) return null;
-        return batchRepo.findById(batchId)
+        if (batchId == null) {
+            return null;
+        }
+        return batchRepo
+            .findById(batchId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Batch not found"));
     }
 
     private Storage resolveOptionalStorage(Long storageId) {
-        if (storageId == null) return null;
-        return storageRepo.findById(storageId)
+        if (storageId == null) {
+            return null;
+        }
+        return storageRepo
+            .findById(storageId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Storage not found"));
     }
 
     private FeltRollDto toDto(FeltRoll roll) {
-        FeltColorVariant cv = roll.getFeltColorVariant();
-        FeltVariant fv = cv.getFeltVariant();
-        Felt felt = fv.getFelt();
+        FeltColorVariant feltColorVariant = roll.getFeltColorVariant();
+        FeltVariant feltVariant = feltColorVariant.getFeltVariant();
+        Felt felt = feltVariant.getFelt();
         FeltType feltType = felt.getFeltType();
         Supplier supplier = felt.getSupplier();
         Batch batch = roll.getBatch();
@@ -118,13 +140,13 @@ public class FeltRollService {
             roll.getId(),
             roll.getLength(),
             roll.getWidth(),
-            cv.getId(),
-            cv.getColor(),
-            cv.getSupplierColor(),
-            fv.getId(),
-            fv.getThickness(),
-            fv.getDensity(),
-            fv.getPrice(),
+            feltColorVariant.getId(),
+            feltColorVariant.getColor(),
+            feltColorVariant.getSupplierColor(),
+            feltVariant.getId(),
+            feltVariant.getThickness(),
+            feltVariant.getDensity(),
+            feltVariant.getPrice(),
             felt.getId(),
             felt.getArticleNumber(),
             feltType.getName(),
