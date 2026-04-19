@@ -1,6 +1,8 @@
 package ch.portami.inventorybackend.core.exceptions;
 
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +18,8 @@ import org.springframework.web.server.ResponseStatusException;
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException ex) {
@@ -35,9 +39,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<ErrorResponse> handleResponseStatus(ResponseStatusException ex) {
         int status = ex.getStatusCode().value();
-        String message = ex.getReason() != null
-                ? ex.getReason()
-                : HttpStatus.resolve(status).getReasonPhrase();
+        String message = ex.getReason() != null ? ex.getReason() : reasonPhrase(status);
 
         return ResponseEntity
                 .status(ex.getStatusCode())
@@ -50,11 +52,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ErrorResponseException.class)
     public ResponseEntity<ErrorResponse> handleErrorResponse(ErrorResponseException ex) {
         int status = ex.getStatusCode().value();
-        String message = HttpStatus.resolve(status).getReasonPhrase();
 
         return ResponseEntity
                 .status(ex.getStatusCode())
-                .body(ErrorResponse.of(status, message));
+                .body(ErrorResponse.of(status, reasonPhrase(status)));
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
@@ -67,10 +68,16 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneric(Exception ex) {
+        log.error("Unhandled exception", ex);
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ErrorResponse.of(
                         HttpStatus.INTERNAL_SERVER_ERROR.value(),
                         "An unexpected error occurred"));
+    }
+
+    private static String reasonPhrase(int status) {
+        HttpStatus resolved = HttpStatus.resolve(status);
+        return resolved != null ? resolved.getReasonPhrase() : String.valueOf(status);
     }
 }
