@@ -30,12 +30,8 @@ public class FeltRollService {
     private final BatchRepository batchRepo;
     private final StorageRepository storageRepo;
 
-    public FeltRollService(
-        FeltColorVariantRepository feltColorVariantRepo,
-        FeltRollRepository feltRollRepo,
-        BatchRepository batchRepo,
-        StorageRepository storageRepo
-    ) {
+    public FeltRollService(FeltColorVariantRepository feltColorVariantRepo, FeltRollRepository feltRollRepo,
+            BatchRepository batchRepo, StorageRepository storageRepo) {
         this.feltColorVariantRepo = feltColorVariantRepo;
         this.feltRollRepo = feltRollRepo;
         this.batchRepo = batchRepo;
@@ -46,27 +42,23 @@ public class FeltRollService {
         if (!feltColorVariantRepo.existsById(feltId)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Felt not found");
         }
-        return feltRollRepo
-            .findByFeltColorVariantId(feltId)
-            .stream()
-            .map(this::toDto)
-            .toList();
+        return feltRollRepo.findByFeltColorVariantId(feltId)
+                           .stream()
+                           .map(this::toDto)
+                           .toList();
     }
 
     public FeltRollDto findById(Long id) {
-        return feltRollRepo
-            .findById(id)
-            .map(this::toDto)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Roll not found"));
+        return feltRollRepo.findById(id)
+                           .map(this::toDto)
+                           .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Roll not found"));
     }
 
     @Transactional
     public FeltRollDto create(CreateFeltRollDto dto) {
-        FeltColorVariant colorVariant = feltColorVariantRepo
-            .findById(dto.feltId())
-            .orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Felt not found")
-            );
+        FeltColorVariant colorVariant = feltColorVariantRepo.findById(dto.feltId())
+                                                            .orElseThrow(() -> new ResponseStatusException(
+                                                                    HttpStatus.NOT_FOUND, "Felt not found"));
 
         Batch batch = resolveOptionalBatch(dto.batchId());
         Storage storage = resolveOptionalStorage(dto.storageId());
@@ -79,11 +71,9 @@ public class FeltRollService {
 
     @Transactional
     public FeltRollDto update(Long id, UpdateFeltRollDto dto) {
-        FeltRoll roll = feltRollRepo
-            .findById(id)
-            .orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Roll not found")
-            );
+        FeltRoll roll = feltRollRepo.findById(id)
+                                    .orElseThrow(
+                                            () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Roll not found"));
 
         if (dto.length() != null) {
             roll.setLength(dto.length());
@@ -113,18 +103,16 @@ public class FeltRollService {
         if (batchId == null) {
             return null;
         }
-        return batchRepo
-            .findById(batchId)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Batch not found"));
+        return batchRepo.findById(batchId)
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Batch not found"));
     }
 
     private Storage resolveOptionalStorage(Long storageId) {
         if (storageId == null) {
             return null;
         }
-        return storageRepo
-            .findById(storageId)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Storage not found"));
+        return storageRepo.findById(storageId)
+                          .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Storage not found"));
     }
 
     private FeltRollDto toDto(FeltRoll roll) {
@@ -136,25 +124,11 @@ public class FeltRollService {
         Batch batch = roll.getBatch();
         Storage storage = roll.getStorage();
 
-        return new FeltRollDto(
-            roll.getId(),
-            roll.getLength(),
-            roll.getWidth(),
-            feltColorVariant.getId(),
-            feltColorVariant.getColor(),
-            feltColorVariant.getSupplierColor(),
-            feltVariant.getId(),
-            feltVariant.getThickness(),
-            feltVariant.getDensity(),
-            feltVariant.getPrice(),
-            felt.getId(),
-            felt.getArticleNumber(),
-            feltType.getName(),
-            supplier.getName(),
-            batch != null ? batch.getId() : null,
-            batch != null ? batch.getName() : null,
-            storage != null ? storage.getId() : null,
-            storage != null ? storage.getName() : null
-        );
+        return new FeltRollDto(roll.getId(), roll.getLength(), roll.getWidth(), feltColorVariant.getId(),
+                feltColorVariant.getColor(), feltColorVariant.getSupplierColor(), feltVariant.getId(),
+                feltVariant.getThickness(), feltVariant.getDensity(), feltVariant.getPrice(), felt.getId(),
+                felt.getArticleNumber(), feltType.getName(), supplier.getName(), batch != null ? batch.getId() : null,
+                batch != null ? batch.getName() : null, storage != null ? storage.getId() : null,
+                storage != null ? storage.getName() : null);
     }
 }

@@ -43,16 +43,11 @@ public class FeltController {
     @ApiResponse(responseCode = "200", description = "Felt found")
     @ApiResponse(responseCode = "404", description = "No felt exists with the given ID")
     @GetMapping("/{id}")
-    public ResponseEntity<FeltDto> getById(
-        @Parameter(description = "Felt (color variant) ID") @PathVariable Long id
-    ) {
+    public ResponseEntity<FeltDto> getById(@Parameter(description = "Felt (color variant) ID") @PathVariable Long id) {
         return ResponseEntity.ok(feltService.findById(id));
     }
 
-    @Operation(
-        summary = "Create a felt",
-        description = "Creates a new felt. Felts that share the same type, supplier, article number, and specs but differ only in color reuse the same underlying product entry."
-    )
+    @Operation(summary = "Create a felt", description = "Creates a new felt. Felts that share the same type, supplier, article number, and specs but differ only in color reuse the same underlying product entry.")
     @ApiResponse(responseCode = "201", description = "Felt created — Location header points to the new resource")
     @ApiResponse(responseCode = "400", description = "Validation error in the request body")
     @ApiResponse(responseCode = "404", description = "FeltType or Supplier not found")
@@ -60,21 +55,17 @@ public class FeltController {
     public ResponseEntity<FeltDto> create(@RequestBody @Valid CreateFeltDto dto) {
         FeltDto created = feltService.create(dto);
         URI location = URI.create("/api/felts/" + created.id());
-        return ResponseEntity.created(location).body(created);
+        return ResponseEntity.created(location)
+                             .body(created);
     }
 
-    @Operation(
-        summary = "Partially update a felt",
-        description = "Omit any field to leave it unchanged."
-    )
+    @Operation(summary = "Partially update a felt", description = "Omit any field to leave it unchanged.")
     @ApiResponse(responseCode = "200", description = "Felt updated")
     @ApiResponse(responseCode = "400", description = "Validation error in the request body")
     @ApiResponse(responseCode = "404", description = "Felt, FeltType, or Supplier not found")
     @PatchMapping("/{id}")
-    public ResponseEntity<FeltDto> update(
-        @Parameter(description = "Felt (color variant) ID") @PathVariable Long id,
-        @RequestBody @Valid UpdateFeltDto dto
-    ) {
+    public ResponseEntity<FeltDto> update(@Parameter(description = "Felt (color variant) ID") @PathVariable Long id,
+            @RequestBody @Valid UpdateFeltDto dto) {
         return ResponseEntity.ok(feltService.update(id, dto));
     }
 
@@ -83,10 +74,9 @@ public class FeltController {
     @ApiResponse(responseCode = "404", description = "No felt exists with the given ID")
     @ApiResponse(responseCode = "409", description = "Felt still has rolls or scrap pieces attached")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(
-        @Parameter(description = "Felt (color variant) ID") @PathVariable Long id
-    ) {
+    public ResponseEntity<Void> delete(@Parameter(description = "Felt (color variant) ID") @PathVariable Long id) {
         feltService.delete(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.noContent()
+                             .build();
     }
 }

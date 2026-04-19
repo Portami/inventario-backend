@@ -29,8 +29,7 @@ public class FeltRollController {
     @ApiResponse(responseCode = "404", description = "No felt exists with the given ID")
     @GetMapping
     public ResponseEntity<List<FeltRollDto>> getAll(
-        @Parameter(description = "Felt (color variant) ID") @PathVariable Long feltId
-    ) {
+            @Parameter(description = "Felt (color variant) ID") @PathVariable Long feltId) {
         return ResponseEntity.ok(service.findAllByFelt(feltId));
     }
 }

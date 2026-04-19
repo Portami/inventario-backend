@@ -114,11 +114,12 @@ public class FeltService {
 
         return toDto(feltColorVariant);
     }
-    
+
     @Transactional
     public void delete(Long id) {
         FeltColorVariant colorVariant = feltColorVariantRepo
-            .findById(id).orElseThrow(
+            .findById(id)
+            .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Felt not found")
             );
 
@@ -175,11 +176,11 @@ public class FeltService {
     }
 
     private void updateFeltAndVariant(
-        UpdateFeltDto dto, 
-        FeltColorVariant colorVariant, 
-        Felt currentFelt, 
+        UpdateFeltDto dto,
+        FeltColorVariant colorVariant,
+        Felt currentFelt,
         FeltVariant variant,
-        FeltType targetType, 
+        FeltType targetType,
         Supplier targetSupplier
     ) {
         // we only update if the property is not null in the dto
@@ -214,7 +215,7 @@ public class FeltService {
                 variant.setFelt(resolveFelt(targetType, targetSupplier, targetArticle));
                 return;
 
-            }              
+            }
             updateFelt(currentFelt, variant, targetType, targetSupplier, targetArticle);
         }
         if (variantChanged) {
@@ -225,9 +226,9 @@ public class FeltService {
     }
 
     private void updateFelt(
-        Felt currentFelt, 
-        FeltVariant variant, 
-        FeltType targetType, 
+        Felt currentFelt,
+        FeltVariant variant,
+        FeltType targetType,
         Supplier targetSupplier,
         String targetArticle
     ) {
@@ -235,7 +236,9 @@ public class FeltService {
         Optional<Felt> existingFelt = feltRepo
             .findByFeltTypeAndSupplierAndArticleNumber(targetType, targetSupplier, targetArticle);
 
-        if (existingFelt.isPresent() && !existingFelt.get().getId().equals(currentFelt.getId())) {
+        if (existingFelt.isPresent() && !existingFelt.get()
+                                                     .getId()
+                                                     .equals(currentFelt.getId())) {
             // A different Felt with the target identity already exists — re-point the
             // variant FK and clean up the now-orphaned exclusive Felt.
             // Set FK directly — do not touch in-memory collections to avoid orphan-removal trap
@@ -253,9 +256,9 @@ public class FeltService {
     }
 
     private void updateSharedFeltVariant(
-        FeltColorVariant colorVariant, 
-        Felt targetFelt, 
-        Double thickness, 
+        FeltColorVariant colorVariant,
+        Felt targetFelt,
+        Double thickness,
         Double density,
         BigDecimal price
     ) {
@@ -269,9 +272,14 @@ public class FeltService {
     }
 
     private boolean hasFeltChanged(Felt felt, Long targetTypeId, Long targetSupplierId, String targetArticleNumber) {
-        return !felt.getFeltType().getId().equals(targetTypeId)
-            || !felt.getSupplier().getId().equals(targetSupplierId)
-            || !felt.getArticleNumber().equals(targetArticleNumber);
+        return !felt.getFeltType()
+                    .getId()
+                    .equals(targetTypeId)
+            || !felt.getSupplier()
+                    .getId()
+                    .equals(targetSupplierId)
+            || !felt.getArticleNumber()
+                    .equals(targetArticleNumber);
     }
 
     private boolean hasVariantChanged(
@@ -280,11 +288,14 @@ public class FeltService {
         Double targetDensity,
         BigDecimal targetPrice
     ) {
-        return !feltVariant.getThickness().equals(targetThickness)
-            || !feltVariant.getDensity().equals(targetDensity)
-            || feltVariant.getPrice().compareTo(targetPrice) != 0;
+        return !feltVariant.getThickness()
+                           .equals(targetThickness)
+            || !feltVariant.getDensity()
+                           .equals(targetDensity)
+            || feltVariant.getPrice()
+                          .compareTo(targetPrice) != 0;
     }
-    
+
     /**
      * Finds an existing Felt by its natural key or creates a new one.
      */

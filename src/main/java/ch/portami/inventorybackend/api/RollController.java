@@ -31,10 +31,7 @@ public class RollController {
         this.service = service;
     }
 
-    @Operation(
-        summary = "Create a roll",
-        description = "Batch and storage are optional."
-    )
+    @Operation(summary = "Create a roll", description = "Batch and storage are optional.")
     @ApiResponse(responseCode = "201", description = "Roll created — Location header points to the new resource")
     @ApiResponse(responseCode = "400", description = "Validation error in the request body")
     @ApiResponse(responseCode = "404", description = "Felt, batch, or storage not found")
@@ -42,31 +39,25 @@ public class RollController {
     public ResponseEntity<FeltRollDto> create(@RequestBody @Valid CreateFeltRollDto dto) {
         FeltRollDto created = service.create(dto);
         URI location = URI.create("/api/rolls/" + created.id());
-        return ResponseEntity.created(location).body(created);
+        return ResponseEntity.created(location)
+                             .body(created);
     }
 
     @Operation(summary = "Get a roll by ID")
     @ApiResponse(responseCode = "200", description = "Roll found")
     @ApiResponse(responseCode = "404", description = "No roll exists with the given ID")
     @GetMapping("/{id}")
-    public ResponseEntity<FeltRollDto> getById(
-        @Parameter(description = "Roll ID") @PathVariable Long id
-    ) {
+    public ResponseEntity<FeltRollDto> getById(@Parameter(description = "Roll ID") @PathVariable Long id) {
         return ResponseEntity.ok(service.findById(id));
     }
 
-    @Operation(
-        summary = "Partially update a roll",
-        description = "Omit any field to leave it unchanged. Null batch or storage preserves the existing assignment."
-    )
+    @Operation(summary = "Partially update a roll", description = "Omit any field to leave it unchanged. Null batch or storage preserves the existing assignment.")
     @ApiResponse(responseCode = "200", description = "Roll updated")
     @ApiResponse(responseCode = "400", description = "Validation error in the request body")
     @ApiResponse(responseCode = "404", description = "Roll, batch, or storage not found")
     @PatchMapping("/{id}")
-    public ResponseEntity<FeltRollDto> update(
-        @Parameter(description = "Roll ID") @PathVariable Long id,
-        @RequestBody @Valid UpdateFeltRollDto dto
-    ) {
+    public ResponseEntity<FeltRollDto> update(@Parameter(description = "Roll ID") @PathVariable Long id,
+            @RequestBody @Valid UpdateFeltRollDto dto) {
         return ResponseEntity.ok(service.update(id, dto));
     }
 
@@ -74,10 +65,9 @@ public class RollController {
     @ApiResponse(responseCode = "204", description = "Roll deleted")
     @ApiResponse(responseCode = "404", description = "No roll exists with the given ID")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(
-        @Parameter(description = "Roll ID") @PathVariable Long id
-    ) {
+    public ResponseEntity<Void> delete(@Parameter(description = "Roll ID") @PathVariable Long id) {
         service.delete(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.noContent()
+                             .build();
     }
 }
