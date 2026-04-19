@@ -213,10 +213,10 @@ public class FeltService {
                 // Other FeltVariants depend on this Felt — find-or-create, never mutate it.
                 // Set FK directly — do not touch in-memory collections to avoid orphan-removal trap
                 variant.setFelt(resolveFelt(targetType, targetSupplier, targetArticle));
-                return;
-
             }
-            updateFelt(currentFelt, variant, targetType, targetSupplier, targetArticle);
+            else {
+                updateFelt(currentFelt, variant, targetType, targetSupplier, targetArticle);
+            }
         }
         if (variantChanged) {
             variant.setThickness(targetThick);
