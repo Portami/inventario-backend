@@ -157,21 +157,32 @@ public class FeltService {
         FeltVariant variant = colorVariant.getFeltVariant();
         Felt currentFelt = variant.getFelt();
 
-        // Resolve effective target values — null in DTO means "keep current"
         FeltType targetType = currentFelt.getFeltType();
-        if (dto.feltTypeId() != null) {
+        if (dto.feltTypeId() != null) { // only update if not null
             targetType = feltTypeRepo
                 .findById(dto.feltTypeId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "FeltType not found"));
         }
 
         Supplier targetSupplier = currentFelt.getSupplier();
-        if (dto.supplierId() != null) {
+        if (dto.supplierId() != null) { // only update if not null
             targetSupplier = supplierRepo
                 .findById(dto.supplierId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Supplier not found"));
         }
 
+        updateFeltAndVariant(dto, colorVariant, currentFelt, variant, targetType, targetSupplier);
+    }
+
+    private void updateFeltAndVariant(
+        UpdateFeltDto dto, 
+        FeltColorVariant colorVariant, 
+        Felt currentFelt, 
+        FeltVariant variant,
+        FeltType targetType, 
+        Supplier targetSupplier
+    ) {
+        // we only update if the property is not null in the dto
         String targetArticle = dto.articleNumber() != null ? dto.articleNumber() : currentFelt.getArticleNumber();
         Double targetThick = dto.thickness() != null ? dto.thickness() : variant.getThickness();
         Double targetDensity = dto.density() != null ? dto.density() : variant.getDensity();
@@ -181,7 +192,7 @@ public class FeltService {
         boolean variantChanged = hasVariantChanged(variant, targetThick, targetDensity, targetPrice);
 
         if (!feltChanged && !variantChanged) {
-            return;
+            return; // early return if nothing else changed
         }
 
         boolean variantIsShared = feltColorVariantRepo.countByFeltVariantId(variant.getId()) > 1;
@@ -191,55 +202,70 @@ public class FeltService {
             Felt targetFelt = feltChanged
                 ? resolveFelt(targetType, targetSupplier, targetArticle)
                 : currentFelt;
-            FeltVariant targetVariant = feltVariantRepo
-                .findByFeltAndThicknessAndDensityAndPrice(targetFelt, targetThick, targetDensity, targetPrice)
-                .orElseGet(() -> feltVariantRepo.save(
-                    new FeltVariant(targetFelt, targetThick, targetDensity, targetPrice))
-                );
-            // Set FK directly — do not touch in-memory collections to avoid orphan-removal trap
-            colorVariant.setFeltVariant(targetVariant);
-
-        } else {
-            // Variant is safe to mutate in-place. Handle the Felt separately.
-            if (feltChanged) {
-                boolean feltIsShared = feltVariantRepo.countByFelt(currentFelt) > 1;
-
-                if (feltIsShared) {
-                    // Other FeltVariants depend on this Felt — find-or-create, never mutate it.
-                    // Set FK directly — do not touch in-memory collections to avoid orphan-removal trap
-                    variant.setFelt(resolveFelt(targetType, targetSupplier, targetArticle));
-
-                } else {
-                    // Felt is also exclusive — prefer in-place mutation to avoid orphaned records.
-                    Optional<Felt> existingFelt = feltRepo
-                        .findByFeltTypeAndSupplierAndArticleNumber(targetType, targetSupplier, targetArticle);
-
-                    if (existingFelt.isPresent() && !existingFelt.get()
-                                                                 .getId()
-                                                                 .equals(currentFelt.getId())) {
-                        // A different Felt with the target identity already exists — re-point the
-                        // variant FK and clean up the now-orphaned exclusive Felt.
-                        // Set FK directly — do not touch in-memory collections to avoid orphan-removal trap
-                        variant.setFelt(existingFelt.get());
-                        feltRepo.delete(currentFelt);
-
-                    } else if (existingFelt.isEmpty()) {
-                        // No Felt with the target identity exists yet — mutate the exclusive Felt
-                        // in-place so no new entity is created and no orphan accumulates.
-                        currentFelt.setFeltType(targetType);
-                        currentFelt.setSupplier(targetSupplier);
-                        currentFelt.setArticleNumber(targetArticle);
-                    }
-                    // else existingTarget == currentFelt → already matches, nothing to do
-                }
-            }
-
-            if (variantChanged) {
-                variant.setThickness(targetThick);
-                variant.setDensity(targetDensity);
-                variant.setPrice(targetPrice);
-            }
+            updateSharedFeltVariant(colorVariant, targetFelt, targetThick, targetDensity, targetPrice);
+            return;
         }
+        // Variant is safe to mutate in-place. Handle the Felt separately.
+        if (feltChanged) {
+            boolean feltIsShared = feltVariantRepo.countByFelt(currentFelt) > 1;
+            if (feltIsShared) {
+                // Other FeltVariants depend on this Felt — find-or-create, never mutate it.
+                // Set FK directly — do not touch in-memory collections to avoid orphan-removal trap
+                variant.setFelt(resolveFelt(targetType, targetSupplier, targetArticle));
+                return;
+
+            }              
+            updateFelt(currentFelt, variant, targetType, targetSupplier, targetArticle);
+        }
+        if (variantChanged) {
+            variant.setThickness(targetThick);
+            variant.setDensity(targetDensity);
+            variant.setPrice(targetPrice);
+        }
+    }
+
+    private void updateFelt(
+        Felt currentFelt, 
+        FeltVariant variant, 
+        FeltType targetType, 
+        Supplier targetSupplier,
+        String targetArticle
+    ) {
+        // Felt is also exclusive — prefer in-place mutation to avoid orphaned records.
+        Optional<Felt> existingFelt = feltRepo
+            .findByFeltTypeAndSupplierAndArticleNumber(targetType, targetSupplier, targetArticle);
+
+        if (existingFelt.isPresent() && !existingFelt.get().getId().equals(currentFelt.getId())) {
+            // A different Felt with the target identity already exists — re-point the
+            // variant FK and clean up the now-orphaned exclusive Felt.
+            // Set FK directly — do not touch in-memory collections to avoid orphan-removal trap
+            variant.setFelt(existingFelt.get());
+            feltRepo.delete(currentFelt);
+
+        } else if (existingFelt.isEmpty()) {
+            // No Felt with the target identity exists yet — mutate the exclusive Felt
+            // in-place so no new entity is created and no orphan accumulates.
+            currentFelt.setFeltType(targetType);
+            currentFelt.setSupplier(targetSupplier);
+            currentFelt.setArticleNumber(targetArticle);
+        }
+        // else existingTarget == currentFelt → already matches, nothing to do
+    }
+
+    private void updateSharedFeltVariant(
+        FeltColorVariant colorVariant, 
+        Felt targetFelt, 
+        Double thickness, 
+        Double density,
+        BigDecimal price
+    ) {
+        FeltVariant targetVariant = feltVariantRepo
+            .findByFeltAndThicknessAndDensityAndPrice(targetFelt, thickness, density, price)
+            .orElseGet(() -> feltVariantRepo.save(
+                new FeltVariant(targetFelt, thickness, density, price))
+            );
+        // Set FK directly — do not touch in-memory collections to avoid orphan-removal trap
+        colorVariant.setFeltVariant(targetVariant);
     }
 
     private boolean hasFeltChanged(Felt felt, Long targetTypeId, Long targetSupplierId, String targetArticleNumber) {
@@ -258,7 +284,7 @@ public class FeltService {
             || !feltVariant.getDensity().equals(targetDensity)
             || feltVariant.getPrice().compareTo(targetPrice) != 0;
     }
-
+    
     /**
      * Finds an existing Felt by its natural key or creates a new one.
      */

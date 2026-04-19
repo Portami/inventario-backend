@@ -33,7 +33,7 @@ public class RollController {
 
     @Operation(
         summary = "Create a roll",
-        description = "Batch and storage are required."
+        description = "Batch and storage are optional."
     )
     @ApiResponse(responseCode = "201", description = "Roll created — Location header points to the new resource")
     @ApiResponse(responseCode = "400", description = "Validation error in the request body")
