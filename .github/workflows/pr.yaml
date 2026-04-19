@@ -5,6 +5,7 @@ on:
 
 jobs:
   get-tag:
+    if: ${{ !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
     outputs:
       sha_short: ${{ steps.short-commit-hash.outputs.short }}
@@ -16,6 +17,7 @@ jobs:
           commit: '${{ github.sha }}'
 
   sonar:
+    if: ${{ !github.event.pull_request.draft }}
     needs: get-tag
     uses: ./.github/workflows/_sonar.yaml
     secrets: inherit
@@ -24,6 +26,7 @@ jobs:
       enforce-quality-gate: false
 
   gate:
+    if: ${{ !github.event.pull_request.draft }}
     needs: get-tag
     runs-on: ubuntu-latest
     environment: staging-approval  # ← this is where the manual gate lives
@@ -31,6 +34,7 @@ jobs:
       - run: echo "Approved"
 
   build-push:
+    if: ${{ !github.event.pull_request.draft }}
     needs: [gate, get-tag]
     permissions:
       contents: read
@@ -40,6 +44,7 @@ jobs:
       tag: ${{ needs.get-tag.outputs.sha_short }}
 
   update-infra:
+    if: ${{ !github.event.pull_request.draft }}
     needs: [build-push, get-tag]
     uses: ./.github/workflows/_update-infra.yaml
     secrets: inherit
