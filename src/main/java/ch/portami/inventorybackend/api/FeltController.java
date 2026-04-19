@@ -7,7 +7,6 @@ import ch.portami.inventorybackend.felt.dto.UpdateFeltDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.net.URI;
@@ -33,24 +32,16 @@ public class FeltController {
         this.feltService = feltService;
     }
 
-    @Operation(
-        summary = "List all felts",
-        description = "Returns all felt color variants with their complete product hierarchy flattened into a single object."
-    )
+    @Operation(summary = "List all felts")
     @ApiResponse(responseCode = "200", description = "List of felts (may be empty)")
     @GetMapping
     public ResponseEntity<List<FeltDto>> getAll() {
         return ResponseEntity.ok(feltService.findAll());
     }
 
-    @Operation(
-        summary = "Get a felt by ID",
-        description = "Returns a single felt color variant by its ID. The ID is the FeltColorVariant identifier returned on creation."
-    )
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Felt found"),
-        @ApiResponse(responseCode = "404", description = "No felt exists with the given ID")
-    })
+    @Operation(summary = "Get a felt by ID")
+    @ApiResponse(responseCode = "200", description = "Felt found")
+    @ApiResponse(responseCode = "404", description = "No felt exists with the given ID")
     @GetMapping("/{id}")
     public ResponseEntity<FeltDto> getById(
         @Parameter(description = "Felt (color variant) ID") @PathVariable Long id
@@ -60,23 +51,11 @@ public class FeltController {
 
     @Operation(
         summary = "Create a felt",
-        description = """
-            Creates a new felt color variant using a find-or-create cascade:
-            - FeltType is looked up by ID; a 404 is returned if it does not exist.
-            - Supplier is looked up by ID; a 404 is returned if it does not exist.
-            - Felt is looked up by (feltType, supplier, articleNumber); created if not found.
-            - FeltVariant is looked up by (felt, thickness, density, price); created if not found.
-            - FeltColorVariant is always created as a new record.
-
-            This means creating two felts with the same article number and specs but different colors
-            will reuse the same underlying Felt and FeltVariant.
-            """
+        description = "Creates a new felt. Felts that share the same type, supplier, article number, and specs but differ only in color reuse the same underlying product entry."
     )
-    @ApiResponses({
-        @ApiResponse(responseCode = "201", description = "Felt created — Location header points to the new resource"),
-        @ApiResponse(responseCode = "400", description = "Validation error in the request body"),
-        @ApiResponse(responseCode = "404", description = "FeltType or Supplier not found")
-    })
+    @ApiResponse(responseCode = "201", description = "Felt created — Location header points to the new resource")
+    @ApiResponse(responseCode = "400", description = "Validation error in the request body")
+    @ApiResponse(responseCode = "404", description = "FeltType or Supplier not found")
     @PostMapping
     public ResponseEntity<FeltDto> create(@RequestBody @Valid CreateFeltDto dto) {
         FeltDto created = feltService.create(dto);
@@ -86,30 +65,11 @@ public class FeltController {
 
     @Operation(
         summary = "Partially update a felt",
-        description = """
-            Partially updates an existing felt color variant. Every field is optional — omit any \
-            field (or send it as null) to leave it unchanged.
-
-            The update logic is hierarchy-aware:
-            - color and supplierColor are updated directly on the color variant.
-            - If feltType, supplier, or articleNumber change, a matching Felt is found or created.
-              The service checks whether the underlying Felt and FeltVariant are shared before \
-              deciding whether to mutate them in-place or re-point this color variant to a \
-              different entity.
-            - If thickness, density, or price change:
-                - When the FeltVariant is shared by other color variants, a matching variant is \
-                  found or created and this color variant is re-pointed to it.
-                - When the FeltVariant is exclusive to this color variant, it is mutated in-place.
-
-            Sibling color variants (those sharing the same underlying Felt or FeltVariant) are \
-            never affected by an update to a single color variant.
-            """
+        description = "Omit any field to leave it unchanged."
     )
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Felt updated"),
-        @ApiResponse(responseCode = "400", description = "Validation error in the request body (e.g. non-positive thickness)"),
-        @ApiResponse(responseCode = "404", description = "Felt, FeltType, or Supplier not found")
-    })
+    @ApiResponse(responseCode = "200", description = "Felt updated")
+    @ApiResponse(responseCode = "400", description = "Validation error in the request body")
+    @ApiResponse(responseCode = "404", description = "Felt, FeltType, or Supplier not found")
     @PatchMapping("/{id}")
     public ResponseEntity<FeltDto> update(
         @Parameter(description = "Felt (color variant) ID") @PathVariable Long id,
@@ -118,19 +78,10 @@ public class FeltController {
         return ResponseEntity.ok(feltService.update(id, dto));
     }
 
-    @Operation(
-        summary = "Delete a felt",
-        description = """
-            Deletes the felt color variant. Does not cascade to the underlying FeltVariant, Felt,
-            or FeltType unless no other FeltColorVariants or FeltVariants are attached to them.
-            Any rolls that belong to this felt must be deleted first; otherwise a 409 is returned.
-            """
-    )
-    @ApiResponses({
-        @ApiResponse(responseCode = "204", description = "Felt deleted"),
-        @ApiResponse(responseCode = "404", description = "No felt exists with the given ID"),
-        @ApiResponse(responseCode = "409", description = "Felt still has rolls or scrap pieces attached")
-    })
+    @Operation(summary = "Delete a felt")
+    @ApiResponse(responseCode = "204", description = "Felt deleted")
+    @ApiResponse(responseCode = "404", description = "No felt exists with the given ID")
+    @ApiResponse(responseCode = "409", description = "Felt still has rolls or scrap pieces attached")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(
         @Parameter(description = "Felt (color variant) ID") @PathVariable Long id
