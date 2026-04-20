@@ -10,4 +10,5 @@ public record ProductVariantDto(
         BigDecimal price,
         List<ProductAttributeValueDto> attributes
 ) {
+
 }

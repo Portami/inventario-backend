@@ -30,7 +30,8 @@ public class CategoryController {
     @PostMapping
     public ResponseEntity<CategoryDto> createCategory(@RequestBody @Valid CreateCategoryDto createCategoryDto) {
         CategoryDto categoryDto = categoryService.createCategory(createCategoryDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(categoryDto);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                             .body(categoryDto);
     }
 
     @GetMapping("/{id}")
@@ -46,10 +47,8 @@ public class CategoryController {
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<CategoryDto> updateCategory(
-            @PathVariable long id,
-            @RequestBody @Valid UpdateCategoryDto updateCategoryDto
-    ) {
+    public ResponseEntity<CategoryDto> updateCategory(@PathVariable long id,
+            @RequestBody @Valid UpdateCategoryDto updateCategoryDto) {
         CategoryDto categoryDto = categoryService.updateCategory(id, updateCategoryDto);
         return ResponseEntity.ok(categoryDto);
     }
@@ -57,7 +56,8 @@ public class CategoryController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCategory(@PathVariable long id) {
         categoryService.deleteCategory(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.noContent()
+                             .build();
     }
 
 }

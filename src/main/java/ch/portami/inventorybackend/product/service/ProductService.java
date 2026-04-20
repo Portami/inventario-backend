@@ -19,7 +19,8 @@ public class ProductService {
     private final ProductMapper productMapper;
     private final CategoryRepository categoryRepository;
 
-    public ProductService(ProductRepository productRepository, ProductMapper productMapper, CategoryRepository categoryRepository) {
+    public ProductService(ProductRepository productRepository, ProductMapper productMapper,
+            CategoryRepository categoryRepository) {
         this.productRepository = productRepository;
         this.productMapper = productMapper;
         this.categoryRepository = categoryRepository;
@@ -40,9 +41,10 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public List<ProductDto> getAllProducts() {
-        return productRepository.findAll().stream()
-                .map(productMapper::toProductDto)
-                .toList();
+        return productRepository.findAll()
+                                .stream()
+                                .map(productMapper::toProductDto)
+                                .toList();
     }
 
     @Transactional
@@ -59,7 +61,7 @@ public class ProductService {
 
     private Product getProduct(long id) {
         return productRepository.findById(id)
-                .orElseThrow(() -> new ProductNotFoundException(id));
+                                .orElseThrow(() -> new ProductNotFoundException(id));
     }
 
 }

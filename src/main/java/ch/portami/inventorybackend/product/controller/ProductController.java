@@ -30,7 +30,8 @@ public class ProductController {
     @PostMapping
     public ResponseEntity<ProductDto> createProduct(@RequestBody @Valid CreateProductDto createProductDto) {
         ProductDto productDto = productService.createProduct(createProductDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(productDto);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                             .body(productDto);
     }
 
     @GetMapping("/{id}")
@@ -46,10 +47,8 @@ public class ProductController {
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<ProductDto> updateProduct(
-            @PathVariable long id,
-            @RequestBody @Valid UpdateProductDto updateProductDto
-    ) {
+    public ResponseEntity<ProductDto> updateProduct(@PathVariable long id,
+            @RequestBody @Valid UpdateProductDto updateProductDto) {
         ProductDto productDto = productService.updateProduct(id, updateProductDto);
         return ResponseEntity.ok(productDto);
     }
@@ -57,7 +56,8 @@ public class ProductController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteProduct(@PathVariable long id) {
         productService.deleteProduct(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.noContent()
+                             .build();
     }
 
 }

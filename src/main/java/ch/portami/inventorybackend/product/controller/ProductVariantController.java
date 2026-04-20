@@ -28,19 +28,17 @@ public class ProductVariantController {
     }
 
     @PostMapping
-    public ResponseEntity<ProductVariantDto> createProductVariant(
-            @PathVariable long productId,
-            @RequestBody @Valid CreateProductVariantDto createProductVariantDto
-    ) {
-        ProductVariantDto productVariantDto = productVariantService.createProductVariant(productId, createProductVariantDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(productVariantDto);
+    public ResponseEntity<ProductVariantDto> createProductVariant(@PathVariable long productId,
+            @RequestBody @Valid CreateProductVariantDto createProductVariantDto) {
+        ProductVariantDto productVariantDto = productVariantService.createProductVariant(productId,
+                createProductVariantDto);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                             .body(productVariantDto);
     }
 
     @GetMapping("/{variantId}")
-    public ResponseEntity<ProductVariantDto> getProductVariantById(
-            @PathVariable long productId,
-            @PathVariable long variantId
-    ) {
+    public ResponseEntity<ProductVariantDto> getProductVariantById(@PathVariable long productId,
+            @PathVariable long variantId) {
         ProductVariantDto productVariantDto = productVariantService.getProductVariantById(productId, variantId);
         return ResponseEntity.ok(productVariantDto);
     }
@@ -52,22 +50,18 @@ public class ProductVariantController {
     }
 
     @PatchMapping("/{variantId}")
-    public ResponseEntity<ProductVariantDto> updateProductVariant(
-            @PathVariable long productId,
-            @PathVariable long variantId,
-            @RequestBody @Valid UpdateProductVariantDto updateProductVariantDto
-    ) {
-        ProductVariantDto productVariantDto = productVariantService.updateProductVariant(productId, variantId, updateProductVariantDto);
+    public ResponseEntity<ProductVariantDto> updateProductVariant(@PathVariable long productId,
+            @PathVariable long variantId, @RequestBody @Valid UpdateProductVariantDto updateProductVariantDto) {
+        ProductVariantDto productVariantDto = productVariantService.updateProductVariant(productId, variantId,
+                updateProductVariantDto);
         return ResponseEntity.ok(productVariantDto);
     }
 
     @DeleteMapping("/{variantId}")
-    public ResponseEntity<Void> deleteProductVariant(
-            @PathVariable long productId,
-            @PathVariable long variantId
-    ) {
+    public ResponseEntity<Void> deleteProductVariant(@PathVariable long productId, @PathVariable long variantId) {
         productVariantService.deleteProductVariant(productId, variantId);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.noContent()
+                             .build();
     }
 
 }

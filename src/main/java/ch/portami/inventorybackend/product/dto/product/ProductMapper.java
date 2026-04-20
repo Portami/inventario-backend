@@ -1,8 +1,8 @@
 package ch.portami.inventorybackend.product.dto.product;
 
 import ch.portami.inventorybackend.product.dto.productattribute.CreateProductAttributeDto;
-import ch.portami.inventorybackend.product.dto.productattribute.ProductAttributeMapper;
 import ch.portami.inventorybackend.product.dto.productattribute.ProductAttributeChangeDto;
+import ch.portami.inventorybackend.product.dto.productattribute.ProductAttributeMapper;
 import ch.portami.inventorybackend.product.dto.productvariant.ProductVariantMapper;
 import ch.portami.inventorybackend.product.entity.Category;
 import ch.portami.inventorybackend.product.entity.Product;
@@ -20,7 +20,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
-@Mapper(componentModel = "spring", uses={ProductVariantMapper.class, ProductAttributeMapper.class})
+@Mapper(componentModel = "spring", uses = {ProductVariantMapper.class, ProductAttributeMapper.class})
 public interface ProductMapper {
 
     @Mapping(source = "productVariants", target = "variants")
@@ -36,46 +36,50 @@ public interface ProductMapper {
     @Mapping(target = "category", ignore = true)
     @Mapping(target = "productVariants", ignore = true)
     @Mapping(target = "productAttributes", ignore = true)
-    void updateProduct(
-            UpdateProductDto updateProductDto,
-            @MappingTarget Product product,
-            @Context CategoryRepository categoryRepository
-    );
+    void updateProduct(UpdateProductDto updateProductDto, @MappingTarget Product product,
+            @Context CategoryRepository categoryRepository);
 
     @AfterMapping
-    default void setSpecialProperties(CreateProductDto createProductDto, @MappingTarget Product product, @Context CategoryRepository categoryRepository) {
+    default void setSpecialProperties(CreateProductDto createProductDto, @MappingTarget Product product,
+            @Context CategoryRepository categoryRepository) {
         setCategory(product, createProductDto.categoryId(), categoryRepository);
 
-        if(createProductDto.attributes() == null) {
+        if (createProductDto.attributes() == null) {
             return;
         }
 
-        for(CreateProductAttributeDto attributeDto : createProductDto.attributes())    {
+        for (CreateProductAttributeDto attributeDto : createProductDto.attributes()) {
             ProductAttribute attribute = new ProductAttribute(product, attributeDto.name());
             product.addProductAttribute(attribute);
         }
     }
 
     @AfterMapping
-    default void updateSpecialProperties(UpdateProductDto updateProductDto, @MappingTarget Product product, @Context CategoryRepository categoryRepository) {
+    default void updateSpecialProperties(UpdateProductDto updateProductDto, @MappingTarget Product product,
+            @Context CategoryRepository categoryRepository) {
 
-        if (updateProductDto.categoryId() != null && !product.getCategory().getId().equals(updateProductDto.categoryId())) {
+        if (updateProductDto.categoryId() != null && !product.getCategory()
+                                                             .getId()
+                                                             .equals(updateProductDto.categoryId())) {
             setCategory(product, updateProductDto.categoryId(), categoryRepository);
         }
 
-        if(updateProductDto.attributes() != null) {
+        if (updateProductDto.attributes() != null) {
 
-            Map<Long, ProductAttribute> untouchedAttributes = product.getProductAttributes().stream()
-                    .collect(Collectors.toMap(ProductAttribute::getId, Function.identity()));
+            Map<Long, ProductAttribute> untouchedAttributes = product.getProductAttributes()
+                                                                     .stream()
+                                                                     .collect(Collectors.toMap(ProductAttribute::getId,
+                                                                             Function.identity()));
 
-            for(ProductAttributeChangeDto attribute : updateProductDto.attributes()) {
+            for (ProductAttributeChangeDto attribute : updateProductDto.attributes()) {
 
-                if(attribute.id() != null) {
+                if (attribute.id() != null) {
                     ProductAttribute existingAttribute = untouchedAttributes.remove(attribute.id());
 
-                    if(existingAttribute == null) {
+                    if (existingAttribute == null) {
                         existingAttribute = product.getProductAttributeById(attribute.id())
-                                                   .orElseThrow(() -> new ProductAttributeNotFound(product.getId(), attribute.id()));
+                                                   .orElseThrow(() -> new ProductAttributeNotFound(product.getId(),
+                                                           attribute.id()));
                     }
 
                     existingAttribute.setName(attribute.name());
@@ -86,7 +90,8 @@ public interface ProductMapper {
 
             }
 
-            untouchedAttributes.values().forEach(product::removeProductAttribute);
+            untouchedAttributes.values()
+                               .forEach(product::removeProductAttribute);
 
         }
 
@@ -94,7 +99,7 @@ public interface ProductMapper {
 
     private static void setCategory(Product product, Long categoryId, @Context CategoryRepository categoryRepository) {
         Category category = categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new CategoryNotFoundException(categoryId));
+                                              .orElseThrow(() -> new CategoryNotFoundException(categoryId));
         product.setCategory(category);
     }
 

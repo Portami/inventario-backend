@@ -34,21 +34,16 @@ public interface ProductVariantMapper {
     @Mapping(target = "productAttributeValues", ignore = true)
     @Mapping(target = "productInventories", ignore = true)
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    void updateProductVariant(
-            UpdateProductVariantDto updateProductVariantDto,
-            @MappingTarget ProductVariant productVariant
-    );
+    void updateProductVariant(UpdateProductVariantDto updateProductVariantDto,
+            @MappingTarget ProductVariant productVariant);
 
     @AfterMapping
-    default void setSpecialProperties(
-            CreateProductVariantDto createProductVariantDto,
-            @MappingTarget ProductVariant productVariant,
-            @Context Product product
-    ) {
+    default void setSpecialProperties(CreateProductVariantDto createProductVariantDto,
+            @MappingTarget ProductVariant productVariant, @Context Product product) {
 
         productVariant.setProduct(product);
 
-        if(createProductVariantDto.attributes() == null) {
+        if (createProductVariantDto.attributes() == null) {
             return;
         }
 
@@ -56,7 +51,8 @@ public interface ProductVariantMapper {
             ProductAttributeValue attributeValue = new ProductAttributeValue(
                     productVariant,
                     product.getProductAttributeById(attributeDto.attributeId())
-                            .orElseThrow(() -> new ProductAttributeNotFound(product.getId(), attributeDto.attributeId())),
+                           .orElseThrow(
+                                   () -> new ProductAttributeNotFound(product.getId(), attributeDto.attributeId())),
                     attributeDto.value()
             );
 
@@ -66,31 +62,37 @@ public interface ProductVariantMapper {
     }
 
     @AfterMapping
-    default void updateSpecialProperties(
-            UpdateProductVariantDto updateProductVariantDto,
-            @MappingTarget ProductVariant productVariant
-    ) {
+    default void updateSpecialProperties(UpdateProductVariantDto updateProductVariantDto,
+            @MappingTarget ProductVariant productVariant) {
 
         Product product = productVariant.getProduct();
 
         if (updateProductVariantDto.attributes() != null) {
 
-            Map<Long, ProductAttributeValue> untouchedAttributeValues = productVariant.getProductAttributeValues().stream()
-                    .collect(Collectors.toMap(av -> av.getProductAttribute().getId(), Function.identity()));
+            Map<Long, ProductAttributeValue> untouchedAttributeValues = productVariant.getProductAttributeValues()
+                                                                                      .stream()
+                                                                                      .collect(Collectors.toMap(
+                                                                                              av -> av.getProductAttribute()
+                                                                                                      .getId(),
+                                                                                              Function.identity()));
 
             for (ProductAttributeValueChangeDto attributeValueDto : updateProductVariantDto.attributes()) {
 
-                ProductAttributeValue existingAttributeValue = untouchedAttributeValues.remove(attributeValueDto.attributeId());
+                ProductAttributeValue existingAttributeValue = untouchedAttributeValues.remove(
+                        attributeValueDto.attributeId());
 
-                if(existingAttributeValue == null) {
-                    existingAttributeValue = productVariant.getProductAttributeValueByAttributeId(attributeValueDto.attributeId()).orElse(null);
+                if (existingAttributeValue == null) {
+                    existingAttributeValue = productVariant.getProductAttributeValueByAttributeId(
+                                                                   attributeValueDto.attributeId())
+                                                           .orElse(null);
                 }
 
                 if (existingAttributeValue != null) {
                     existingAttributeValue.setValue(attributeValueDto.value());
                 } else {
                     ProductAttribute attribute = product.getProductAttributeById(attributeValueDto.attributeId())
-                            .orElseThrow(() -> new ProductAttributeNotFound(product.getId(), attributeValueDto.attributeId()));
+                                                        .orElseThrow(() -> new ProductAttributeNotFound(product.getId(),
+                                                                attributeValueDto.attributeId()));
 
                     ProductAttributeValue newAttributeValue = new ProductAttributeValue(
                             productVariant,
@@ -102,7 +104,8 @@ public interface ProductVariantMapper {
 
             }
 
-            untouchedAttributeValues.values().forEach(productVariant::removeProductAttributeValue);
+            untouchedAttributeValues.values()
+                                    .forEach(productVariant::removeProductAttributeValue);
 
         }
 

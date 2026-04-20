@@ -22,7 +22,8 @@ public class ProductVariantService {
     private final ProductVariantMapper productVariantMapper;
     private final ProductRepository productRepository;
 
-    public ProductVariantService(ProductVariantRepository productVariantRepository, ProductVariantMapper productVariantMapper, ProductRepository productRepository) {
+    public ProductVariantService(ProductVariantRepository productVariantRepository,
+            ProductVariantMapper productVariantMapper, ProductRepository productRepository) {
         this.productVariantRepository = productVariantRepository;
         this.productVariantMapper = productVariantMapper;
         this.productRepository = productRepository;
@@ -40,7 +41,8 @@ public class ProductVariantService {
     @Transactional(readOnly = true)
     public ProductVariantDto getProductVariantById(long productId, long variantId) {
         ProductVariant productVariant = productVariantRepository.findById(variantId)
-                .orElseThrow(() -> new ProductVariantNotFoundException(productId, variantId));
+                                                                .orElseThrow(() -> new ProductVariantNotFoundException(
+                                                                        productId, variantId));
         checkProductVariantBelongsToProduct(productId, productVariant);
         return productVariantMapper.toProductVariantDto(productVariant);
     }
@@ -48,15 +50,18 @@ public class ProductVariantService {
     @Transactional(readOnly = true)
     public List<ProductVariantDto> getAllProductVariants(long productId) {
         Product product = getProduct(productId);
-        return product.getProductVariants().stream()
-                .map(productVariantMapper::toProductVariantDto)
-                .toList();
+        return product.getProductVariants()
+                      .stream()
+                      .map(productVariantMapper::toProductVariantDto)
+                      .toList();
     }
 
     @Transactional
-    public ProductVariantDto updateProductVariant(long productId, long variantId, UpdateProductVariantDto updateProductVariantDto) {
+    public ProductVariantDto updateProductVariant(long productId, long variantId,
+            UpdateProductVariantDto updateProductVariantDto) {
         ProductVariant productVariant = productVariantRepository.findById(variantId)
-                .orElseThrow(() -> new ProductVariantNotFoundException(productId, variantId));
+                                                                .orElseThrow(() -> new ProductVariantNotFoundException(
+                                                                        productId, variantId));
         checkProductVariantBelongsToProduct(productId, productVariant);
         productVariantMapper.updateProductVariant(updateProductVariantDto, productVariant);
         ProductVariant updatedVariant = productVariantRepository.save(productVariant);
@@ -66,7 +71,7 @@ public class ProductVariantService {
     @Transactional
     public void deleteProductVariant(long productId, long variantId) {
         Optional<ProductVariant> productVariantOpt = productVariantRepository.findById(variantId);
-        if(productVariantOpt.isEmpty()) {
+        if (productVariantOpt.isEmpty()) {
             return;
         }
         ProductVariant productVariant = productVariantOpt.get();
@@ -76,11 +81,13 @@ public class ProductVariantService {
 
     private Product getProduct(long productId) {
         return productRepository.findById(productId)
-                .orElseThrow(() -> new ProductNotFoundException(productId));
+                                .orElseThrow(() -> new ProductNotFoundException(productId));
     }
 
     private void checkProductVariantBelongsToProduct(long productId, ProductVariant productVariant) {
-        if (!productVariant.getProduct().getId().equals(productId)) {
+        if (!productVariant.getProduct()
+                           .getId()
+                           .equals(productId)) {
             throw new ProductVariantNotFoundException(productId, productVariant.getId());
         }
     }

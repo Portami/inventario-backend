@@ -37,9 +37,10 @@ public class CategoryService {
 
     @Transactional(readOnly = true)
     public List<CategoryDto> getAllCategories() {
-        return categoryRepository.findAll().stream()
-                .map(categoryMapper::toCategoryDto)
-                .toList();
+        return categoryRepository.findAll()
+                                 .stream()
+                                 .map(categoryMapper::toCategoryDto)
+                                 .toList();
     }
 
     @Transactional
@@ -56,7 +57,7 @@ public class CategoryService {
 
     private Category getCategory(long id) {
         return categoryRepository.findById(id)
-                .orElseThrow(() -> new CategoryNotFoundException(id));
+                                 .orElseThrow(() -> new CategoryNotFoundException(id));
     }
 
 }

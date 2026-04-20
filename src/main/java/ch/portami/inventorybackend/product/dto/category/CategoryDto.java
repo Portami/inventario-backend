@@ -4,4 +4,5 @@ public record CategoryDto(
         long id,
         String name
 ) {
+
 }
