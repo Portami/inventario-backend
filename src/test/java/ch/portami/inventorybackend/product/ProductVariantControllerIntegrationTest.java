@@ -246,6 +246,23 @@ class ProductVariantControllerIntegrationTest {
         }
 
         @Test
+        @DisplayName("Should return 400 when price is negative")
+        void testCreateVariantNegativePrice() {
+            CreateProductVariantDto createVariantDto = new CreateProductVariantDto(
+                    "Test Variant",
+                    BigDecimal.valueOf(-5),
+                    List.of()
+            );
+
+            restTestClient.post()
+                    .uri(VARIANTS_URL_TEMPLATE, testProductId)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(createVariantDto)
+                    .exchange()
+                    .expectStatus().isBadRequest();
+        }
+
+        @Test
         @DisplayName("Should return 400 when attribute id is null")
         void testCreateVariantWithAttributeMissingId() {
             CreateProductAttributeValueDto attributeDto = new CreateProductAttributeValueDto(
