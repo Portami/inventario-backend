@@ -30,7 +30,7 @@ public class ProductVariantService {
 
     @Transactional
     public ProductVariantDto createProductVariant(long productId, CreateProductVariantDto createProductVariantDto) {
-        Product product = getProductOrThrow(productId);
+        Product product = getProduct(productId);
         ProductVariant productVariant = productVariantMapper.toProductVariant(createProductVariantDto, product);
         product.addProductVariant(productVariant);
         ProductVariant savedVariant = productVariantRepository.save(productVariant);
@@ -47,7 +47,7 @@ public class ProductVariantService {
 
     @Transactional(readOnly = true)
     public List<ProductVariantDto> getAllProductVariants(long productId) {
-        Product product = getProductOrThrow(productId);
+        Product product = getProduct(productId);
         return product.getProductVariants().stream()
                 .map(productVariantMapper::toProductVariantDto)
                 .toList();
@@ -74,7 +74,7 @@ public class ProductVariantService {
         productVariantRepository.delete(productVariant);
     }
 
-    private Product getProductOrThrow(long productId) {
+    private Product getProduct(long productId) {
         return productRepository.findById(productId)
                 .orElseThrow(() -> new ProductNotFoundException(productId));
     }

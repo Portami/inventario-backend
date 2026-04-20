@@ -34,7 +34,7 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public ProductDto getProductById(long id) {
-        Product product = getProductOrThrow(id);
+        Product product = getProduct(id);
         return productMapper.toProductDto(product);
     }
 
@@ -47,7 +47,7 @@ public class ProductService {
 
     @Transactional
     public ProductDto updateProduct(long id, UpdateProductDto updateProductDto) {
-        Product product = getProductOrThrow(id);
+        Product product = getProduct(id);
         productMapper.updateProduct(updateProductDto, product, categoryRepository);
         Product updatedProduct = productRepository.save(product);
         return productMapper.toProductDto(updatedProduct);
@@ -57,7 +57,7 @@ public class ProductService {
         productRepository.deleteById(id);
     }
 
-    private Product getProductOrThrow(long id) {
+    private Product getProduct(long id) {
         return productRepository.findById(id)
                 .orElseThrow(() -> new ProductNotFoundException(id));
     }
