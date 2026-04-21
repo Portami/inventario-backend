@@ -29,13 +29,15 @@ public class FeltRollService {
     private final FeltRollRepository feltRollRepo;
     private final BatchRepository batchRepo;
     private final StorageRepository storageRepo;
+    private final BarcodeService barcodeService;
 
     public FeltRollService(FeltColorVariantRepository feltColorVariantRepo, FeltRollRepository feltRollRepo,
-            BatchRepository batchRepo, StorageRepository storageRepo) {
+            BatchRepository batchRepo, StorageRepository storageRepo, BarcodeService barcodeService) {
         this.feltColorVariantRepo = feltColorVariantRepo;
         this.feltRollRepo = feltRollRepo;
         this.batchRepo = batchRepo;
         this.storageRepo = storageRepo;
+        this.barcodeService = barcodeService;
     }
 
     public List<FeltRollDto> findAllByFelt(Long feltId) {
@@ -65,6 +67,8 @@ public class FeltRollService {
 
         FeltRoll roll = new FeltRoll(colorVariant, batch, storage, dto.length(), dto.width());
         roll = feltRollRepo.save(roll);
+
+        barcodeService.createForRoll(roll);
 
         return toDto(roll);
     }
