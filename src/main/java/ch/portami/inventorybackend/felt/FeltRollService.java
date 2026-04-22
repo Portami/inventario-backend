@@ -1,5 +1,6 @@
 package ch.portami.inventorybackend.felt;
 
+import ch.portami.inventorybackend.barcode.BarcodeService;
 import ch.portami.inventorybackend.core.entity.Storage;
 import ch.portami.inventorybackend.core.repository.StorageRepository;
 import ch.portami.inventorybackend.felt.dto.CreateFeltRollDto;

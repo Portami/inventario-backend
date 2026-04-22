@@ -1,4 +1,4 @@
-package ch.portami.inventorybackend.api;
+package ch.portami.inventorybackend.felt.api;
 
 import ch.portami.inventorybackend.felt.FeltRollService;
 import ch.portami.inventorybackend.felt.dto.FeltRollDto;
