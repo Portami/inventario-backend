@@ -14,6 +14,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import java.util.Optional;
 
 @Entity
 @Table(name = "product")
@@ -28,6 +29,9 @@ public class Product {
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
+    @Column(nullable = false)
+    private String name;
+
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private final List<ProductAttribute> productAttributes = new ArrayList<>();
 
@@ -36,17 +40,28 @@ public class Product {
 
     public Product() {}
 
-    public Product(Category category) {
+    public Product(Category category, String name) {
         this.category = category;
+        this.name = name;
     }
 
     public Long getId() { return id; }
+
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
 
     // Fixed: was getProductType/setProductType — the field is `category`.
     public Category getCategory() { return category; }
     public void setCategory(Category category) { this.category = category; }
 
     public List<ProductAttribute> getProductAttributes() { return productAttributes; }
+
+    public Optional<ProductAttribute> getProductAttributeById(long attributeId) {
+        Long attributeIdLong = attributeId;
+        return productAttributes.stream()
+                .filter(attr -> attributeIdLong.equals(attr.getId()))
+                .findFirst();
+    }
 
     public List<ProductVariant> getProductVariants() { return productVariants; }
 

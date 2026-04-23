@@ -24,10 +24,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException ex) {
         String message = ex.getBindingResult()
-                .getFieldErrors()
-                .stream()
-                .map(fe -> "'%s' %s".formatted(fe.getField(), fe.getDefaultMessage()))
-                .collect(Collectors.joining("; "));
+                           .getFieldErrors()
+                           .stream()
+                           .map(fe -> "'%s' %s".formatted(fe.getField(), fe.getDefaultMessage()))
+                           .collect(Collectors.joining("; "));
 
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
@@ -64,6 +64,13 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.CONFLICT)
                 .body(ErrorResponse.of(HttpStatus.CONFLICT.value(),
                         "Cannot delete: resource is still referenced by other inventory items"));
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNotFound(ResourceNotFoundException ex) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(ErrorResponse.of(HttpStatus.NOT_FOUND.value(), ex.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)
