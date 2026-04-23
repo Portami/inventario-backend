@@ -1,5 +1,7 @@
-package ch.portami.inventorybackend.felt.entity;
+package ch.portami.inventorybackend.barcode.entity;
 
+import ch.portami.inventorybackend.felt.entity.FeltRoll;
+import ch.portami.inventorybackend.felt.entity.ScrapPiece;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

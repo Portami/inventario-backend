@@ -1,7 +1,7 @@
 package ch.portami.inventorybackend.barcode;
 
 import ch.portami.inventorybackend.barcode.dto.BarcodeLookupDto;
-import ch.portami.inventorybackend.felt.entity.Barcode;
+import ch.portami.inventorybackend.barcode.entity.Barcode;
 import ch.portami.inventorybackend.felt.entity.FeltRoll;
 import ch.portami.inventorybackend.felt.entity.ScrapPiece;
 import ch.portami.inventorybackend.barcode.repository.BarcodeRepository;
