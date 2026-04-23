@@ -2,6 +2,11 @@ name: Pull request workflow
 on:
   pull_request:
     branches: [ main ]
+    types: [opened, reopened, synchronize, ready_for_review, labeled, unlabeled]
+
+permissions:
+  contents: read
+  packages: read
 
 jobs:
   get-tag:
@@ -16,26 +21,25 @@ jobs:
         with:
           commit: '${{ github.sha }}'
 
-  sonar:
-    if: ${{ !github.event.pull_request.draft }}
+  build:
     needs: get-tag
+    uses: ./.github/workflows/_build.yaml
+
+  test:
+    needs: build
+    uses: ./.github/workflows/_test.yaml
+
+  sonar:
+    needs: [get-tag, test]
     uses: ./.github/workflows/_sonar.yaml
     secrets: inherit
     with:
       sonar-version: ${{ needs.get-tag.outputs.sha_short }}-SNAPSHOT
       enforce-quality-gate: false
 
-  gate:
-    if: ${{ !github.event.pull_request.draft }}
-    needs: get-tag
-    runs-on: ubuntu-latest
-    environment: staging-approval  # ← this is where the manual gate lives
-    steps:
-      - run: echo "Approved"
-
   build-push:
-    if: ${{ !github.event.pull_request.draft }}
-    needs: [gate, get-tag]
+    if: ${{ contains(github.event.pull_request.labels.*.name, 'deploy') }}
+    needs: [get-tag, test]
     permissions:
       contents: read
       packages: write
@@ -44,8 +48,7 @@ jobs:
       tag: ${{ needs.get-tag.outputs.sha_short }}
 
   update-infra:
-    if: ${{ !github.event.pull_request.draft }}
-    needs: [build-push, get-tag]
+    needs: [get-tag, build-push]
     uses: ./.github/workflows/_update-infra.yaml
     secrets: inherit
     with:

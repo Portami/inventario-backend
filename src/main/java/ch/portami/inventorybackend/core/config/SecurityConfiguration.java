@@ -1,4 +1,4 @@
-package ch.portami.inventorybackend.config;
+package ch.portami.inventorybackend.core.config;
 
 import java.util.List;
 import org.springframework.context.annotation.Bean;
@@ -16,9 +16,10 @@ public class SecurityConfiguration {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) {
         http.csrf(AbstractHttpConfigurer::disable)
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
-                .formLogin(AbstractHttpConfigurer::disable);
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            .authorizeHttpRequests(auth -> auth.anyRequest()
+                                               .permitAll())
+            .formLogin(AbstractHttpConfigurer::disable);
 
         return http.build();
     }
