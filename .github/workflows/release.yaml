@@ -3,6 +3,10 @@ on:
   release:
     types: [published]
 
+permissions:
+  contents: read
+  packages: read
+
 jobs:
   build:
     uses: ./.github/workflows/_build.yaml
