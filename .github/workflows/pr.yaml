@@ -39,7 +39,7 @@ jobs:
 
   build-push:
     if: ${{ contains(github.event.pull_request.labels.*.name, 'deploy') }}
-    needs: [get-tag, build]
+    needs: [get-tag, test]
     permissions:
       contents: read
       packages: write

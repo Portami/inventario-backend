@@ -24,7 +24,7 @@ jobs:
       enforce-quality-gate: false
 
   build-push:
-    needs: build
+    needs: test
     permissions:
       contents: read
       packages: write
