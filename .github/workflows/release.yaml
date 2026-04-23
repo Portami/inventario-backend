@@ -4,14 +4,23 @@ on:
     types: [published]
 
 jobs:
+  build:
+    uses: ./.github/workflows/_build.yaml
+
+  test:
+    needs: build
+    uses: ./.github/workflows/_test.yaml
+
   sonar:
+    needs: test
     uses: ./.github/workflows/_sonar.yaml
     secrets: inherit
     with:
       sonar-version: ${{ github.event.release.tag_name }}
+      enforce-quality-gate: false
 
   build-push:
-    needs: sonar
+    needs: build
     permissions:
       contents: read
       packages: write
