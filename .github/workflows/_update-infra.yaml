@@ -35,7 +35,7 @@ jobs:
           repositories: inventario-infrastructure
 
       - name: Checkout infrastructure repo
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6.0.2
         with:
           repository: portami/inventario-infrastructure
           token: ${{ steps.app-token.outputs.token }}
