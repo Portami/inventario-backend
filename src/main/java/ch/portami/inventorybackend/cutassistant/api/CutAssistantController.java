@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/cut-assistant")
@@ -20,7 +21,7 @@ public class CutAssistantController {
     }
 
     @PostMapping("/optimize")
-    public ResponseEntity<CutResult> optimize(@RequestBody CutInput input) {
+    public ResponseEntity<CutResult> optimize(@Valid @RequestBody CutInput input) {
         CutResult result = optimizer.optimize(input);
         return ResponseEntity.ok(result);
     }
