@@ -36,8 +36,6 @@ public class TrivialCuttingOptimizer implements CuttingOptimizer {
 
         for (RequiredPiece req : input.requiredPieces()) {
             for (int q = 0; q < req.quantity(); q++) {
-                boolean assigned = false;
-
                 for (CuttableStock s : stocks) {
                     // PORTAMI-57 check validation requirements (especially with usedStock)
                     if (usedStock.contains(s.feltColorVariantId())
@@ -65,17 +63,12 @@ public class TrivialCuttingOptimizer implements CuttingOptimizer {
                     // PORTAMI-57 check for when a stock is properly 'used'
                     usedStock.add(s.feltColorVariantId());
 
-                    assigned = true;
-                    break;
-                }
-
-                if (!assigned) {
-                    return new CutResult(assignments, totalWaste, false);
+                    return new CutResult(assignments, totalWaste, true);
                 }
             }
         }
 
-        return new CutResult(assignments, totalWaste, true);
+        return new CutResult(assignments, totalWaste, false);
     }
 
     private boolean matchesVariantAndColor(CuttableStock s, RequiredPiece req) {
