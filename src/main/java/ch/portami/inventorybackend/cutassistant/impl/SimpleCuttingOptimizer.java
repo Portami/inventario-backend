@@ -19,11 +19,11 @@ import org.springframework.stereotype.Service;
  * feltVariantId and color and dimensions large enough). Each stock item is used at most once.
  */
 @Service
-public class TrivialCuttingOptimizer implements CuttingOptimizer {
+public class SimpleCuttingOptimizer implements CuttingOptimizer {
 
     private final CuttingStockLoader stockLoader;
 
-    public TrivialCuttingOptimizer(CuttingStockLoader stockLoader) {
+    public SimpleCuttingOptimizer(CuttingStockLoader stockLoader) {
         this.stockLoader = stockLoader;
     }
 

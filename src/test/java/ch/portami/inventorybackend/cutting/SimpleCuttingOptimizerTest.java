@@ -7,7 +7,7 @@ import ch.portami.inventorybackend.cutassistant.domain.CuttableStock;
 import ch.portami.inventorybackend.cutassistant.domain.CuttingAssignment;
 import ch.portami.inventorybackend.cutassistant.domain.RequiredPiece;
 import ch.portami.inventorybackend.cutassistant.domain.StockType;
-import ch.portami.inventorybackend.cutassistant.impl.TrivialCuttingOptimizer;
+import ch.portami.inventorybackend.cutassistant.impl.SimpleCuttingOptimizer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -20,13 +20,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
-class TrivialCuttingOptimizerTest {
+class SimpleCuttingOptimizerTest {
 
     @Mock
     private CuttingStockLoader cuttingStockLoaderMock;
 
     @InjectMocks
-    private TrivialCuttingOptimizer testee;
+    private SimpleCuttingOptimizer testee;
 
     @Test
     void optimizer_assigns_when_stock_matches() {
@@ -40,7 +40,7 @@ class TrivialCuttingOptimizerTest {
         assertTrue(result.feasible());
         assertEquals(1, result.assignments().size());
 
-        CuttingAssignment assignment = result.assignments().get(0);
+        CuttingAssignment assignment = result.assignments().getFirst();
         assertEquals(1, assignment.pieces().size());
         assertTrue(assignment.waste() > 0);
     }
