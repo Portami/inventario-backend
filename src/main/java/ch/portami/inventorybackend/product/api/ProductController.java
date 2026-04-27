@@ -1,4 +1,4 @@
-package ch.portami.inventorybackend.product.controller;
+package ch.portami.inventorybackend.product.api;
 
 import ch.portami.inventorybackend.product.dto.product.CreateProductDto;
 import ch.portami.inventorybackend.product.dto.product.ProductDto;
