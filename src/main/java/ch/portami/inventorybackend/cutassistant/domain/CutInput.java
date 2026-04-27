@@ -1,4 +1,4 @@
-package ch.portami.inventorybackend.cutting.domain;
+package ch.portami.inventorybackend.cutassistant.domain;
 
 import java.util.List;
 

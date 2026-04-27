@@ -1,8 +1,8 @@
-package ch.portami.inventorybackend.cutting.api;
+package ch.portami.inventorybackend.cutassistant.api;
 
-import ch.portami.inventorybackend.cutting.CuttingOptimizer;
-import ch.portami.inventorybackend.cutting.domain.CutInput;
-import ch.portami.inventorybackend.cutting.domain.CutResult;
+import ch.portami.inventorybackend.cutassistant.CuttingOptimizer;
+import ch.portami.inventorybackend.cutassistant.domain.CutInput;
+import ch.portami.inventorybackend.cutassistant.domain.CutResult;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -11,11 +11,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/cut-assistant")
-public class CuttingController {
+public class CutAssistantController {
 
     private final CuttingOptimizer optimizer;
 
-    public CuttingController(CuttingOptimizer optimizer) {
+    public CutAssistantController(CuttingOptimizer optimizer) {
         this.optimizer = optimizer;
     }
 

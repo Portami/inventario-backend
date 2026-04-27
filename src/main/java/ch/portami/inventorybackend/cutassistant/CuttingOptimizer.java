@@ -1,7 +1,7 @@
-package ch.portami.inventorybackend.cutting;
+package ch.portami.inventorybackend.cutassistant;
 
-import ch.portami.inventorybackend.cutting.domain.CutInput;
-import ch.portami.inventorybackend.cutting.domain.CutResult;
+import ch.portami.inventorybackend.cutassistant.domain.CutInput;
+import ch.portami.inventorybackend.cutassistant.domain.CutResult;
 
 /**
  * Algorithm interface for cutting optimization.

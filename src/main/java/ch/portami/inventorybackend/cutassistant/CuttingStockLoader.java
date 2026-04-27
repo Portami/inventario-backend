@@ -1,7 +1,7 @@
-package ch.portami.inventorybackend.cutting;
+package ch.portami.inventorybackend.cutassistant;
 
-import ch.portami.inventorybackend.cutting.domain.CuttableStock;
-import ch.portami.inventorybackend.cutting.domain.StockType;
+import ch.portami.inventorybackend.cutassistant.domain.CuttableStock;
+import ch.portami.inventorybackend.cutassistant.domain.StockType;
 import ch.portami.inventorybackend.felt.entity.FeltColorVariant;
 import ch.portami.inventorybackend.felt.entity.FeltRoll;
 import ch.portami.inventorybackend.felt.entity.ScrapPiece;

@@ -1,5 +1,6 @@
 package ch.portami.inventorybackend.cutting;
 
+import ch.portami.inventorybackend.cutassistant.CuttingStockLoader;
 import ch.portami.inventorybackend.felt.entity.FeltColorVariant;
 import ch.portami.inventorybackend.felt.entity.FeltVariant;
 import ch.portami.inventorybackend.felt.entity.FeltRoll;

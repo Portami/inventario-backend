@@ -1,12 +1,13 @@
 package ch.portami.inventorybackend.cutting;
 
-import ch.portami.inventorybackend.cutting.domain.CutInput;
-import ch.portami.inventorybackend.cutting.domain.CutResult;
-import ch.portami.inventorybackend.cutting.domain.CuttableStock;
-import ch.portami.inventorybackend.cutting.domain.CuttingAssignment;
-import ch.portami.inventorybackend.cutting.domain.RequiredPiece;
-import ch.portami.inventorybackend.cutting.domain.StockType;
-import ch.portami.inventorybackend.cutting.impl.TrivialCuttingOptimizer;
+import ch.portami.inventorybackend.cutassistant.CuttingStockLoader;
+import ch.portami.inventorybackend.cutassistant.domain.CutInput;
+import ch.portami.inventorybackend.cutassistant.domain.CutResult;
+import ch.portami.inventorybackend.cutassistant.domain.CuttableStock;
+import ch.portami.inventorybackend.cutassistant.domain.CuttingAssignment;
+import ch.portami.inventorybackend.cutassistant.domain.RequiredPiece;
+import ch.portami.inventorybackend.cutassistant.domain.StockType;
+import ch.portami.inventorybackend.cutassistant.impl.TrivialCuttingOptimizer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

@@ -1,13 +1,13 @@
-package ch.portami.inventorybackend.cutting.impl;
+package ch.portami.inventorybackend.cutassistant.impl;
 
-import ch.portami.inventorybackend.cutting.CuttingOptimizer;
-import ch.portami.inventorybackend.cutting.CuttingStockLoader;
-import ch.portami.inventorybackend.cutting.domain.AssignedPiece;
-import ch.portami.inventorybackend.cutting.domain.CutInput;
-import ch.portami.inventorybackend.cutting.domain.CutResult;
-import ch.portami.inventorybackend.cutting.domain.CuttableStock;
-import ch.portami.inventorybackend.cutting.domain.CuttingAssignment;
-import ch.portami.inventorybackend.cutting.domain.RequiredPiece;
+import ch.portami.inventorybackend.cutassistant.CuttingOptimizer;
+import ch.portami.inventorybackend.cutassistant.CuttingStockLoader;
+import ch.portami.inventorybackend.cutassistant.domain.AssignedPiece;
+import ch.portami.inventorybackend.cutassistant.domain.CutInput;
+import ch.portami.inventorybackend.cutassistant.domain.CutResult;
+import ch.portami.inventorybackend.cutassistant.domain.CuttableStock;
+import ch.portami.inventorybackend.cutassistant.domain.CuttingAssignment;
+import ch.portami.inventorybackend.cutassistant.domain.RequiredPiece;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
