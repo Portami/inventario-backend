@@ -1,8 +1,11 @@
 package ch.portami.inventorybackend.product;
 
+import ch.portami.inventorybackend.core.entity.Storage;
+import ch.portami.inventorybackend.core.repository.StorageRepository;
 import ch.portami.inventorybackend.product.dto.productattributevalue.CreateProductAttributeValueDto;
 import ch.portami.inventorybackend.product.dto.productattributevalue.ProductAttributeValueChangeDto;
 import ch.portami.inventorybackend.product.dto.productattributevalue.ProductAttributeValueDto;
+import ch.portami.inventorybackend.product.dto.productinventory.ProductInventoryDto;
 import ch.portami.inventorybackend.product.dto.productvariant.CreateProductVariantDto;
 import ch.portami.inventorybackend.product.dto.productvariant.ProductVariantDto;
 import ch.portami.inventorybackend.product.dto.productvariant.UpdateProductVariantDto;
@@ -10,12 +13,15 @@ import ch.portami.inventorybackend.product.entity.Category;
 import ch.portami.inventorybackend.product.entity.Product;
 import ch.portami.inventorybackend.product.entity.ProductAttribute;
 import ch.portami.inventorybackend.product.entity.ProductAttributeValue;
+import ch.portami.inventorybackend.product.entity.ProductInventory;
 import ch.portami.inventorybackend.product.entity.ProductVariant;
 import ch.portami.inventorybackend.product.repository.CategoryRepository;
+import ch.portami.inventorybackend.product.repository.ProductInventoryRepository;
 import ch.portami.inventorybackend.product.repository.ProductRepository;
 import ch.portami.inventorybackend.product.repository.ProductVariantRepository;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -34,8 +40,6 @@ import org.springframework.transaction.support.TransactionTemplate;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.mariadb.MariaDBContainer;
-
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -65,7 +69,13 @@ class ProductVariantControllerIntegrationTest {
     private ProductRepository productRepository;
 
     @Autowired
+    private StorageRepository storageRepository;
+
+    @Autowired
     private ProductVariantRepository productVariantRepository;
+
+    @Autowired
+    private ProductInventoryRepository productInventoryRepository;
 
     @BeforeAll
     static void beforeAll(@Autowired CategoryRepository categoryRepository, @Autowired ProductRepository productRepository) {
@@ -340,6 +350,71 @@ class ProductVariantControllerIntegrationTest {
             assertThat(body).isNotNull();
             assertThat(body.id()).isEqualTo(variant.getId());
             assertThat(body.attributes()).hasSize(2);
+        }
+
+        @Test
+        @DisplayName("Should return empty inventory list when no inventory records exist for variant")
+        void testGetVariantIncludesEmptyInventoryList() {
+            ProductVariant variant = createTestVariant();
+
+            ProductVariantDto body = restTestClient.get()
+                                                   .uri(VARIANTS_URL_TEMPLATE + "/{variantId}", testProductId,
+                                                           variant.getId())
+                                                   .exchange()
+                                                   .expectStatus()
+                                                   .isOk()
+                                                   .returnResult(ProductVariantDto.class)
+                                                   .getResponseBody();
+
+            assertThat(body).isNotNull();
+            assertThat(body.inventory()).isNotNull();
+            assertThat(body.inventory()).isEmpty();
+        }
+
+        @Test
+        @DisplayName("Should include inventory records in response")
+        void testGetVariantIncludesInventoryRecords() {
+            ProductVariant variant = createTestVariant();
+
+            Storage storageA = storageRepository.save(new Storage("Test Storage A"));
+            Storage storageB = storageRepository.save(new Storage("Test Storage B"));
+
+            productInventoryRepository.save(new ProductInventory(variant, storageA, 100));
+            productInventoryRepository.save(new ProductInventory(variant, storageB, 50));
+
+            ProductVariantDto body = restTestClient.get()
+                                                   .uri(VARIANTS_URL_TEMPLATE + "/{variantId}", testProductId,
+                                                           variant.getId())
+                                                   .exchange()
+                                                   .expectStatus()
+                                                   .isOk()
+                                                   .returnResult(ProductVariantDto.class)
+                                                   .getResponseBody();
+
+            assertThat(body).isNotNull();
+            assertThat(body.inventory()).hasSize(2);
+
+            ProductInventoryDto inventoryRecord1 = body.inventory()
+                                                       .get(0);
+            ProductInventoryDto inventoryRecord2 = body.inventory()
+                                                       .get(1);
+
+            if (inventoryRecord1.storageId() == storageA.getId()) {
+                assertThat(inventoryRecord1.storageName()).isEqualTo(storageA.getName());
+                assertThat(inventoryRecord1.count()).isEqualTo(100);
+
+                assertThat(inventoryRecord2.storageId()).isEqualTo(storageB.getId());
+                assertThat(inventoryRecord2.storageName()).isEqualTo(storageB.getName());
+                assertThat(inventoryRecord2.count()).isEqualTo(50);
+            } else {
+                assertThat(inventoryRecord1.storageId()).isEqualTo(storageB.getId());
+                assertThat(inventoryRecord1.storageName()).isEqualTo(storageB.getName());
+                assertThat(inventoryRecord1.count()).isEqualTo(50);
+
+                assertThat(inventoryRecord2.storageId()).isEqualTo(storageA.getId());
+                assertThat(inventoryRecord2.storageName()).isEqualTo(storageA.getName());
+                assertThat(inventoryRecord2.count()).isEqualTo(100);
+            }
         }
 
         @Test
