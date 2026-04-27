@@ -3,6 +3,7 @@ package ch.portami.inventorybackend.product.dto.productvariant;
 import ch.portami.inventorybackend.product.dto.productattributevalue.CreateProductAttributeValueDto;
 import ch.portami.inventorybackend.product.dto.productattributevalue.ProductAttributeValueChangeDto;
 import ch.portami.inventorybackend.product.dto.productattributevalue.ProductAttributeValueMapper;
+import ch.portami.inventorybackend.product.dto.productinventory.ProductInventoryMapper;
 import ch.portami.inventorybackend.product.entity.Product;
 import ch.portami.inventorybackend.product.entity.ProductAttribute;
 import ch.portami.inventorybackend.product.entity.ProductAttributeValue;
@@ -19,10 +20,11 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
-@Mapper(componentModel = "spring", uses = {ProductAttributeValueMapper.class})
+@Mapper(componentModel = "spring", uses = {ProductAttributeValueMapper.class, ProductInventoryMapper.class})
 public interface ProductVariantMapper {
 
     @Mapping(source = "productAttributeValues", target = "attributes")
+    @Mapping(source = "productInventories", target = "inventory")
     ProductVariantDto toProductVariantDto(ProductVariant productVariant);
 
     @Mapping(target = "product", ignore = true)
