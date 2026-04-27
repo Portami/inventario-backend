@@ -7,10 +7,10 @@ import ch.portami.inventorybackend.felt.entity.FeltRoll;
 import ch.portami.inventorybackend.felt.entity.ScrapPiece;
 import ch.portami.inventorybackend.felt.repository.FeltRollRepository;
 import ch.portami.inventorybackend.felt.repository.ScrapPieceRepository;
-import jakarta.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class CuttingStockLoader {
