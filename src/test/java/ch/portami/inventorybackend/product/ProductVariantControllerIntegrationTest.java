@@ -401,19 +401,19 @@ class ProductVariantControllerIntegrationTest {
 
             if (inventoryRecord1.storageId() == storageA.getId()) {
                 assertThat(inventoryRecord1.storageName()).isEqualTo(storageA.getName());
-                assertThat(inventoryRecord1.count()).isEqualTo(100);
+                assertThat(inventoryRecord1.quantity()).isEqualTo(100);
 
                 assertThat(inventoryRecord2.storageId()).isEqualTo(storageB.getId());
                 assertThat(inventoryRecord2.storageName()).isEqualTo(storageB.getName());
-                assertThat(inventoryRecord2.count()).isEqualTo(50);
+                assertThat(inventoryRecord2.quantity()).isEqualTo(50);
             } else {
                 assertThat(inventoryRecord1.storageId()).isEqualTo(storageB.getId());
                 assertThat(inventoryRecord1.storageName()).isEqualTo(storageB.getName());
-                assertThat(inventoryRecord1.count()).isEqualTo(50);
+                assertThat(inventoryRecord1.quantity()).isEqualTo(50);
 
                 assertThat(inventoryRecord2.storageId()).isEqualTo(storageA.getId());
                 assertThat(inventoryRecord2.storageName()).isEqualTo(storageA.getName());
-                assertThat(inventoryRecord2.count()).isEqualTo(100);
+                assertThat(inventoryRecord2.quantity()).isEqualTo(100);
             }
         }
 

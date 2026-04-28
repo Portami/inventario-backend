@@ -9,6 +9,7 @@ public interface ProductInventoryMapper {
 
     @Mapping(source = "storage.id", target = "storageId")
     @Mapping(source = "storage.name", target = "storageName")
+    @Mapping(source = "count", target = "quantity")
     ProductInventoryDto toProductInventoryDto(ProductInventory productInventory);
 
 }

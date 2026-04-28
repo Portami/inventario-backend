@@ -11,7 +11,7 @@ public record ProductInventoryDto(
         String storageName,
 
         @Schema(description = "The amount of the product variant available in this storage")
-        int count
+        int quantity
 ) {
 
 }
