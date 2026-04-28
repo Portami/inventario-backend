@@ -8,6 +8,7 @@ import ch.portami.inventorybackend.product.dto.productinventory.ProductInventory
 import ch.portami.inventorybackend.product.dto.productinventory.ProductInventoryMapper;
 import ch.portami.inventorybackend.product.entity.ProductInventory;
 import ch.portami.inventorybackend.product.entity.ProductVariant;
+import ch.portami.inventorybackend.product.exception.NotEnoughInventoryException;
 import ch.portami.inventorybackend.product.exception.ProductVariantNotFoundException;
 import ch.portami.inventorybackend.product.repository.ProductInventoryRepository;
 import ch.portami.inventorybackend.product.repository.ProductVariantRepository;
@@ -41,30 +42,72 @@ public class ProductInventoryService {
 
         for (ProductInventoryChangeDto change : inventoryChanges) {
 
-            Optional<ProductInventory> inventoryEntryOpt = productInventoryRepository.findByProductVariantIdAndStorageId(
+            Optional<ProductInventory> inventoryEntry = productInventoryRepository.findByProductVariantIdAndStorageId(
                     change.productVariantId(), change.storageId());
 
-            ProductInventory inventoryEntry;
+            ProductInventoryDto updatedInventoryDto;
 
-            if (inventoryEntryOpt.isPresent()) {
-                inventoryEntry = inventoryEntryOpt.get();
-                inventoryEntry.setCount(inventoryEntry.getCount() + change.quantityChange());
+            if (inventoryEntry.isPresent()) {
+                updatedInventoryDto = updateOrRemoveExistingEntry(change, inventoryEntry.get());
             } else {
-                Storage storage = storageRepository.findById(change.storageId())
-                                                   .orElseThrow(() -> new StorageNotFoundException(change.storageId()));
-                ProductVariant variant = productVariantRepository.findById(change.productVariantId())
-                                                                 .orElseThrow(() -> new ProductVariantNotFoundException(
-                                                                         change.productVariantId()));
-
-                inventoryEntry = new ProductInventory(variant, storage, change.quantityChange());
+                updatedInventoryDto = createNewEntry(change);
             }
 
-            inventoryEntry = productInventoryRepository.save(inventoryEntry);
-            result.add(productInventoryMapper.toProductInventoryDto(inventoryEntry));
+            result.add(updatedInventoryDto);
 
         }
 
         return result;
+
+    }
+
+    private ProductInventoryDto updateOrRemoveExistingEntry(ProductInventoryChangeDto change,
+            ProductInventory inventoryEntry) {
+
+        ProductInventoryDto updatedInventoryDto;
+        int newCount = inventoryEntry.getCount() + change.quantityChange();
+
+        if (newCount > 0) {
+            inventoryEntry.setCount(newCount);
+            inventoryEntry = productInventoryRepository.save(inventoryEntry);
+            updatedInventoryDto = productInventoryMapper.toProductInventoryDto(inventoryEntry);
+        } else if (newCount == 0) {
+            updatedInventoryDto = new ProductInventoryDto(change.storageId(), inventoryEntry.getStorage()
+                                                                                            .getName(), 0);
+            productInventoryRepository.delete(inventoryEntry);
+        } else {
+            throw new NotEnoughInventoryException(change.productVariantId(), change.storageId(),
+                    -change.quantityChange(), inventoryEntry.getCount());
+        }
+
+        return updatedInventoryDto;
+
+    }
+
+    private ProductInventoryDto createNewEntry(ProductInventoryChangeDto change) {
+
+        ProductInventoryDto updatedInventoryDto;
+        ProductInventory inventoryEntry;
+
+        Storage storage = storageRepository.findById(change.storageId())
+                                           .orElseThrow(() -> new StorageNotFoundException(change.storageId()));
+
+        ProductVariant variant = productVariantRepository.findById(change.productVariantId())
+                                                         .orElseThrow(() -> new ProductVariantNotFoundException(
+                                                                 change.productVariantId()));
+
+        if (change.quantityChange() > 0) {
+            inventoryEntry = new ProductInventory(variant, storage, change.quantityChange());
+            inventoryEntry = productInventoryRepository.save(inventoryEntry);
+            updatedInventoryDto = productInventoryMapper.toProductInventoryDto(inventoryEntry);
+        } else if (change.quantityChange() == 0) {
+            updatedInventoryDto = new ProductInventoryDto(change.storageId(), storage.getName(), 0);
+        } else {
+            throw new NotEnoughInventoryException(change.productVariantId(), change.storageId(),
+                    -change.quantityChange());
+        }
+
+        return updatedInventoryDto;
 
     }
 
