@@ -38,7 +38,7 @@ public class ProductInventoryService {
     @Transactional
     public List<ProductInventoryDto> changeInventory(List<ProductInventoryChangeDto> inventoryChanges) {
 
-        List<ProductInventoryDto> result = new ArrayList<>(inventoryChanges.size());
+        List<ProductInventoryDto> results = new ArrayList<>(inventoryChanges.size());
 
         for (ProductInventoryChangeDto change : inventoryChanges) {
 
@@ -53,11 +53,11 @@ public class ProductInventoryService {
                 updatedInventoryDto = createNewEntry(change);
             }
 
-            result.add(updatedInventoryDto);
+            results.add(updatedInventoryDto);
 
         }
 
-        return result;
+        return results;
 
     }
 
