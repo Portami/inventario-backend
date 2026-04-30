@@ -34,7 +34,7 @@ public class ProductController {
     @Operation(summary = "Create a product")
     @ApiResponse(responseCode = "201", description = "Product successfully created")
     @ApiResponse(responseCode = "400", description = "Validation error in the request body")
-    @ApiResponse(responseCode = "404", description = "The provided category ID does not exist")
+    @ApiResponse(responseCode = "422", description = "The request is referencing a category that does not exist")
     @PostMapping
     public ResponseEntity<ProductDto> createProduct(@RequestBody @Valid CreateProductDto createProductDto) {
         ProductDto productDto = productService.createProduct(createProductDto);
@@ -63,8 +63,7 @@ public class ProductController {
     @ApiResponse(responseCode = "200", description = "Product successfully updated and returned in the response body")
     @ApiResponse(responseCode = "400", description = "Validation error in the request body")
     @ApiResponse(responseCode = "404", description = "No product exists with the given ID")
-    @ApiResponse(responseCode = "404", description = "One or more provided attribute IDs do not exist")
-    @ApiResponse(responseCode = "404", description = "The provided category ID does not exist")
+    @ApiResponse(responseCode = "422", description = "The request is referencing a category that does not exist, or one or more attributes that do not exist for this product")
     @PatchMapping("/{id}")
     public ResponseEntity<ProductDto> updateProduct(@PathVariable long id,
             @RequestBody @Valid UpdateProductDto updateProductDto) {

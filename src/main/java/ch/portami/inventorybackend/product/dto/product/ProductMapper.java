@@ -7,8 +7,8 @@ import ch.portami.inventorybackend.product.dto.productvariant.ProductVariantMapp
 import ch.portami.inventorybackend.product.entity.Category;
 import ch.portami.inventorybackend.product.entity.Product;
 import ch.portami.inventorybackend.product.entity.ProductAttribute;
-import ch.portami.inventorybackend.product.exception.CategoryNotFoundException;
-import ch.portami.inventorybackend.product.exception.ProductAttributeNotFound;
+import ch.portami.inventorybackend.product.exception.InvalidCategoryReferenceException;
+import ch.portami.inventorybackend.product.exception.InvalidProductAttributeReferenceException;
 import ch.portami.inventorybackend.product.repository.CategoryRepository;
 import java.util.Map;
 import java.util.function.Function;
@@ -78,7 +78,8 @@ public interface ProductMapper {
 
                     if (existingAttribute == null) {
                         existingAttribute = product.getProductAttributeById(attribute.id())
-                                                   .orElseThrow(() -> new ProductAttributeNotFound(product.getId(),
+                                                   .orElseThrow(() -> new InvalidProductAttributeReferenceException(
+                                                           product.getId(),
                                                            attribute.id()));
                     }
 
@@ -99,7 +100,7 @@ public interface ProductMapper {
 
     private static void setCategory(Product product, Long categoryId, @Context CategoryRepository categoryRepository) {
         Category category = categoryRepository.findById(categoryId)
-                                              .orElseThrow(() -> new CategoryNotFoundException(categoryId));
+                                              .orElseThrow(() -> new InvalidCategoryReferenceException(categoryId));
         product.setCategory(category);
     }
 

@@ -35,7 +35,7 @@ public class ProductVariantController {
     @ApiResponse(responseCode = "201", description = "Product variant successfully created")
     @ApiResponse(responseCode = "400", description = "Validation error in the request body")
     @ApiResponse(responseCode = "404", description = "The product with the given ID does not exist")
-    @ApiResponse(responseCode = "404", description = "One or more of the provided attributes do not exist or do not belong to the product")
+    @ApiResponse(responseCode = "422", description = "The request is referencing one or more attributes that do not exist for this product")
     @PostMapping
     public ResponseEntity<ProductVariantDto> createProductVariant(@PathVariable long productId,
             @RequestBody @Valid CreateProductVariantDto createProductVariantDto) {
@@ -68,7 +68,7 @@ public class ProductVariantController {
     @ApiResponse(responseCode = "200", description = "Product variant successfully updated. Response body contains the updated product variant.")
     @ApiResponse(responseCode = "400", description = "Validation error in the request body")
     @ApiResponse(responseCode = "404", description = "No product variant exists with the given ID for the specified product")
-    @ApiResponse(responseCode = "404", description = "One or more of the provided attributes do not exist or do not belong to the product")
+    @ApiResponse(responseCode = "422", description = "The request is referencing one or more attributes that do not exist for this product")
     @PatchMapping("/{variantId}")
     public ResponseEntity<ProductVariantDto> updateProductVariant(@PathVariable long productId,
             @PathVariable long variantId, @RequestBody @Valid UpdateProductVariantDto updateProductVariantDto) {
