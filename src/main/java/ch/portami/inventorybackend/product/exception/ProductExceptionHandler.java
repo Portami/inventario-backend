@@ -15,7 +15,8 @@ public class ProductExceptionHandler {
     @ExceptionHandler(NotEnoughInventoryException.class)
     public ResponseEntity<ErrorResponse> handleNotEnoughInventoryException(NotEnoughInventoryException ex) {
         ErrorResponse errorResponse = ErrorResponse.of(HttpStatus.CONFLICT.value(), ex.getMessage());
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+        return ResponseEntity.status(errorResponse.status())
+                             .body(errorResponse);
     }
 
 }
