@@ -15,6 +15,7 @@ import ch.portami.inventorybackend.product.entity.ProductVariant;
 import ch.portami.inventorybackend.product.repository.CategoryRepository;
 import ch.portami.inventorybackend.product.repository.ProductRepository;
 import java.math.BigDecimal;
+import java.util.List;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -31,8 +32,6 @@ import org.springframework.test.web.servlet.client.RestTestClient;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.mariadb.MariaDBContainer;
-
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -236,7 +235,7 @@ class ProductControllerIntegrationTest {
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(createProductDto)
                     .exchange()
-                    .expectStatus().isNotFound();
+                    .expectStatus().isEqualTo(422);
         }
 
     }
@@ -537,7 +536,7 @@ class ProductControllerIntegrationTest {
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(updateProductDto)
                     .exchange()
-                    .expectStatus().isNotFound();
+                    .expectStatus().isEqualTo(422);
         }
 
     }

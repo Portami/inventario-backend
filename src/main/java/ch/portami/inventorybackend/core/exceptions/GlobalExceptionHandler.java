@@ -13,8 +13,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
 
 /**
- * Translates domain exceptions into the {@link ErrorResponse} contract defined
- * in the OpenAPI spec.
+ * Translates domain exceptions into the {@link ErrorResponse} contract defined in the OpenAPI spec.
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -38,7 +37,8 @@ public class GlobalExceptionHandler {
     // Spring picks this over the ErrorResponseException handler below because it is more specific.
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<ErrorResponse> handleResponseStatus(ResponseStatusException ex) {
-        int status = ex.getStatusCode().value();
+        int status = ex.getStatusCode()
+                       .value();
         String message = ex.getReason() != null ? ex.getReason() : reasonPhrase(status);
 
         return ResponseEntity
@@ -51,7 +51,8 @@ public class GlobalExceptionHandler {
     // ResponseStatusException.
     @ExceptionHandler(ErrorResponseException.class)
     public ResponseEntity<ErrorResponse> handleErrorResponse(ErrorResponseException ex) {
-        int status = ex.getStatusCode().value();
+        int status = ex.getStatusCode()
+                       .value();
 
         return ResponseEntity
                 .status(ex.getStatusCode())
@@ -71,6 +72,13 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .body(ErrorResponse.of(HttpStatus.NOT_FOUND.value(), ex.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidResourceReferenceException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidReference(InvalidResourceReferenceException ex) {
+        return ResponseEntity
+                .status(HttpStatus.UNPROCESSABLE_CONTENT)
+                .body(ErrorResponse.of(HttpStatus.UNPROCESSABLE_CONTENT.value(), ex.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)
