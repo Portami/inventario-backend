@@ -1,7 +1,7 @@
 package ch.portami.inventorybackend.product.api;
 
-import ch.portami.inventorybackend.product.dto.productinventory.ProductInventoryChangeDto;
 import ch.portami.inventorybackend.product.dto.productinventory.ProductInventoryDto;
+import ch.portami.inventorybackend.product.dto.productinventory.UpdateProductInventoryDto;
 import ch.portami.inventorybackend.product.service.ProductInventoryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -32,7 +32,7 @@ public class ProductInventoryController {
     @ApiResponse(responseCode = "404", description = "One or more specified product variants and/or storage locations do not exist")
     @PostMapping("/changes")
     public ResponseEntity<List<ProductInventoryDto>> changeInventory(
-            @RequestBody @Valid List<@NotNull @Valid ProductInventoryChangeDto> inventoryChanges) {
+            @RequestBody @Valid List<@NotNull @Valid UpdateProductInventoryDto> inventoryChanges) {
         List<ProductInventoryDto> updatedInventory = productInventoryService.changeInventory(inventoryChanges);
         return ResponseEntity.ok(updatedInventory);
     }

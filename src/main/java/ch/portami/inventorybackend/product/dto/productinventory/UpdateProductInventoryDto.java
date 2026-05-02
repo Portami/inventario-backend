@@ -3,8 +3,8 @@ package ch.portami.inventorybackend.product.dto.productinventory;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 
-@Schema(description = "Type representing a change in the inventory of a product variant in a specific storage location. It contains the ID of the product variant, the ID of the storage, and the amount by which the inventory should be changed (positive for increase, negative for decrease).")
-public record ProductInventoryChangeDto(
+@Schema(description = "Type representing a wanted change of the inventory of a product variant in a specific storage location. It contains the ID of the product variant, the ID of the storage, and the amount by which the inventory should be changed (positive for increase, negative for decrease).")
+public record UpdateProductInventoryDto(
         @Schema(description = "The ID of the product variant whose inventory is to be changed")
         @NotNull Long productVariantId,
 

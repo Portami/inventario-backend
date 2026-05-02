@@ -2,8 +2,8 @@ package ch.portami.inventorybackend.product;
 
 import ch.portami.inventorybackend.core.entity.Storage;
 import ch.portami.inventorybackend.core.repository.StorageRepository;
-import ch.portami.inventorybackend.product.dto.productinventory.ProductInventoryChangeDto;
 import ch.portami.inventorybackend.product.dto.productinventory.ProductInventoryDto;
+import ch.portami.inventorybackend.product.dto.productinventory.UpdateProductInventoryDto;
 import ch.portami.inventorybackend.product.entity.Category;
 import ch.portami.inventorybackend.product.entity.Product;
 import ch.portami.inventorybackend.product.entity.ProductInventory;
@@ -117,7 +117,7 @@ class ProductInventoryControllerIntegrationTest {
         @Test
         @DisplayName("Should create inventory entry with positive quantity change when item not in storage")
         void testPositiveChangeItemNotInStorage() {
-            ProductInventoryChangeDto change = new ProductInventoryChangeDto(variantId1, storageId1, 50);
+            UpdateProductInventoryDto change = new UpdateProductInventoryDto(variantId1, storageId1, 50);
 
             List<ProductInventoryDto> response = restTestClient.post()
                                                                .uri(INVENTORY_CHANGES_URL)
@@ -152,7 +152,7 @@ class ProductInventoryControllerIntegrationTest {
             productInventoryRepository.save(
                     new ProductInventory(variant1, storage1, 30));
 
-            ProductInventoryChangeDto change = new ProductInventoryChangeDto(variantId1, storageId1, 20);
+            UpdateProductInventoryDto change = new UpdateProductInventoryDto(variantId1, storageId1, 20);
 
             List<ProductInventoryDto> response = restTestClient.post()
                                                                .uri(INVENTORY_CHANGES_URL)
@@ -180,7 +180,7 @@ class ProductInventoryControllerIntegrationTest {
         @Test
         @DisplayName("Should not create inventory entry when item not in storage and change is 0")
         void testZeroChangeItemNotInStorage() {
-            ProductInventoryChangeDto change = new ProductInventoryChangeDto(variantId1, storageId1, 0);
+            UpdateProductInventoryDto change = new UpdateProductInventoryDto(variantId1, storageId1, 0);
 
             List<ProductInventoryDto> response = restTestClient.post()
                                                                .uri(INVENTORY_CHANGES_URL)
@@ -208,7 +208,7 @@ class ProductInventoryControllerIntegrationTest {
         void testZeroChangeItemInStorage() {
             productInventoryRepository.save(new ProductInventory(variant1, storage1, 30));
 
-            ProductInventoryChangeDto change = new ProductInventoryChangeDto(variantId1, storageId1, -30);
+            UpdateProductInventoryDto change = new UpdateProductInventoryDto(variantId1, storageId1, -30);
 
             List<ProductInventoryDto> response = restTestClient.post()
                                                                .uri(INVENTORY_CHANGES_URL)
@@ -234,7 +234,7 @@ class ProductInventoryControllerIntegrationTest {
         @Test
         @DisplayName("Should return 409 when trying to decrease inventory below 0 with item not in storage")
         void testNegativeChangeItemNotInStorage() {
-            ProductInventoryChangeDto change = new ProductInventoryChangeDto(variantId1, storageId1, -50);
+            UpdateProductInventoryDto change = new UpdateProductInventoryDto(variantId1, storageId1, -50);
 
             restTestClient.post()
                           .uri(INVENTORY_CHANGES_URL)
@@ -254,7 +254,7 @@ class ProductInventoryControllerIntegrationTest {
         void testNegativeChangeInsufficientStock() {
             productInventoryRepository.save(new ProductInventory(variant1, storage1, 20));
 
-            ProductInventoryChangeDto change = new ProductInventoryChangeDto(variantId1, storageId1, -50);
+            UpdateProductInventoryDto change = new UpdateProductInventoryDto(variantId1, storageId1, -50);
 
             restTestClient.post()
                           .uri(INVENTORY_CHANGES_URL)
@@ -276,7 +276,7 @@ class ProductInventoryControllerIntegrationTest {
         void testNegativeChangeWithSufficientStock() {
             productInventoryRepository.save(new ProductInventory(variant1, storage1, 100));
 
-            ProductInventoryChangeDto change = new ProductInventoryChangeDto(variantId1, storageId1, -30);
+            UpdateProductInventoryDto change = new UpdateProductInventoryDto(variantId1, storageId1, -30);
 
             List<ProductInventoryDto> response = restTestClient.post()
                                                                .uri(INVENTORY_CHANGES_URL)
@@ -306,7 +306,7 @@ class ProductInventoryControllerIntegrationTest {
         void testNegativeChangeExactlyEmptyStock() {
             productInventoryRepository.save(new ProductInventory(variant1, storage1, 50));
 
-            ProductInventoryChangeDto change = new ProductInventoryChangeDto(variantId1, storageId1, -50);
+            UpdateProductInventoryDto change = new UpdateProductInventoryDto(variantId1, storageId1, -50);
 
             List<ProductInventoryDto> response = restTestClient.post()
                                                                .uri(INVENTORY_CHANGES_URL)
@@ -332,8 +332,8 @@ class ProductInventoryControllerIntegrationTest {
         @Test
         @DisplayName("Should return 400 when quantity change is null")
         void testNullQuantityChange() {
-            List<ProductInventoryChangeDto> changes = List.of(
-                    new ProductInventoryChangeDto(variantId1, storageId1, null)
+            List<UpdateProductInventoryDto> changes = List.of(
+                    new UpdateProductInventoryDto(variantId1, storageId1, null)
             );
 
             restTestClient.post()
@@ -348,7 +348,7 @@ class ProductInventoryControllerIntegrationTest {
         @Test
         @DisplayName("Should return 404 when storage does not exist")
         void testNonExistentStorage() {
-            ProductInventoryChangeDto change = new ProductInventoryChangeDto(variantId1, 99999L, 10);
+            UpdateProductInventoryDto change = new UpdateProductInventoryDto(variantId1, 99999L, 10);
 
             restTestClient.post()
                           .uri(INVENTORY_CHANGES_URL)
@@ -362,7 +362,7 @@ class ProductInventoryControllerIntegrationTest {
         @Test
         @DisplayName("Should return 404 when product variant does not exist")
         void testNonExistentProductVariant() {
-            ProductInventoryChangeDto change = new ProductInventoryChangeDto(99999L, storageId1, 10);
+            UpdateProductInventoryDto change = new UpdateProductInventoryDto(99999L, storageId1, 10);
 
             restTestClient.post()
                           .uri(INVENTORY_CHANGES_URL)
@@ -382,9 +382,9 @@ class ProductInventoryControllerIntegrationTest {
         @Test
         @DisplayName("Should change inventory of multiple variants at once")
         void testMultipleVariantsAtOnce() {
-            List<ProductInventoryChangeDto> changes = List.of(
-                    new ProductInventoryChangeDto(variantId1, storageId1, 100),
-                    new ProductInventoryChangeDto(variantId2, storageId1, 200)
+            List<UpdateProductInventoryDto> changes = List.of(
+                    new UpdateProductInventoryDto(variantId1, storageId1, 100),
+                    new UpdateProductInventoryDto(variantId2, storageId1, 200)
             );
 
             List<ProductInventoryDto> response = restTestClient.post()
@@ -418,9 +418,9 @@ class ProductInventoryControllerIntegrationTest {
         @Test
         @DisplayName("Should change inventory of one variant in multiple storages")
         void testOneVariantMultipleStorages() {
-            List<ProductInventoryChangeDto> changes = List.of(
-                    new ProductInventoryChangeDto(variantId1, storageId1, 50),
-                    new ProductInventoryChangeDto(variantId1, storageId2, 75)
+            List<UpdateProductInventoryDto> changes = List.of(
+                    new UpdateProductInventoryDto(variantId1, storageId1, 50),
+                    new UpdateProductInventoryDto(variantId1, storageId2, 75)
             );
 
             List<ProductInventoryDto> response = restTestClient.post()
@@ -458,7 +458,7 @@ class ProductInventoryControllerIntegrationTest {
             productInventoryRepository.save(new ProductInventory(variant1, storage1, 100));
             productInventoryRepository.save(new ProductInventory(variant1, storage2, 50));
 
-            ProductInventoryChangeDto change = new ProductInventoryChangeDto(variantId1, storageId1, -30);
+            UpdateProductInventoryDto change = new UpdateProductInventoryDto(variantId1, storageId1, -30);
 
             restTestClient.post()
                           .uri(INVENTORY_CHANGES_URL)
@@ -481,10 +481,10 @@ class ProductInventoryControllerIntegrationTest {
         @Test
         @DisplayName("Should return responses in same order as input changes")
         void testResponseOrderMatchesInput() {
-            List<ProductInventoryChangeDto> changes = List.of(
-                    new ProductInventoryChangeDto(variantId1, storageId1, 10),
-                    new ProductInventoryChangeDto(variantId2, storageId2, 20),
-                    new ProductInventoryChangeDto(variantId1, storageId2, 30)
+            List<UpdateProductInventoryDto> changes = List.of(
+                    new UpdateProductInventoryDto(variantId1, storageId1, 10),
+                    new UpdateProductInventoryDto(variantId2, storageId2, 20),
+                    new UpdateProductInventoryDto(variantId1, storageId2, 30)
             );
 
             List<ProductInventoryDto> response = restTestClient.post()
@@ -519,9 +519,9 @@ class ProductInventoryControllerIntegrationTest {
         void testAtomicityRollbackOnError() {
             productInventoryRepository.save(new ProductInventory(variant1, storage1, 100));
 
-            List<ProductInventoryChangeDto> changes = List.of(
-                    new ProductInventoryChangeDto(variantId1, storageId1, 50),
-                    new ProductInventoryChangeDto(variantId2, storageId2, -100)
+            List<UpdateProductInventoryDto> changes = List.of(
+                    new UpdateProductInventoryDto(variantId1, storageId1, 50),
+                    new UpdateProductInventoryDto(variantId2, storageId2, -100)
             );
 
             restTestClient.post()

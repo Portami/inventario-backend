@@ -3,9 +3,9 @@ package ch.portami.inventorybackend.product.service;
 import ch.portami.inventorybackend.core.entity.Storage;
 import ch.portami.inventorybackend.core.exceptions.StorageNotFoundException;
 import ch.portami.inventorybackend.core.repository.StorageRepository;
-import ch.portami.inventorybackend.product.dto.productinventory.ProductInventoryChangeDto;
 import ch.portami.inventorybackend.product.dto.productinventory.ProductInventoryDto;
 import ch.portami.inventorybackend.product.dto.productinventory.ProductInventoryMapper;
+import ch.portami.inventorybackend.product.dto.productinventory.UpdateProductInventoryDto;
 import ch.portami.inventorybackend.product.entity.ProductInventory;
 import ch.portami.inventorybackend.product.entity.ProductVariant;
 import ch.portami.inventorybackend.product.exception.NotEnoughInventoryException;
@@ -36,11 +36,11 @@ public class ProductInventoryService {
     }
 
     @Transactional
-    public List<ProductInventoryDto> changeInventory(List<ProductInventoryChangeDto> inventoryChanges) {
+    public List<ProductInventoryDto> changeInventory(List<UpdateProductInventoryDto> inventoryChanges) {
 
         List<ProductInventoryDto> results = new ArrayList<>(inventoryChanges.size());
 
-        for (ProductInventoryChangeDto change : inventoryChanges) {
+        for (UpdateProductInventoryDto change : inventoryChanges) {
 
             Optional<ProductInventory> inventoryEntry = productInventoryRepository.findByProductVariantIdAndStorageId(
                     change.productVariantId(), change.storageId());
@@ -61,7 +61,7 @@ public class ProductInventoryService {
 
     }
 
-    private ProductInventoryDto updateOrRemoveExistingEntry(ProductInventoryChangeDto change,
+    private ProductInventoryDto updateOrRemoveExistingEntry(UpdateProductInventoryDto change,
             ProductInventory inventoryEntry) {
 
         ProductInventoryDto updatedInventoryDto;
@@ -84,7 +84,7 @@ public class ProductInventoryService {
 
     }
 
-    private ProductInventoryDto createNewEntry(ProductInventoryChangeDto change) {
+    private ProductInventoryDto createNewEntry(UpdateProductInventoryDto change) {
 
         ProductInventoryDto updatedInventoryDto;
         ProductInventory inventoryEntry;
