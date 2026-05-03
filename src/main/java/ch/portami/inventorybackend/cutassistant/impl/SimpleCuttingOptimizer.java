@@ -122,9 +122,11 @@ public class SimpleCuttingOptimizer implements CuttingOptimizer {
      */
     private List<RequiredPiece> preparePieces(List<RequiredPiece> requiredPieces) {
         List<RequiredPiece> flatList = new ArrayList<>();
-        for (RequiredPiece piece : requiredPieces) {
-            for (int i = 0; i < piece.quantity(); i++) {
-                flatList.add(new RequiredPiece(piece.feltVariantId(), piece.color(), piece.length(), piece.width(), 1));
+        for (RequiredPiece(
+                Long feltVariantId, String color, Double length, Double width, Integer quantity
+        ) : requiredPieces) {
+            for (int i = 0; i < quantity; i++) {
+                flatList.add(new RequiredPiece(feltVariantId, color, length, width, 1));
             }
         }
         flatList.sort(Comparator.comparingDouble((RequiredPiece p) -> p.length() * p.width()).reversed());
