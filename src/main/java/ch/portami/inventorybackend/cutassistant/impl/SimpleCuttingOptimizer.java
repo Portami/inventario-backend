@@ -8,48 +8,49 @@ import ch.portami.inventorybackend.cutassistant.domain.CutResult;
 import ch.portami.inventorybackend.cutassistant.domain.CuttableStock;
 import ch.portami.inventorybackend.cutassistant.domain.CuttingAssignment;
 import ch.portami.inventorybackend.cutassistant.domain.RequiredPiece;
+import ch.portami.inventorybackend.cutassistant.domain.StockType;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import org.springframework.stereotype.Service;
 
 /**
- * A cutting optimizer that assigns required pieces to available stock to minimize waste.
+ * A 2D Guillotine Bin Packing cutting optimizer that assigns required pieces to available stock.
  *
  * <p>The algorithm works as follows:
  *
  * <ol>
  *   <li><b>Data Preparation:</b>
  *       <ul>
- *         <li>Stock items are loaded and sorted. Scraps are always prioritized over full rolls.
- *             Within each category, smaller stock items come first to ensure a "best-fit" approach,
- *             minimizing leftover waste.
- *         <li>Required pieces are sorted by area in descending order. This heuristic (placing
- *             larger items first) generally leads to more efficient use of stock.
+ *         <li>Stock items are loaded and explicitly sorted: Scraps first, then by smallest area.
+ *         <li>Requests are flattened into individual pieces.
+ *         <li>Pieces are sorted by area descending. Placing larger pieces first is mathematically
+ *             proven to yield significantly denser 2D packing results (First-Fit Decreasing heuristic).
  *       </ul>
- *   <li><b>Assignment Process:</b>
+ *   <li><b>2D Assignment Process (Guillotine Split):</b>
  *       <ul>
- *         <li>The algorithm iterates through each piece and finds the most suitable stock. Due to
- *             the sorting, the first stock that can fit the piece is guaranteed to be the best
- *             choice (the smallest available scrap or, if none, the smallest available roll).
- *         <li>It assumes a simple 1D packing model where pieces are cut along the length of a
- *             stock item. The remaining length of each stock is tracked to allow multiple pieces
- *             to be cut from a single source.
+ *         <li>Each stock item manages a list of "Free Spaces" (initially just one space the size of the stock).
+ *         <li>For each piece, a 1.5 cm margin is added to all 4 edges to calculate the "padded" footprint.
+ *         <li>The algorithm searches all Free Spaces across all compatible stock items
+ *             to find the one that provides the "Best Area Fit" (leaves the smallest remaining area).
+ *         <li>When a piece is placed, the chosen Free Space is removed, and the remaining L-shaped
+ *             area is cleanly split into two new rectangular Free Spaces using a Guillotine cut.
+ *             The cut is made along the shorter axis to maximize the usefulness of the remaining space.
  *       </ul>
  *   <li><b>Result Generation:</b>
  *       <ul>
- *         <li>If all pieces are successfully assigned, the result includes the list of assignments
- *             and the total calculated waste.
- *         <li>If any piece cannot be placed, the optimization is deemed infeasible.
+ *         <li>Returns the assigned pieces with their original (un-padded) dimensions.
+ *         <li>Calculates the true waste (Total bounding box area used minus the true area of the pieces).
  *       </ul>
  * </ol>
  */
 @Service
 public class SimpleCuttingOptimizer implements CuttingOptimizer {
+
+    private static final double MARGIN = 1.5;
 
     private final CuttingStockLoader stockLoader;
 
@@ -58,63 +59,66 @@ public class SimpleCuttingOptimizer implements CuttingOptimizer {
     }
 
     /**
-     * Executes the cutting optimization process to assign requested pieces to available inventory stock.
+     * Executes the 2D cutting optimization process to assign requested pieces to available inventory stock.
      *
      * @param input the requested pieces to be cut
-     * @return a {@link CutResult} containing the assignments, total waste, and feasibility status.
-     *         If the optimization is not feasible, it will include an infeasible reason.
+     * @return a {@link CutResult} containing the assignments, calculated waste, and feasibility status.
+     *         If infeasible, the result includes a detailed reason.
      */
     @Override
     public CutResult optimize(CutInput input) {
         if (input.requiredPieces().isEmpty()) {
-            return new CutResult(Collections.emptyList(), 0.0, true);
+            return new CutResult(Collections.emptyList(), 0.0, true, null);
         }
 
         List<CuttableStock> availableStocks = prepareStocks();
         List<RequiredPiece> piecesToCut = preparePieces(input.requiredPieces());
 
-        Map<CuttableStock, List<AssignedPiece>> assignments = new HashMap<>();
-        Map<CuttableStock, Double> remainingLengths = initializeRemainingLengths(availableStocks);
+        Map<CuttableStock, List<FreeSpace>> stockSpaces = initializeStockSpaces(availableStocks);
+        Map<CuttableStock, List<RequiredPiece>> assignments = new HashMap<>();
 
         for (RequiredPiece piece : piecesToCut) {
-            Optional<CuttableStock> bestStockOptional = findBestStockForPiece(piece, availableStocks, remainingLengths);
+            double paddedLength = piece.length() + (MARGIN * 2);
+            double paddedWidth = piece.width() + (MARGIN * 2);
 
-            if (bestStockOptional.isEmpty()) {
-                String reason = determineInfeasibleReason(piece, availableStocks);
+            Placement bestPlacement = findBestPlacement(piece, paddedLength, paddedWidth, availableStocks, stockSpaces);
+
+            if (bestPlacement == null) {
+                String reason = determineInfeasibleReason(piece, paddedLength, paddedWidth, availableStocks);
                 return new CutResult(Collections.emptyList(), 0.0, false, reason);
             }
 
-            CuttableStock bestStock = bestStockOptional.get();
+            assignments.computeIfAbsent(bestPlacement.stock, k -> new ArrayList<>()).add(piece);
 
-            assignments.computeIfAbsent(bestStock, k -> new ArrayList<>()).add(
-                    new AssignedPiece(piece.feltVariantId(), piece.color(), piece.length(), piece.width())
-            );
-
-            remainingLengths.put(bestStock, remainingLengths.get(bestStock) - piece.length());
+            splitFreeSpace(bestPlacement.stock, bestPlacement.space, paddedLength, paddedWidth, stockSpaces);
         }
 
         return createCutResult(assignments);
     }
 
     /**
-     * Loads available stock items and sorts them according to the best-fit strategy.
-     * Scraps are prioritized over full rolls, and smaller items are prioritized within each type.
+     * Loads and sorts available stock items based on business priority and fit heuristics.
+     * <p>
+     * Scraps are strictly prioritized over rolls to clear out existing inventory. Within a category,
+     * items are sorted by area ascending so that the algorithm attempts to use the smallest viable stock first.
      *
-     * @return a sorted list of available stock items
+     * @return a sorted list of available {@link CuttableStock}
      */
     private List<CuttableStock> prepareStocks() {
         List<CuttableStock> stocks = new ArrayList<>(stockLoader.loadAll());
-        stocks.sort(Comparator.comparing(CuttableStock::stockType).reversed()
-                .thenComparingDouble(s -> s.length() * s.width()));
+        stocks.sort(Comparator.comparingInt((CuttableStock s) -> s.stockType() == StockType.SCRAP ? 0 : 1)
+                              .thenComparingDouble(s -> s.length() * s.width()));
         return stocks;
     }
 
     /**
-     * Flattens requests with quantities into individual pieces and sorts them by area in descending order
-     * to facilitate a more efficient packing heuristic.
+     * Flattens piece requests that have quantities > 1 into distinct individual pieces and sorts them.
+     * <p>
+     * The list is sorted by area descending. This supports the First-Fit Decreasing (FFD) 2D packing
+     * heuristic, ensuring that large, difficult-to-place pieces are accommodated before smaller pieces fill up the gaps.
      *
-     * @param requiredPieces the list of requested pieces with quantities
-     * @return a flattened and sorted list of individual pieces
+     * @param requiredPieces the raw input list containing piece types and requested quantities
+     * @return a flattened, sorted list of individual {@link RequiredPiece}s
      */
     private List<RequiredPiece> preparePieces(List<RequiredPiece> requiredPieces) {
         List<RequiredPiece> flatList = new ArrayList<>();
@@ -128,121 +132,222 @@ public class SimpleCuttingOptimizer implements CuttingOptimizer {
     }
 
     /**
-     * Initializes a tracking map to manage the remaining length of each stock item as pieces are assigned.
+     * Initializes the 2D spatial tracking for each stock item.
+     * <p>
+     * Every stock item begins its lifecycle as a single, contiguous rectangular {@link FreeSpace}
+     * matching its exact total length and width.
      *
-     * @param availableStocks the list of available stock items
-     * @return a map associating each stock item with its current remaining length
+     * @param availableStocks the list of available stocks to track
+     * @return a map linking each stock item to its list of currently available free spaces
      */
-    private Map<CuttableStock, Double> initializeRemainingLengths(List<CuttableStock> availableStocks) {
-        Map<CuttableStock, Double> remainingLengths = new HashMap<>();
+    private Map<CuttableStock, List<FreeSpace>> initializeStockSpaces(List<CuttableStock> availableStocks) {
+        Map<CuttableStock, List<FreeSpace>> stockSpaces = new HashMap<>();
         for (CuttableStock stock : availableStocks) {
-            remainingLengths.put(stock, stock.length());
+            List<FreeSpace> initialSpace = new ArrayList<>();
+            initialSpace.add(new FreeSpace(stock.length(), stock.width()));
+            stockSpaces.put(stock, initialSpace);
         }
-        return remainingLengths;
+        return stockSpaces;
     }
 
     /**
-     * Finds the most suitable stock item for a given piece based on matching criteria and available dimensions.
+     * Finds the optimal {@link FreeSpace} across all compatible stock items for a given piece.
+     * <p>
+     * Uses the "Best Area Fit" heuristic: it evaluates all spaces where the piece physically fits,
+     * calculates the area of the void that would remain if the piece were placed there, and selects
+     * the space that leaves the smallest remaining void. This minimizes loose, unusable gaps.
      *
-     * @param piece the required piece to be assigned
-     * @param stocks the sorted list of available stock items
-     * @param remainingLengths the map tracking the remaining length of each stock
-     * @return an {@link Optional} containing the best matching stock, or empty if no stock can accommodate the piece
+     * @param piece the required piece to place
+     * @param paddedLen the piece's required length, including cutting margins
+     * @param paddedWid the piece's required width, including cutting margins
+     * @param stocks the prioritized list of available stocks
+     * @param stockSpaces the current map of available free spaces
+     * @return a {@link Placement} object containing the chosen stock and space, or {@code null} if no fit exists
      */
-    private Optional<CuttableStock> findBestStockForPiece(RequiredPiece piece, List<CuttableStock> stocks, Map<CuttableStock, Double> remainingLengths) {
-        return stocks.stream()
-                .filter(stock -> matchesVariantAndColor(stock, piece))
-                .filter(stock -> canAccommodatePiece(piece, stock, remainingLengths.get(stock)))
-                .findFirst();
+    private Placement findBestPlacement(RequiredPiece piece, double paddedLen, double paddedWid,
+            List<CuttableStock> stocks, Map<CuttableStock, List<FreeSpace>> stockSpaces) {
+
+        Placement bestPlacement = null;
+        double bestAreaFit = Double.MAX_VALUE;
+
+        for (CuttableStock stock : stocks) {
+            if (!matchesVariantAndColor(stock, piece)) continue;
+
+            List<FreeSpace> spaces = stockSpaces.get(stock);
+            for (FreeSpace space : spaces) {
+                if (space.length >= paddedLen && space.width >= paddedWid) {
+                    double remainingArea = (space.length * space.width) - (paddedLen * paddedWid);
+
+                    if (remainingArea < bestAreaFit) {
+                        bestAreaFit = remainingArea;
+                        bestPlacement = new Placement(stock, space);
+                    }
+                }
+            }
+        }
+
+        return bestPlacement;
     }
 
     /**
-     * Analyzes why a specific piece could not be accommodated by any available stock and generates a descriptive message.
+     * Executes a Guillotine cut to update the available free spaces after a piece is placed.
+     * <p>
+     * When a piece is cut from the corner of a rectangular space, it leaves an L-shaped remainder.
+     * This method splits that L-shape into two perfectly rectangular new {@link FreeSpace}s.
+     * It uses a "Shorter Axis Split" heuristic, extending the cut line along the shorter remaining
+     * dimension to preserve the largest, most contiguous rectangular block for future pieces.
      *
-     * @param piece the required piece that could not be assigned
-     * @param allStocks the list of all available stock items
-     * @return a descriptive message explaining the reason for infeasibility
+     * @param stock the stock item being modified
+     * @param usedSpace the original space that the piece was placed into
+     * @param pieceLen the padded length of the piece being removed
+     * @param pieceWid the padded width of the piece being removed
+     * @param stockSpaces the tracking map to be updated with the newly generated free spaces
      */
-    private String determineInfeasibleReason(RequiredPiece piece, List<CuttableStock> allStocks) {
-        boolean hasMatchingVariantAndColor = allStocks.stream()
-                .anyMatch(stock -> matchesVariantAndColor(stock, piece));
+    private void splitFreeSpace(CuttableStock stock, FreeSpace usedSpace, double pieceLen, double pieceWid,
+            Map<CuttableStock, List<FreeSpace>> stockSpaces) {
+
+        List<FreeSpace> spaces = stockSpaces.get(stock);
+        spaces.remove(usedSpace);
+
+        double rightLength = usedSpace.length - pieceLen;
+        double topWidth = usedSpace.width - pieceWid;
+
+        if (rightLength > topWidth) {
+            if (rightLength > 0) spaces.add(new FreeSpace(rightLength, usedSpace.width));
+            if (topWidth > 0) spaces.add(new FreeSpace(pieceLen, topWidth));
+        } else {
+            if (topWidth > 0) spaces.add(new FreeSpace(usedSpace.length, topWidth));
+            if (rightLength > 0) spaces.add(new FreeSpace(rightLength, pieceWid));
+        }
+    }
+
+    /**
+     * Compiles the internal tracking state into domain response objects for the consuming system.
+     *
+     * @param assignments a map of stocks to their successfully assigned pieces
+     * @return a formatted {@link CutResult} containing all assignments and aggregate waste
+     */
+    private CutResult createCutResult(Map<CuttableStock, List<RequiredPiece>> assignments) {
+        List<CuttingAssignment> results = new ArrayList<>();
+        double totalWaste = 0.0;
+
+        for (Map.Entry<CuttableStock, List<RequiredPiece>> entry : assignments.entrySet()) {
+            CuttableStock stock = entry.getKey();
+            List<RequiredPiece> pieces = entry.getValue();
+
+            // The customer receives the piece WITH the margin included for edge-wrapping/fixing
+            List<AssignedPiece> assignedPieces = pieces.stream()
+                                                       .map(p -> new AssignedPiece(
+                                                               p.feltVariantId(),
+                                                               p.color(),
+                                                               p.length() + (MARGIN * 2),
+                                                               p.width() + (MARGIN * 2)))
+                                                       .toList();
+
+            double stockWaste = calculateTotalWasteForStock(stock, pieces);
+
+            results.add(new CuttingAssignment(stock, assignedPieces, stockWaste));
+            totalWaste += stockWaste;
+        }
+
+        return new CutResult(results, totalWaste, true, null);
+    }
+
+    /**
+     * Calculates the raw waste generated on a specific stock item.
+     * <p>
+     * Waste is strictly defined as the total area of the original stock item minus the
+     * total area of the pieces cut from it (including their requested margins).
+     * The upstream consuming system is responsible for deciding if this remaining area
+     * is large enough to be re-categorized as a usable SCRAP, or if it is true trash.
+     *
+     * @param stock the original inventory stock item
+     * @param pieces the list of pieces assigned to this stock item
+     * @return the calculated remaining area (waste) in square units
+     */
+    private double calculateTotalWasteForStock(CuttableStock stock, List<RequiredPiece> pieces) {
+        double totalStockArea = stock.length() * stock.width();
+        double usedPaddedArea = pieces.stream()
+                                      .mapToDouble(p -> (p.length() + (MARGIN * 2)) * (p.width() + (MARGIN * 2)))
+                                      .sum();
+
+        return totalStockArea - usedPaddedArea;
+    }
+
+    /**
+     * Verifies that a stock item meets the exact felt variant and color requirements of a piece.
+     *
+     * @param stock the inventory stock item
+     * @param piece the requested piece
+     * @return true if the variant and color match perfectly, false otherwise
+     */
+    private boolean matchesVariantAndColor(CuttableStock stock, RequiredPiece piece) {
+        if (!stock.feltVariantId().equals(piece.feltVariantId())) return false;
+        if (piece.color() == null) return true;
+        return piece.color().equalsIgnoreCase(stock.color());
+    }
+
+    /**
+     * Determines the specific reason a piece could not be placed, prioritizing stock mismatch
+     * over dimension constraints for clearer user feedback.
+     *
+     * @param piece the piece that failed to place
+     * @param paddedLen the piece's required length with margins
+     * @param paddedWid the piece's required width with margins
+     * @param stocks the full list of available stock items
+     * @return a human-readable string explaining the failure reason
+     */
+    private String determineInfeasibleReason(RequiredPiece piece, double paddedLen, double paddedWid, List<CuttableStock> stocks) {
+        boolean hasMatchingVariantAndColor = stocks.stream()
+                                                   .anyMatch(stock -> matchesVariantAndColor(stock, piece));
 
         if (!hasMatchingVariantAndColor) {
             return String.format("Request for unavailable felt type (ID: %d) or color (%s)",
                     piece.feltVariantId(), piece.color());
         }
 
-        return String.format("Request exceeding all stock dimensions for piece %.1f x %.1f",
-                piece.length(), piece.width());
+        return String.format("Request exceeding available space for piece %.1f x %.1f (requires %.1f x %.1f with margins)",
+                piece.length(), piece.width(), paddedLen, paddedWid);
     }
 
+    // --- Helper Domain Classes for 2D Geometry ---
+
     /**
-     * Checks if a stock item matches the variant ID and color required by a piece.
-     *
-     * @param stock the available stock item
-     * @param piece the required piece
-     * @return true if the variant ID and color match, false otherwise
+     * Represents a continuous, unassigned rectangular area on a specific stock item.
+     * Used by the 2D Guillotine algorithm to track available space.
      */
-    private boolean matchesVariantAndColor(CuttableStock stock, RequiredPiece piece) {
-        if (!stock.feltVariantId().equals(piece.feltVariantId())) {
-            return false;
+    private static class FreeSpace {
+        final double length;
+        final double width;
+
+        /**
+         * Creates a new FreeSpace instance.
+         *
+         * @param length the length of the available rectangle
+         * @param width the width of the available rectangle
+         */
+        FreeSpace(double length, double width) {
+            this.length = length;
+            this.width = width;
         }
-        if (piece.color() == null) {
-            return true;
+    }
+
+    /**
+     * Represents a successful match between a required piece and an available location.
+     */
+    private static class Placement {
+        final CuttableStock stock;
+        final FreeSpace space;
+
+        /**
+         * Creates a new Placement instance.
+         *
+         * @param stock the stock item the piece will be cut from
+         * @param space the specific free space on that stock item the piece will occupy
+         */
+        Placement(CuttableStock stock, FreeSpace space) {
+            this.stock = stock;
+            this.space = space;
         }
-        return piece.color().equalsIgnoreCase(stock.color());
-    }
-
-    /**
-     * Determines if a stock item has sufficient remaining length and adequate width to accommodate a piece,
-     * based on a 1D packing model.
-     *
-     * @param piece the required piece
-     * @param stock the available stock item
-     * @param remainingLength the current available length of the stock item
-     * @return true if the piece fits within the remaining dimensions, false otherwise
-     */
-    private boolean canAccommodatePiece(RequiredPiece piece, CuttableStock stock, double remainingLength) {
-        return remainingLength >= piece.length() && stock.width() >= piece.width();
-    }
-
-    /**
-     * Compiles the final optimization result, aggregating assignments and calculating total waste.
-     *
-     * @param assignments a map of stock items to their assigned pieces
-     * @return a successful {@link CutResult} containing all assignments and total calculated waste
-     */
-    private CutResult createCutResult(Map<CuttableStock, List<AssignedPiece>> assignments) {
-        List<CuttingAssignment> cuttingAssignments = new ArrayList<>();
-        double totalWaste = 0.0;
-
-        for (Map.Entry<CuttableStock, List<AssignedPiece>> entry : assignments.entrySet()) {
-            CuttableStock stock = entry.getKey();
-            List<AssignedPiece> pieces = entry.getValue();
-
-            double assignmentWaste = calculateWaste(stock, pieces);
-            
-            cuttingAssignments.add(new CuttingAssignment(stock, pieces, assignmentWaste));
-            totalWaste += assignmentWaste;
-        }
-
-        return new CutResult(cuttingAssignments, totalWaste, true);
-    }
-
-    /**
-     * Calculates the waste generated by cutting specific pieces from a stock item.
-     * Waste is defined as the unused area within the length slice required for the pieces.
-     *
-     * @param stock the stock item being cut
-     * @param pieces the list of pieces assigned to this stock
-     * @return the calculated waste in square units
-     */
-    private double calculateWaste(CuttableStock stock, List<AssignedPiece> pieces) {
-        double piecesTotalArea = pieces.stream().mapToDouble(p -> p.length() * p.width()).sum();
-
-        double lengthUsed = pieces.stream().mapToDouble(AssignedPiece::length).sum();
-        double areaUsed = lengthUsed * stock.width();
-        
-        return areaUsed - piecesTotalArea;
     }
 }
