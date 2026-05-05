@@ -25,6 +25,7 @@ import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTe
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.client.RestTestClient;
@@ -346,7 +347,7 @@ class ProductInventoryControllerIntegrationTest {
         }
 
         @Test
-        @DisplayName("Should return 404 when storage does not exist")
+        @DisplayName("Should return 422 when storage does not exist")
         void testNonExistentStorage() {
             UpdateProductInventoryDto change = new UpdateProductInventoryDto(variantId1, 99999L, 10);
 
@@ -356,11 +357,11 @@ class ProductInventoryControllerIntegrationTest {
                           .body(List.of(change))
                           .exchange()
                           .expectStatus()
-                          .isNotFound();
+                          .isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT);
         }
 
         @Test
-        @DisplayName("Should return 404 when product variant does not exist")
+        @DisplayName("Should return 422 when product variant does not exist")
         void testNonExistentProductVariant() {
             UpdateProductInventoryDto change = new UpdateProductInventoryDto(99999L, storageId1, 10);
 
@@ -370,7 +371,7 @@ class ProductInventoryControllerIntegrationTest {
                           .body(List.of(change))
                           .exchange()
                           .expectStatus()
-                          .isNotFound();
+                          .isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT);
         }
 
     }

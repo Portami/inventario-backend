@@ -1,15 +1,15 @@
 package ch.portami.inventorybackend.product.service;
 
 import ch.portami.inventorybackend.core.entity.Storage;
-import ch.portami.inventorybackend.core.exceptions.StorageNotFoundException;
+import ch.portami.inventorybackend.core.exceptions.InvalidStorageReferenceException;
 import ch.portami.inventorybackend.core.repository.StorageRepository;
 import ch.portami.inventorybackend.product.dto.productinventory.ProductInventoryDto;
 import ch.portami.inventorybackend.product.dto.productinventory.ProductInventoryMapper;
 import ch.portami.inventorybackend.product.dto.productinventory.UpdateProductInventoryDto;
 import ch.portami.inventorybackend.product.entity.ProductInventory;
 import ch.portami.inventorybackend.product.entity.ProductVariant;
+import ch.portami.inventorybackend.product.exception.InvalidProductVariantReferenceException;
 import ch.portami.inventorybackend.product.exception.NotEnoughInventoryException;
-import ch.portami.inventorybackend.product.exception.ProductVariantNotFoundException;
 import ch.portami.inventorybackend.product.repository.ProductInventoryRepository;
 import ch.portami.inventorybackend.product.repository.ProductVariantRepository;
 import java.util.ArrayList;
@@ -90,10 +90,10 @@ public class ProductInventoryService {
         ProductInventory inventoryEntry;
 
         Storage storage = storageRepository.findById(change.storageId())
-                                           .orElseThrow(() -> new StorageNotFoundException(change.storageId()));
+                                           .orElseThrow(() -> new InvalidStorageReferenceException(change.storageId()));
 
         ProductVariant variant = productVariantRepository.findById(change.productVariantId())
-                                                         .orElseThrow(() -> new ProductVariantNotFoundException(
+                                                         .orElseThrow(() -> new InvalidProductVariantReferenceException(
                                                                  change.productVariantId()));
 
         if (change.quantityChange() > 0) {
