@@ -2,10 +2,10 @@ package ch.portami.inventorybackend.product.service;
 
 import ch.portami.inventorybackend.product.dto.product.CreateProductDto;
 import ch.portami.inventorybackend.product.dto.product.ProductDto;
-import ch.portami.inventorybackend.product.dto.product.ProductMapper;
 import ch.portami.inventorybackend.product.dto.product.UpdateProductDto;
 import ch.portami.inventorybackend.product.entity.Product;
 import ch.portami.inventorybackend.product.exception.ProductNotFoundException;
+import ch.portami.inventorybackend.product.mapper.ProductMapper;
 import ch.portami.inventorybackend.product.repository.CategoryRepository;
 import ch.portami.inventorybackend.product.repository.ProductRepository;
 import java.util.List;

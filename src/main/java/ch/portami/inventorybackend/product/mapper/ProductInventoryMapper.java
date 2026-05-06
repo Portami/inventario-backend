@@ -1,5 +1,6 @@
-package ch.portami.inventorybackend.product.dto.productinventory;
+package ch.portami.inventorybackend.product.mapper;
 
+import ch.portami.inventorybackend.product.dto.productinventory.ProductInventoryDto;
 import ch.portami.inventorybackend.product.entity.ProductInventory;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

@@ -1,11 +1,11 @@
 package ch.portami.inventorybackend.product.service;
 
 import ch.portami.inventorybackend.product.dto.category.CategoryDto;
-import ch.portami.inventorybackend.product.dto.category.CategoryMapper;
 import ch.portami.inventorybackend.product.dto.category.CreateCategoryDto;
 import ch.portami.inventorybackend.product.dto.category.UpdateCategoryDto;
 import ch.portami.inventorybackend.product.entity.Category;
 import ch.portami.inventorybackend.product.exception.CategoryNotFoundException;
+import ch.portami.inventorybackend.product.mapper.CategoryMapper;
 import ch.portami.inventorybackend.product.repository.CategoryRepository;
 import java.util.List;
 import org.springframework.stereotype.Service;
