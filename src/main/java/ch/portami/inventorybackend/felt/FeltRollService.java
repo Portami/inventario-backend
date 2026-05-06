@@ -19,6 +19,8 @@ import ch.portami.inventorybackend.felt.repository.FeltColorVariantRepository;
 import ch.portami.inventorybackend.core.storage.exception.InvalidStorageReferenceException;
 import ch.portami.inventorybackend.felt.exception.InvalidBatchReferenceException;
 import ch.portami.inventorybackend.felt.repository.FeltRollRepository;
+import ch.portami.inventorybackend.restocking.RestockingService;
+import ch.portami.inventorybackend.restocking.entity.Supply;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,14 +34,17 @@ public class FeltRollService {
     private final BatchRepository batchRepo;
     private final StorageRepository storageRepo;
     private final BarcodeService barcodeService;
+    private final RestockingService restockingService;
 
     public FeltRollService(FeltColorVariantRepository feltColorVariantRepo, FeltRollRepository feltRollRepo,
-            BatchRepository batchRepo, StorageRepository storageRepo, BarcodeService barcodeService) {
+            BatchRepository batchRepo, StorageRepository storageRepo, BarcodeService barcodeService,
+            RestockingService restockingService) {
         this.feltColorVariantRepo = feltColorVariantRepo;
         this.feltRollRepo = feltRollRepo;
         this.batchRepo = batchRepo;
         this.storageRepo = storageRepo;
         this.barcodeService = barcodeService;
+        this.restockingService = restockingService;
     }
 
     public List<FeltRollDto> findAllByFelt(Long feltId) {
@@ -70,6 +75,7 @@ public class FeltRollService {
         roll = feltRollRepo.save(roll);
 
         barcodeService.createForRoll(roll);
+        restockingService.createForRoll(roll);
 
         return toDto(roll);
     }
@@ -128,11 +134,19 @@ public class FeltRollService {
         Batch batch = roll.getBatch();
         Storage storage = roll.getStorage();
 
+        boolean lowOnSupply = false;
+        boolean reordered = false;
+        Supply supply = restockingService.findByRollId(roll.getId()).orElse(null);
+        if (supply != null) {
+            lowOnSupply = supply.isLowOnSupply();
+            reordered = supply.isHasBeenReordered();
+        }
+
         return new FeltRollDto(roll.getId(), roll.getLength(), roll.getWidth(), feltColorVariant.getId(),
                 feltColorVariant.getColor(), feltColorVariant.getSupplierColor(), feltVariant.getId(),
                 feltVariant.getThickness(), feltVariant.getDensity(), feltVariant.getPrice(), felt.getId(),
                 felt.getArticleNumber(), feltType.getName(), supplier.getName(), batch != null ? batch.getId() : null,
                 batch != null ? batch.getName() : null, storage != null ? storage.getId() : null,
-                storage != null ? storage.getName() : null);
+                storage != null ? storage.getName() : null, lowOnSupply, reordered);
     }
 }

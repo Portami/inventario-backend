@@ -57,5 +57,11 @@ public record FeltRollDto(
     Long storageId,
 
     @Schema(description = "Name of the storage location. Null when storageId is null.", nullable = true)
-    String storageName
+    String storageName,
+
+    @Schema(description = "Whether this roll is flagged as low on supply and needs reordering.")
+    boolean lowOnSupply,
+
+    @Schema(description = "Whether a reorder for this roll is already in process.")
+    boolean reordered
 ) {}

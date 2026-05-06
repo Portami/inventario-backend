@@ -12,10 +12,11 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name = "supply")
 public class Supply {
+
     @Id
     private Long id;
 
-    @Column(name = "is_low_on_stock")
+    @Column(name = "is_low_on_supply")
     private boolean isLowOnSupply;
 
     @Column(name = "is_reordered")
@@ -25,6 +26,9 @@ public class Supply {
     @MapsId
     @JoinColumn(name = "id")
     private FeltRoll feltRoll;
+
+    protected Supply() {
+    }
 
     public Supply(boolean isLowOnSupply, boolean hasBeenReordered, FeltRoll feltRoll) {
         this.isLowOnSupply = isLowOnSupply;
