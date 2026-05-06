@@ -6,8 +6,8 @@ import java.text.MessageFormat;
 
 public class InvalidCategoryReferenceException extends InvalidResourceReferenceException {
 
-    public InvalidCategoryReferenceException(long categoryId) {
+    public InvalidCategoryReferenceException(Long categoryId) {
         super(MessageFormat.format("The request is referencing a category with id {0} that does not exist", categoryId), new ResourceIdentifier("categoryId", categoryId));
     }
-    
+
 }

@@ -248,7 +248,7 @@ class ProductControllerIntegrationTest {
         @DisplayName("Should retrieve product by id")
         void testGetProductByIdSuccess() {
             Product product = createTestProduct();
-            long productId = product.getId();
+            Long productId = product.getId();
 
             ProductDto body = restTestClient.get()
                     .uri(PRODUCTS_URL + "/{id}", productId)

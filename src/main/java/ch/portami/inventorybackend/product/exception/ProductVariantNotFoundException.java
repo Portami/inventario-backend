@@ -6,7 +6,7 @@ import java.text.MessageFormat;
 
 public class ProductVariantNotFoundException extends ResourceNotFoundException {
 
-    public ProductVariantNotFoundException(long productId, long variantId) {
+    public ProductVariantNotFoundException(Long productId, Long variantId) {
         super(MessageFormat.format("Product variant with id {1} not found for product with id {0}", productId, variantId),
                 new ResourceIdentifier("productId", productId),
                 new ResourceIdentifier("variantId", variantId));

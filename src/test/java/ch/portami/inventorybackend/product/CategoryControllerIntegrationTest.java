@@ -7,6 +7,7 @@ import ch.portami.inventorybackend.product.entity.Category;
 import ch.portami.inventorybackend.product.entity.Product;
 import ch.portami.inventorybackend.product.repository.CategoryRepository;
 import ch.portami.inventorybackend.product.repository.ProductRepository;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -22,8 +23,6 @@ import org.springframework.test.web.servlet.client.RestTestClient;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.mariadb.MariaDBContainer;
-
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -108,7 +107,7 @@ class CategoryControllerIntegrationTest {
         @DisplayName("Should retrieve category by id")
         void testGetCategoryByIdSuccess() {
             Category category = createTestCategory("Test Category");
-            long categoryId = category.getId();
+            Long categoryId = category.getId();
 
             CategoryDto body = restTestClient.get()
                     .uri(CATEGORIES_URL + "/{id}", categoryId)
@@ -242,7 +241,7 @@ class CategoryControllerIntegrationTest {
         @DisplayName("Should delete category successfully")
         void testDeleteCategorySuccess() {
             Category category = createTestCategory("Category to Delete");
-            long categoryId = category.getId();
+            Long categoryId = category.getId();
 
             restTestClient.delete()
                     .uri(CATEGORIES_URL + "/{id}", categoryId)
@@ -269,8 +268,8 @@ class CategoryControllerIntegrationTest {
             Product product = new Product(category, "Product 1");
             productRepository.save(product);
 
-            long categoryId = category.getId();
-            long productId = product.getId();
+            Long categoryId = category.getId();
+            Long productId = product.getId();
 
             assertThat(productRepository.existsById(productId)).isTrue();
 

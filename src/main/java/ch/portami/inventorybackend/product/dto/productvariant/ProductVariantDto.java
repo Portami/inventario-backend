@@ -9,7 +9,7 @@ import java.util.List;
 @Schema(description = "A variant of a product, which can differ in price and attribute values from other variants of the same product")
 public record ProductVariantDto(
         @Schema(description = "Product variant ID")
-        long id,
+        Long id,
 
         @Schema(description = "Name of this variant")
         String name,

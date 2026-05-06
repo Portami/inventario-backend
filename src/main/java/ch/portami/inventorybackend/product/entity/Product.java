@@ -1,8 +1,5 @@
 package ch.portami.inventorybackend.product.entity;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -14,6 +11,9 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Entity
@@ -56,11 +56,10 @@ public class Product {
 
     public List<ProductAttribute> getProductAttributes() { return productAttributes; }
 
-    public Optional<ProductAttribute> getProductAttributeById(long attributeId) {
-        Long attributeIdLong = attributeId;
+    public Optional<ProductAttribute> getProductAttributeById(Long attributeId) {
         return productAttributes.stream()
-                .filter(attr -> attributeIdLong.equals(attr.getId()))
-                .findFirst();
+                                .filter(attr -> attributeId.equals(attr.getId()))
+                                .findFirst();
     }
 
     public List<ProductVariant> getProductVariants() { return productVariants; }

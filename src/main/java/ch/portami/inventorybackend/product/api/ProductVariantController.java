@@ -37,7 +37,7 @@ public class ProductVariantController {
     @ApiResponse(responseCode = "404", description = "The product with the given ID does not exist")
     @ApiResponse(responseCode = "422", description = "The request is referencing one or more attributes that do not exist for this product")
     @PostMapping
-    public ResponseEntity<ProductVariantDto> createProductVariant(@PathVariable long productId,
+    public ResponseEntity<ProductVariantDto> createProductVariant(@PathVariable Long productId,
             @RequestBody @Valid CreateProductVariantDto createProductVariantDto) {
         ProductVariantDto productVariantDto = productVariantService.createProductVariant(productId,
                 createProductVariantDto);
@@ -49,8 +49,8 @@ public class ProductVariantController {
     @ApiResponse(responseCode = "200", description = "Product variant found and returned in the response body")
     @ApiResponse(responseCode = "404", description = "No product variant exists with the given ID for the specified product")
     @GetMapping("/{variantId}")
-    public ResponseEntity<ProductVariantDto> getProductVariantById(@PathVariable long productId,
-            @PathVariable long variantId) {
+    public ResponseEntity<ProductVariantDto> getProductVariantById(@PathVariable Long productId,
+            @PathVariable Long variantId) {
         ProductVariantDto productVariantDto = productVariantService.getProductVariantById(productId, variantId);
         return ResponseEntity.ok(productVariantDto);
     }
@@ -59,7 +59,7 @@ public class ProductVariantController {
     @ApiResponse(responseCode = "200", description = "List of all product variants for the specified product (may be empty)")
     @ApiResponse(responseCode = "404", description = "No product exists with the given ID")
     @GetMapping
-    public ResponseEntity<List<ProductVariantDto>> getAllProductVariants(@PathVariable long productId) {
+    public ResponseEntity<List<ProductVariantDto>> getAllProductVariants(@PathVariable Long productId) {
         List<ProductVariantDto> variants = productVariantService.getAllProductVariants(productId);
         return ResponseEntity.ok(variants);
     }
@@ -70,8 +70,8 @@ public class ProductVariantController {
     @ApiResponse(responseCode = "404", description = "No product variant exists with the given ID for the specified product")
     @ApiResponse(responseCode = "422", description = "The request is referencing one or more attributes that do not exist for this product")
     @PatchMapping("/{variantId}")
-    public ResponseEntity<ProductVariantDto> updateProductVariant(@PathVariable long productId,
-            @PathVariable long variantId, @RequestBody @Valid UpdateProductVariantDto updateProductVariantDto) {
+    public ResponseEntity<ProductVariantDto> updateProductVariant(@PathVariable Long productId,
+            @PathVariable Long variantId, @RequestBody @Valid UpdateProductVariantDto updateProductVariantDto) {
         ProductVariantDto productVariantDto = productVariantService.updateProductVariant(productId, variantId,
                 updateProductVariantDto);
         return ResponseEntity.ok(productVariantDto);
@@ -81,7 +81,7 @@ public class ProductVariantController {
     @ApiResponse(responseCode = "204", description = "Product variant successfully deleted or is not existing (anymore)")
     @ApiResponse(responseCode = "404", description = "The product with the given ID does not exist")
     @DeleteMapping("/{variantId}")
-    public ResponseEntity<Void> deleteProductVariant(@PathVariable long productId, @PathVariable long variantId) {
+    public ResponseEntity<Void> deleteProductVariant(@PathVariable Long productId, @PathVariable Long variantId) {
         productVariantService.deleteProductVariant(productId, variantId);
         return ResponseEntity.noContent()
                              .build();

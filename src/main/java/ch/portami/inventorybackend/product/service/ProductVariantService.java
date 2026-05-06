@@ -30,7 +30,7 @@ public class ProductVariantService {
     }
 
     @Transactional
-    public ProductVariantDto createProductVariant(long productId, CreateProductVariantDto createProductVariantDto) {
+    public ProductVariantDto createProductVariant(Long productId, CreateProductVariantDto createProductVariantDto) {
         Product product = getProduct(productId);
         ProductVariant productVariant = productVariantMapper.toProductVariant(createProductVariantDto, product);
         product.addProductVariant(productVariant);
@@ -39,7 +39,7 @@ public class ProductVariantService {
     }
 
     @Transactional(readOnly = true)
-    public ProductVariantDto getProductVariantById(long productId, long variantId) {
+    public ProductVariantDto getProductVariantById(Long productId, Long variantId) {
         ProductVariant productVariant = productVariantRepository.findById(variantId)
                                                                 .orElseThrow(() -> new ProductVariantNotFoundException(
                                                                         productId, variantId));
@@ -48,7 +48,7 @@ public class ProductVariantService {
     }
 
     @Transactional(readOnly = true)
-    public List<ProductVariantDto> getAllProductVariants(long productId) {
+    public List<ProductVariantDto> getAllProductVariants(Long productId) {
         Product product = getProduct(productId);
         return product.getProductVariants()
                       .stream()
@@ -57,7 +57,7 @@ public class ProductVariantService {
     }
 
     @Transactional
-    public ProductVariantDto updateProductVariant(long productId, long variantId,
+    public ProductVariantDto updateProductVariant(Long productId, Long variantId,
             UpdateProductVariantDto updateProductVariantDto) {
         ProductVariant productVariant = productVariantRepository.findById(variantId)
                                                                 .orElseThrow(() -> new ProductVariantNotFoundException(
@@ -69,7 +69,7 @@ public class ProductVariantService {
     }
 
     @Transactional
-    public void deleteProductVariant(long productId, long variantId) {
+    public void deleteProductVariant(Long productId, Long variantId) {
         Optional<ProductVariant> productVariantOpt = productVariantRepository.findById(variantId);
         if (productVariantOpt.isEmpty()) {
             return;
@@ -79,12 +79,12 @@ public class ProductVariantService {
         productVariantRepository.delete(productVariant);
     }
 
-    private Product getProduct(long productId) {
+    private Product getProduct(Long productId) {
         return productRepository.findById(productId)
                                 .orElseThrow(() -> new ProductNotFoundException(productId));
     }
 
-    private void checkProductVariantBelongsToProduct(long productId, ProductVariant productVariant) {
+    private void checkProductVariantBelongsToProduct(Long productId, ProductVariant productVariant) {
         if (!productVariant.getProduct()
                            .getId()
                            .equals(productId)) {

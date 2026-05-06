@@ -9,7 +9,7 @@ import java.util.List;
 @Schema(description = "A product with its category, variants, and attributes")
 public record ProductDto(
         @Schema(description = "Product ID")
-        long id,
+        Long id,
 
         @Schema(description = "Product name")
         String name,
