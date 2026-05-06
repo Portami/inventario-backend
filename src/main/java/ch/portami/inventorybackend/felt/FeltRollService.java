@@ -15,12 +15,14 @@ import ch.portami.inventorybackend.felt.entity.FeltVariant;
 import ch.portami.inventorybackend.felt.entity.Supplier;
 import ch.portami.inventorybackend.felt.repository.BatchRepository;
 import ch.portami.inventorybackend.felt.repository.FeltColorVariantRepository;
+import ch.portami.inventorybackend.core.exceptions.InvalidStorageReferenceException;
+import ch.portami.inventorybackend.felt.exception.FeltNotFoundException;
+import ch.portami.inventorybackend.felt.exception.FeltRollNotFoundException;
+import ch.portami.inventorybackend.felt.exception.InvalidBatchReferenceException;
 import ch.portami.inventorybackend.felt.repository.FeltRollRepository;
 import java.util.List;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @Transactional(readOnly = true)
@@ -43,7 +45,7 @@ public class FeltRollService {
 
     public List<FeltRollDto> findAllByFelt(Long feltId) {
         if (!feltColorVariantRepo.existsById(feltId)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Felt not found");
+            throw new FeltNotFoundException(feltId);
         }
         return feltRollRepo.findByFeltColorVariantId(feltId)
                            .stream()
@@ -54,14 +56,13 @@ public class FeltRollService {
     public FeltRollDto findById(Long id) {
         return feltRollRepo.findById(id)
                            .map(this::toDto)
-                           .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Roll not found"));
+                           .orElseThrow(() -> new FeltRollNotFoundException(id));
     }
 
     @Transactional
     public FeltRollDto create(CreateFeltRollDto dto) {
         FeltColorVariant colorVariant = feltColorVariantRepo.findById(dto.feltId())
-                                                            .orElseThrow(() -> new ResponseStatusException(
-                                                                    HttpStatus.NOT_FOUND, "Felt not found"));
+                                                            .orElseThrow(() -> new FeltNotFoundException(dto.feltId()));
 
         Batch batch = resolveOptionalBatch(dto.batchId());
         Storage storage = resolveOptionalStorage(dto.storageId());
@@ -77,8 +78,7 @@ public class FeltRollService {
     @Transactional
     public FeltRollDto update(Long id, UpdateFeltRollDto dto) {
         FeltRoll roll = feltRollRepo.findById(id)
-                                    .orElseThrow(
-                                            () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Roll not found"));
+                                    .orElseThrow(() -> new FeltRollNotFoundException(id));
 
         if (dto.length() != null) {
             roll.setLength(dto.length());
@@ -99,7 +99,7 @@ public class FeltRollService {
     @Transactional
     public void delete(Long id) {
         if (!feltRollRepo.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Roll not found");
+            throw new FeltRollNotFoundException(id);
         }
         feltRollRepo.deleteById(id);
     }
@@ -109,7 +109,7 @@ public class FeltRollService {
             return null;
         }
         return batchRepo.findById(batchId)
-                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Batch not found"));
+                        .orElseThrow(() -> new InvalidBatchReferenceException(batchId));
     }
 
     private Storage resolveOptionalStorage(Long storageId) {
@@ -117,7 +117,7 @@ public class FeltRollService {
             return null;
         }
         return storageRepo.findById(storageId)
-                          .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Storage not found"));
+                          .orElseThrow(() -> new InvalidStorageReferenceException(storageId));
     }
 
     private FeltRollDto toDto(FeltRoll roll) {

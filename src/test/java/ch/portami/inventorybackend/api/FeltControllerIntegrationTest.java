@@ -279,8 +279,8 @@ class FeltControllerIntegrationTest {
         }
 
         @Test
-        @DisplayName("returns 404 when feltTypeId does not exist")
-        void returns404ForUnknownFeltType() {
+        @DisplayName("returns 422 when feltTypeId does not exist")
+        void returns422ForUnknownFeltType() {
             var dto = new CreateFeltDto(
                     "Red", "Supplier Red",
                     2.0, 300.0, new BigDecimal("12.50"),
@@ -291,14 +291,14 @@ class FeltControllerIntegrationTest {
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(dto)
                     .exchange()
-                    .expectStatus().isNotFound()
+                    .expectStatus().isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY)
                     .expectBody(ErrorResponse.class)
-                    .value(err -> assertThat(err.status()).isEqualTo(HttpStatus.NOT_FOUND.value()));
+                    .value(err -> assertThat(err.status()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY.value()));
         }
 
         @Test
-        @DisplayName("returns 404 when supplier does not exist")
-        void returns404ForUnknownSupplier() {
+        @DisplayName("returns 422 when supplier does not exist")
+        void returns422ForUnknownSupplier() {
             var dto = new CreateFeltDto(
                     "Red", "Supplier Red",
                     2.0, 300.0, new BigDecimal("12.50"),
@@ -309,9 +309,9 @@ class FeltControllerIntegrationTest {
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(dto)
                     .exchange()
-                    .expectStatus().isNotFound()
+                    .expectStatus().isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY)
                     .expectBody(ErrorResponse.class)
-                    .value(err -> assertThat(err.status()).isEqualTo(HttpStatus.NOT_FOUND.value()));
+                    .value(err -> assertThat(err.status()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY.value()));
         }
     }
 
@@ -503,31 +503,31 @@ class FeltControllerIntegrationTest {
         }
 
         @Test
-        @DisplayName("returns 404 when feltTypeId does not exist")
-        void returns404ForUnknownFeltType() {
+        @DisplayName("returns 422 when feltTypeId does not exist")
+        void returns422ForUnknownFeltType() {
             FeltDto created = postFelt(validCreate());
 
             restTestClient.patch().uri("/api/felts/{id}", created.id())
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(new UpdateFeltDto(null, null, null, null, null, null, null, 99999L))
                     .exchange()
-                    .expectStatus().isNotFound()
+                    .expectStatus().isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY)
                     .expectBody(ErrorResponse.class)
-                    .value(err -> assertThat(err.status()).isEqualTo(HttpStatus.NOT_FOUND.value()));
+                    .value(err -> assertThat(err.status()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY.value()));
         }
 
         @Test
-        @DisplayName("returns 404 when supplier does not exist")
-        void returns404ForUnknownSupplier() {
+        @DisplayName("returns 422 when supplier does not exist")
+        void returns422ForUnknownSupplier() {
             FeltDto created = postFelt(validCreate());
 
             restTestClient.patch().uri("/api/felts/{id}", created.id())
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(new UpdateFeltDto(null, null, null, null, null, null, 99999L, null))
                     .exchange()
-                    .expectStatus().isNotFound()
+                    .expectStatus().isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY)
                     .expectBody(ErrorResponse.class)
-                    .value(err -> assertThat(err.status()).isEqualTo(HttpStatus.NOT_FOUND.value()));
+                    .value(err -> assertThat(err.status()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY.value()));
         }
 
         @Test

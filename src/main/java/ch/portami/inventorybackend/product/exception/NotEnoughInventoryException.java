@@ -1,6 +1,8 @@
 package ch.portami.inventorybackend.product.exception;
 
-public class NotEnoughInventoryException extends RuntimeException {
+import ch.portami.inventorybackend.core.exceptions.BusinessRuleViolationException;
+
+public class NotEnoughInventoryException extends BusinessRuleViolationException {
 
     public NotEnoughInventoryException(long productVariantId, long storageId, int requestedQuantityReduction,
             int currentQuantity) {
