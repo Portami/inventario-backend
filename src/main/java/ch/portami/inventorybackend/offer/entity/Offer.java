@@ -41,7 +41,7 @@ public class Offer {
     @Column(name = "updated_at")
     private ZonedDateTime updatedAt;
 
-    @OneToMany(mappedBy = "offer_id", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "offerId", fetch = FetchType.LAZY)
     private final List<OfferItem> offerItems = new ArrayList<>();
 
     public Offer() {

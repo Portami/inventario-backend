@@ -1,5 +1,6 @@
 package ch.portami.inventorybackend.offer;
 
+import ch.portami.inventorybackend.core.exceptions.ResourceNotFoundException;
 import ch.portami.inventorybackend.offer.domain.OfferState;
 import ch.portami.inventorybackend.offer.dto.CreateOfferDto;
 import ch.portami.inventorybackend.offer.dto.CreateOfferItemDto;
@@ -118,7 +119,7 @@ class OfferServiceTest {
         given(offerRepository.findById(ID)).willReturn(Optional.empty());
 
         assertThatThrownBy(() -> offerService.getOfferById(ID))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining(ID.toString());
     }
 
@@ -187,7 +188,7 @@ class OfferServiceTest {
         given(offerRepository.findById(ID)).willReturn(Optional.empty());
 
         assertThatThrownBy(() -> offerService.updateOffer(ID, new UpdateOfferDto(null, null, null)))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(ResourceNotFoundException.class);
     }
 
     @Test

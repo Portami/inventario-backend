@@ -1,5 +1,6 @@
 package ch.portami.inventorybackend.offer;
 
+import ch.portami.inventorybackend.core.exceptions.ResourceNotFoundException;
 import ch.portami.inventorybackend.offer.domain.OfferState;
 import ch.portami.inventorybackend.offer.dto.CreateOfferDto;
 import ch.portami.inventorybackend.offer.dto.OfferDto;
@@ -67,7 +68,7 @@ public class OfferService {
 
     private Offer findById(Long id) {
         return offerRepository.findById(id)
-                              .orElseThrow(() -> new IllegalArgumentException("Offer not found: " + id));
+                              .orElseThrow(() -> new ResourceNotFoundException("Offer not found: " + id));
     }
 
     private Customer resolveCustomer(String name) {

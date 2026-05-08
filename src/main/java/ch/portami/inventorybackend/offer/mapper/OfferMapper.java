@@ -33,7 +33,7 @@ public interface OfferMapper {
     @Mapping(source = "items", target = "offerItems")
     Offer toOffer(CreateOfferDto dto);
 
-    @Mapping(source = "customerName", target = "customer", qualifiedByName = "customerFromName")
+    @Mapping(target = "customer", ignore = true)
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
