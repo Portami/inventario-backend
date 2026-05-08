@@ -2,24 +2,24 @@ package ch.portami.inventorybackend.core.exceptions;
 
 public class InvalidResourceReferenceException extends ResourceSpecificException {
 
-    public InvalidResourceReferenceException(String resourceType, Object resourceId) {
-        super(resourceType, resourceId);
+    public InvalidResourceReferenceException(ResourceIdentifier... identifiers) {
+        super(identifiers);
     }
 
-    public InvalidResourceReferenceException(String message, String resourceType, Object resourceId) {
-        super(message, resourceType, resourceId);
+    public InvalidResourceReferenceException(String message, ResourceIdentifier... identifiers) {
+        super(message, identifiers);
     }
 
-    public InvalidResourceReferenceException(String message, String resourceType, Object resourceId, Throwable cause) {
-        super(message, resourceType, resourceId, cause);
+    public InvalidResourceReferenceException(String message, Throwable cause, ResourceIdentifier... identifiers) {
+        super(message, cause, identifiers);
     }
 
-    public InvalidResourceReferenceException(String resourceType, Object resourceId, Throwable cause) {
-        super(resourceType, resourceId, cause);
+    public InvalidResourceReferenceException(Throwable cause, ResourceIdentifier... identifiers) {
+        super(cause, identifiers);
     }
 
-    public InvalidResourceReferenceException(String message, String resourceType, Object resourceId,
-            boolean enableSuppression, boolean writableStackTrace, Throwable cause) {
-        super(message, resourceType, resourceId, enableSuppression, writableStackTrace, cause);
+    public InvalidResourceReferenceException(String message, boolean enableSuppression,
+            boolean writableStackTrace, Throwable cause, ResourceIdentifier... identifiers) {
+        super(message, enableSuppression, writableStackTrace, cause, identifiers);
     }
 }

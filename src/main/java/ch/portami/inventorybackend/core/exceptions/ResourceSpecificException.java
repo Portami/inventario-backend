@@ -1,46 +1,37 @@
 package ch.portami.inventorybackend.core.exceptions;
 
+import java.util.List;
+
 public abstract class ResourceSpecificException extends RuntimeException {
 
-    protected final String resourceType;
-    protected final Object resourceId;
+    private final List<ResourceIdentifier> resourceIdentifiers;
 
-    protected ResourceSpecificException(String resourceType, Object resourceId) {
-        this.resourceType = resourceType;
-        this.resourceId = resourceId;
+    protected ResourceSpecificException(ResourceIdentifier... identifiers) {
+        this.resourceIdentifiers = List.of(identifiers);
     }
 
-    protected ResourceSpecificException(String message, String resourceType, Object resourceId) {
+    protected ResourceSpecificException(String message, ResourceIdentifier... identifiers) {
         super(message);
-        this.resourceType = resourceType;
-        this.resourceId = resourceId;
+        this.resourceIdentifiers = List.of(identifiers);
     }
 
-    protected ResourceSpecificException(String message, String resourceType, Object resourceId, Throwable cause) {
+    protected ResourceSpecificException(String message, Throwable cause, ResourceIdentifier... identifiers) {
         super(message, cause);
-        this.resourceType = resourceType;
-        this.resourceId = resourceId;
+        this.resourceIdentifiers = List.of(identifiers);
     }
 
-    protected ResourceSpecificException(String resourceType, Object resourceId, Throwable cause) {
+    protected ResourceSpecificException(Throwable cause, ResourceIdentifier... identifiers) {
         super(cause);
-        this.resourceType = resourceType;
-        this.resourceId = resourceId;
+        this.resourceIdentifiers = List.of(identifiers);
     }
 
-    protected ResourceSpecificException(String message,
-            String resourceType, Object resourceId, boolean enableSuppression,
-            boolean writableStackTrace, Throwable cause) {
+    protected ResourceSpecificException(String message, boolean enableSuppression,
+            boolean writableStackTrace, Throwable cause, ResourceIdentifier... identifiers) {
         super(message, cause, enableSuppression, writableStackTrace);
-        this.resourceType = resourceType;
-        this.resourceId = resourceId;
+        this.resourceIdentifiers = List.of(identifiers);
     }
 
-    protected String getResourceType() {
-        return resourceType;
-    }
-
-    protected Object getResourceId() {
-        return resourceId;
+    public List<ResourceIdentifier> getResourceIdentifiers() {
+        return resourceIdentifiers;
     }
 }

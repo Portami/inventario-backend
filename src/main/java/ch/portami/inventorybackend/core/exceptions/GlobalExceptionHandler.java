@@ -24,19 +24,21 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ProblemDetail handleNotFound(ResourceNotFoundException ex) {
-        return buildProblemDetail(HttpStatus.NOT_FOUND, ex.getResourceType() + " not found", ex);
+        return buildProblemDetail(HttpStatus.NOT_FOUND, "Resource not found", ex);
     }
 
     @ExceptionHandler(InvalidResourceReferenceException.class)
     public ProblemDetail handleInvalidReference(InvalidResourceReferenceException ex) {
-        return buildProblemDetail(HttpStatus.UNPROCESSABLE_CONTENT, ex.getResourceType() + " not found", ex);
+        return buildProblemDetail(HttpStatus.UNPROCESSABLE_CONTENT, "A referenced id does not exit", ex);
     }
 
     private ProblemDetail buildProblemDetail(HttpStatus httpStatus, String title, ResourceSpecificException ex) {
-        ProblemDetail pd = ProblemDetail.forStatusAndDetail(
-                httpStatus, ex.getMessage());
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(httpStatus, ex.getMessage());
         pd.setTitle(title);
-        pd.setProperty(ex.getResourceType(), ex.getResourceId());
+        for (ResourceIdentifier ri : ex.getResourceIdentifiers()) {
+            pd.setProperty(ri.type(), ri.id());
+        }
+
         return pd;
     }
 

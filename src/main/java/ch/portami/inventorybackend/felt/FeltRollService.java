@@ -13,6 +13,7 @@ import ch.portami.inventorybackend.felt.entity.FeltRoll;
 import ch.portami.inventorybackend.felt.entity.FeltType;
 import ch.portami.inventorybackend.felt.entity.FeltVariant;
 import ch.portami.inventorybackend.felt.entity.Supplier;
+import ch.portami.inventorybackend.felt.exception.FeltRollNotFoundException;
 import ch.portami.inventorybackend.felt.repository.BatchRepository;
 import ch.portami.inventorybackend.felt.repository.FeltColorVariantRepository;
 import ch.portami.inventorybackend.core.storage.exception.InvalidStorageReferenceException;
@@ -43,7 +44,7 @@ public class FeltRollService {
 
     public List<FeltRollDto> findAllByFelt(Long feltId) {
         if (!feltColorVariantRepo.existsById(feltId)) {
-            throw new FeltSpecificException(feltId);
+            throw new FeltRollNotFoundException(feltId);
         }
         return feltRollRepo.findByFeltColorVariantId(feltId)
                            .stream()
@@ -54,13 +55,13 @@ public class FeltRollService {
     public FeltRollDto findById(Long id) {
         return feltRollRepo.findById(id)
                            .map(this::toDto)
-                           .orElseThrow(() -> new FeltRollSpecificException(id));
+                           .orElseThrow(() -> new FeltRollNotFoundException(id));
     }
 
     @Transactional
     public FeltRollDto create(CreateFeltRollDto dto) {
         FeltColorVariant colorVariant = feltColorVariantRepo.findById(dto.feltId())
-                                                            .orElseThrow(() -> new FeltSpecificException(dto.feltId()));
+                                                            .orElseThrow(() -> new FeltRollNotFoundException(dto.feltId()));
 
         Batch batch = resolveOptionalBatch(dto.batchId());
         Storage storage = resolveOptionalStorage(dto.storageId());
@@ -76,7 +77,7 @@ public class FeltRollService {
     @Transactional
     public FeltRollDto update(Long id, UpdateFeltRollDto dto) {
         FeltRoll roll = feltRollRepo.findById(id)
-                                    .orElseThrow(() -> new FeltRollSpecificException(id));
+                                    .orElseThrow(() -> new FeltRollNotFoundException(id));
 
         if (dto.length() != null) {
             roll.setLength(dto.length());
@@ -97,7 +98,7 @@ public class FeltRollService {
     @Transactional
     public void delete(Long id) {
         if (!feltRollRepo.existsById(id)) {
-            throw new FeltRollSpecificException(id);
+            throw new FeltRollNotFoundException(id);
         }
         feltRollRepo.deleteById(id);
     }
