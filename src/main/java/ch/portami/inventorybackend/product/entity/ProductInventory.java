@@ -1,7 +1,7 @@
 package ch.portami.inventorybackend.product.entity;
 
 import java.util.Objects;
-import ch.portami.inventorybackend.core.entity.Storage;
+import ch.portami.inventorybackend.core.storage.entity.Storage;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;

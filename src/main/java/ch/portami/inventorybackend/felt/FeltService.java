@@ -13,7 +13,6 @@ import ch.portami.inventorybackend.felt.repository.FeltRepository;
 import ch.portami.inventorybackend.felt.repository.FeltTypeRepository;
 import ch.portami.inventorybackend.felt.repository.FeltVariantRepository;
 import ch.portami.inventorybackend.felt.repository.SupplierRepository;
-import ch.portami.inventorybackend.felt.exception.FeltNotFoundException;
 import ch.portami.inventorybackend.felt.exception.InvalidFeltTypeReferenceException;
 import ch.portami.inventorybackend.felt.exception.InvalidSupplierReferenceException;
 import java.math.BigDecimal;
@@ -58,7 +57,7 @@ public class FeltService {
         return feltColorVariantRepo
             .findById(id)
             .map(this::toDto)
-            .orElseThrow(() -> new FeltNotFoundException(id));
+            .orElseThrow(() -> new FeltSpecificException(id));
     }
 
     @Transactional
@@ -94,7 +93,7 @@ public class FeltService {
     public FeltDto update(Long id, UpdateFeltDto dto) {
         FeltColorVariant feltColorVariant = feltColorVariantRepo
             .findById(id)
-            .orElseThrow(() -> new FeltNotFoundException(id));
+            .orElseThrow(() -> new FeltSpecificException(id));
 
         if (dto.color() != null) {
             feltColorVariant.setColor(dto.color());
@@ -112,7 +111,7 @@ public class FeltService {
     public void delete(Long id) {
         FeltColorVariant colorVariant = feltColorVariantRepo
             .findById(id)
-            .orElseThrow(() -> new FeltNotFoundException(id));
+            .orElseThrow(() -> new FeltSpecificException(id));
 
         FeltVariant variant = colorVariant.getFeltVariant();
         Felt felt = variant.getFelt();

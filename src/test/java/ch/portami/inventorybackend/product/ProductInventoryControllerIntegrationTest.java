@@ -1,7 +1,7 @@
 package ch.portami.inventorybackend.product;
 
-import ch.portami.inventorybackend.core.entity.Storage;
-import ch.portami.inventorybackend.core.repository.StorageRepository;
+import ch.portami.inventorybackend.core.storage.entity.Storage;
+import ch.portami.inventorybackend.core.storage.repository.StorageRepository;
 import ch.portami.inventorybackend.product.dto.productinventory.ProductInventoryDto;
 import ch.portami.inventorybackend.product.dto.productinventory.UpdateProductInventoryDto;
 import ch.portami.inventorybackend.product.entity.Category;

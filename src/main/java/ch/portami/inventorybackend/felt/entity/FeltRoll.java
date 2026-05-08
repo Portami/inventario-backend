@@ -10,7 +10,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.util.Objects;
-import ch.portami.inventorybackend.core.entity.Storage;
+import ch.portami.inventorybackend.core.storage.entity.Storage;
 
 @Entity
 @Table(name = "felt_roll")

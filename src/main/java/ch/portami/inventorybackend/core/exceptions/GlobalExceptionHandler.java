@@ -5,20 +5,42 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.ErrorResponseException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 /**
  * Translates domain exceptions into the {@link ErrorResponse} contract defined in the OpenAPI spec.
  */
 @RestControllerAdvice
-public class GlobalExceptionHandler {
+public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ProblemDetail handleNotFound(ResourceNotFoundException ex) {
+        return buildProblemDetail(HttpStatus.NOT_FOUND, ex.getResourceType() + " not found", ex);
+    }
+
+    @ExceptionHandler(InvalidResourceReferenceException.class)
+    public ProblemDetail handleInvalidReference(InvalidResourceReferenceException ex) {
+        return buildProblemDetail(HttpStatus.UNPROCESSABLE_CONTENT, ex.getResourceType() + " not found", ex);
+    }
+
+    private ProblemDetail buildProblemDetail(HttpStatus httpStatus, String title, ResourceSpecificException ex) {
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(
+                httpStatus, ex.getMessage());
+        pd.setTitle(title);
+        pd.setProperty(ex.getResourceType(), ex.getResourceId());
+        return pd;
+    }
+
+    //OLD ------------------------------------------------------------------------------------------------------------------------------------------------
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException ex) {
@@ -81,18 +103,11 @@ public class GlobalExceptionHandler {
                 .body(ErrorResponse.of(HttpStatus.BAD_REQUEST.value(), ex.getMessage()));
     }
 
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleNotFound(ResourceNotFoundException ex) {
+    @ExceptionHandler(ResourceSpecificException.class)
+    public ResponseEntity<ErrorResponse> handleNotFound(ResourceSpecificException ex) {
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .body(ErrorResponse.of(HttpStatus.NOT_FOUND.value(), ex.getMessage()));
-    }
-
-    @ExceptionHandler(InvalidResourceReferenceException.class)
-    public ResponseEntity<ErrorResponse> handleInvalidReference(InvalidResourceReferenceException ex) {
-        return ResponseEntity
-                .status(HttpStatus.UNPROCESSABLE_CONTENT)
-                .body(ErrorResponse.of(HttpStatus.UNPROCESSABLE_CONTENT.value(), ex.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)

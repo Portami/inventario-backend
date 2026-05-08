@@ -1,8 +1,8 @@
 package ch.portami.inventorybackend.felt;
 
 import ch.portami.inventorybackend.barcode.BarcodeService;
-import ch.portami.inventorybackend.core.entity.Storage;
-import ch.portami.inventorybackend.core.repository.StorageRepository;
+import ch.portami.inventorybackend.core.storage.entity.Storage;
+import ch.portami.inventorybackend.core.storage.repository.StorageRepository;
 import ch.portami.inventorybackend.felt.dto.CreateFeltRollDto;
 import ch.portami.inventorybackend.felt.dto.FeltRollDto;
 import ch.portami.inventorybackend.felt.dto.UpdateFeltRollDto;
@@ -15,9 +15,7 @@ import ch.portami.inventorybackend.felt.entity.FeltVariant;
 import ch.portami.inventorybackend.felt.entity.Supplier;
 import ch.portami.inventorybackend.felt.repository.BatchRepository;
 import ch.portami.inventorybackend.felt.repository.FeltColorVariantRepository;
-import ch.portami.inventorybackend.core.exceptions.InvalidStorageReferenceException;
-import ch.portami.inventorybackend.felt.exception.FeltNotFoundException;
-import ch.portami.inventorybackend.felt.exception.FeltRollNotFoundException;
+import ch.portami.inventorybackend.core.storage.exception.InvalidStorageReferenceException;
 import ch.portami.inventorybackend.felt.exception.InvalidBatchReferenceException;
 import ch.portami.inventorybackend.felt.repository.FeltRollRepository;
 import java.util.List;
@@ -45,7 +43,7 @@ public class FeltRollService {
 
     public List<FeltRollDto> findAllByFelt(Long feltId) {
         if (!feltColorVariantRepo.existsById(feltId)) {
-            throw new FeltNotFoundException(feltId);
+            throw new FeltSpecificException(feltId);
         }
         return feltRollRepo.findByFeltColorVariantId(feltId)
                            .stream()
@@ -56,13 +54,13 @@ public class FeltRollService {
     public FeltRollDto findById(Long id) {
         return feltRollRepo.findById(id)
                            .map(this::toDto)
-                           .orElseThrow(() -> new FeltRollNotFoundException(id));
+                           .orElseThrow(() -> new FeltRollSpecificException(id));
     }
 
     @Transactional
     public FeltRollDto create(CreateFeltRollDto dto) {
         FeltColorVariant colorVariant = feltColorVariantRepo.findById(dto.feltId())
-                                                            .orElseThrow(() -> new FeltNotFoundException(dto.feltId()));
+                                                            .orElseThrow(() -> new FeltSpecificException(dto.feltId()));
 
         Batch batch = resolveOptionalBatch(dto.batchId());
         Storage storage = resolveOptionalStorage(dto.storageId());
@@ -78,7 +76,7 @@ public class FeltRollService {
     @Transactional
     public FeltRollDto update(Long id, UpdateFeltRollDto dto) {
         FeltRoll roll = feltRollRepo.findById(id)
-                                    .orElseThrow(() -> new FeltRollNotFoundException(id));
+                                    .orElseThrow(() -> new FeltRollSpecificException(id));
 
         if (dto.length() != null) {
             roll.setLength(dto.length());
@@ -99,7 +97,7 @@ public class FeltRollService {
     @Transactional
     public void delete(Long id) {
         if (!feltRollRepo.existsById(id)) {
-            throw new FeltRollNotFoundException(id);
+            throw new FeltRollSpecificException(id);
         }
         feltRollRepo.deleteById(id);
     }

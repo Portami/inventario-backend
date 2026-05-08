@@ -1,8 +1,8 @@
 package ch.portami.inventorybackend.api;
 
-import ch.portami.inventorybackend.core.entity.Storage;
+import ch.portami.inventorybackend.core.storage.entity.Storage;
 import ch.portami.inventorybackend.core.exceptions.ErrorResponse;
-import ch.portami.inventorybackend.core.repository.StorageRepository;
+import ch.portami.inventorybackend.core.storage.repository.StorageRepository;
 import ch.portami.inventorybackend.felt.dto.CreateFeltDto;
 import ch.portami.inventorybackend.felt.dto.CreateFeltRollDto;
 import ch.portami.inventorybackend.felt.dto.FeltDto;

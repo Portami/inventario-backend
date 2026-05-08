@@ -1,11 +1,11 @@
 package ch.portami.inventorybackend.felt.exception;
 
 import ch.portami.inventorybackend.core.exceptions.ResourceNotFoundException;
+import java.text.MessageFormat;
 
 public class FeltRollNotFoundException extends ResourceNotFoundException {
 
     public FeltRollNotFoundException(long rollId) {
-        super("Roll with id %d not found".formatted(rollId));
+        super(MessageFormat.format("Roll with id {0} not found", rollId), "batchId", rollId);
     }
-
 }

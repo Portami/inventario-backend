@@ -1,4 +1,4 @@
-package ch.portami.inventorybackend.core.entity;
+package ch.portami.inventorybackend.core.storage.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
