@@ -3,7 +3,6 @@ package ch.portami.inventorybackend.barcode;
 import ch.portami.inventorybackend.barcode.dto.BarcodeLookupDto;
 import ch.portami.inventorybackend.barcode.entity.Barcode;
 import ch.portami.inventorybackend.barcode.exception.BarcodeNotFoundException;
-import ch.portami.inventorybackend.barcode.exception.InvalidBarcodeFormatException;
 import ch.portami.inventorybackend.barcode.repository.BarcodeRepository;
 import ch.portami.inventorybackend.felt.entity.FeltRoll;
 import ch.portami.inventorybackend.felt.entity.ScrapPiece;
@@ -20,8 +19,7 @@ public class BarcodeService {
         this.barcodeRepo = barcodeRepo;
     }
 
-    public BarcodeLookupDto findByCode(String code) {
-        long id = parseCode(code);
+    public BarcodeLookupDto findByCode(long id) {
         Barcode barcode = barcodeRepo.findById(id)
                                      .orElseThrow(() -> new BarcodeNotFoundException(id));
         return toDto(barcode);
@@ -35,24 +33,6 @@ public class BarcodeService {
     @Transactional
     public Barcode createForScrap(ScrapPiece scrap) {
         return barcodeRepo.save(Barcode.forScrap(scrap));
-    }
-
-    private static long parseCode(String code) {
-        if (code == null || code.isBlank()) {
-            throw new InvalidBarcodeFormatException("Barcode must be a positive integer");
-        }
-
-        try {
-            long id = Long.parseLong(code);
-
-            if (id <= 0) {
-                throw new InvalidBarcodeFormatException("Barcode must be a positive integer");
-            }
-
-            return id;
-        } catch (NumberFormatException _) {
-            throw new InvalidBarcodeFormatException("Barcode must be numeric");
-        }
     }
 
     private static BarcodeLookupDto toDto(Barcode barcode) {
