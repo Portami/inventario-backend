@@ -29,7 +29,7 @@ public class OfferItem implements Serializable {
     private String description;
 
     @Column(nullable = false)
-    private BigDecimal quantity = BigDecimal.ZERO;
+    private Integer quantity;
 
     @Column(name = "unit_price", precision = 19, scale = 4)
     private BigDecimal unitPrice = BigDecimal.ZERO;
@@ -46,11 +46,11 @@ public class OfferItem implements Serializable {
     public OfferItem() {
     }
 
-    public OfferItem(Long offerId, Long productVariantId, String description, BigDecimal quantity, BigDecimal unitPrice, BigDecimal totalPrice) {
+    public OfferItem(Long offerId, Long productVariantId, String description, Integer quantity, BigDecimal unitPrice, BigDecimal totalPrice) {
         this.offerId = offerId;
         this.productVariantId = productVariantId;
         this.description = description;
-        this.quantity = quantity == null ? BigDecimal.ZERO : quantity;
+        this.quantity = quantity;
         this.unitPrice = unitPrice == null ? BigDecimal.ZERO : unitPrice;
         this.totalPrice = totalPrice == null ? BigDecimal.ZERO : totalPrice;
     }
@@ -87,12 +87,12 @@ public class OfferItem implements Serializable {
         this.description = description;
     }
 
-    public BigDecimal getQuantity() {
+    public Integer getQuantity() {
         return quantity;
     }
 
-    public void setQuantity(BigDecimal quantity) {
-        this.quantity = quantity == null ? BigDecimal.ZERO : quantity;
+    public void setQuantity(Integer quantity) {
+        this.quantity = quantity;
     }
 
     public BigDecimal getUnitPrice() {

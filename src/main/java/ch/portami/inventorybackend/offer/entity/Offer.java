@@ -11,8 +11,11 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 @Entity
@@ -37,6 +40,9 @@ public class Offer {
 
     @Column(name = "updated_at")
     private ZonedDateTime updatedAt;
+
+    @OneToMany(mappedBy = "offer_id", fetch = FetchType.LAZY)
+    private final List<OfferItem> offerItems = new ArrayList<>();
 
     public Offer() {
     }
@@ -87,6 +93,10 @@ public class Offer {
 
     public void setUpdatedAt(ZonedDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public List<OfferItem> getOfferItems() {
+        return offerItems;
     }
 
     @Override

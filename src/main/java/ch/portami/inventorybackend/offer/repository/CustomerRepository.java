@@ -1,7 +1,6 @@
 package ch.portami.inventorybackend.offer.repository;
 
 import ch.portami.inventorybackend.offer.entity.Customer;
-import ch.portami.inventorybackend.offer.infrastructure.entity.CustomerEntity;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 

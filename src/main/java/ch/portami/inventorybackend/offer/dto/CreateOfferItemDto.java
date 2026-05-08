@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 public record CreateOfferItemDto(
 
     @Schema(description = "ID of the referenced product or product variant")
-    @NotNull Long productId,
+    @NotNull Long productVariantId,
 
     @Schema(description = "Optional free-text description for the line item")
     String description,

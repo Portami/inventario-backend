@@ -9,7 +9,7 @@ public record OfferItemDto(
     Long id,
 
     @Schema(description = "ID of the referenced product or product variant")
-    Long productId,
+    Long productVariantId,
 
     @Schema(description = "Optional free-text description for the line item")
     String description,
