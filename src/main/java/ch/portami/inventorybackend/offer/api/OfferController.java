@@ -34,7 +34,8 @@ public class OfferController {
     }
 
     @Operation(summary = "Create an offer")
-    @ApiResponse(responseCode = "201", description = "Offer created")
+    @ApiResponse(responseCode = "201", description = "Offer successfully created")
+    @ApiResponse(responseCode = "400", description = "Validation error in the request body")
     @PostMapping
     public ResponseEntity<OfferDto> createOffer(@RequestBody @Valid CreateOfferDto createOfferDto) {
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -42,18 +43,24 @@ public class OfferController {
     }
 
     @Operation(summary = "Get an offer by ID")
+    @ApiResponse(responseCode = "200", description = "Offer found and returned in the response body")
+    @ApiResponse(responseCode = "404", description = "No offer exists with the given ID")
     @GetMapping("/{id}")
     public ResponseEntity<OfferDto> getOffer(@PathVariable Long id) {
         return ResponseEntity.ok(offerService.getOfferById(id));
     }
 
     @Operation(summary = "List offers")
+    @ApiResponse(responseCode = "200", description = "List of all offers by state (may be empty)")
     @GetMapping
-    public ResponseEntity<List<OfferDto>> listOffers(@RequestParam OfferState state) {
+    public ResponseEntity<List<OfferDto>> listOffersByState(@RequestParam OfferState state) {
         return ResponseEntity.ok(offerService.listOffers(state));
     }
 
     @Operation(summary = "Update an offer")
+    @ApiResponse(responseCode = "200", description = "Offer successfully updated and returned in the response body")
+    @ApiResponse(responseCode = "400", description = "Validation error in the request body")
+    @ApiResponse(responseCode = "404", description = "No offer exists with the given ID")
     @PatchMapping("/{id}")
     public ResponseEntity<OfferDto> updateOffer(@PathVariable Long id,
             @RequestBody @Valid UpdateOfferDto updateOfferDto) {
@@ -61,6 +68,7 @@ public class OfferController {
     }
 
     @Operation(summary = "Delete an offer")
+    @ApiResponse(responseCode = "204", description = "Offer successfully deleted or is not existing (anymore)")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteOffer(@PathVariable Long id) {
         offerService.deleteOffer(id);

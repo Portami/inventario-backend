@@ -11,7 +11,7 @@ public record CreateOfferDto (
     @Schema(description = "name of the customer which the offer is for")
     @NotBlank String customerName,
 
-    @Schema(description = "")
+    @Schema(description = "List of line items for the offer")
     @NotEmpty List<CreateOfferItemDto> items
 
 ) {
