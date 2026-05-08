@@ -14,7 +14,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ValidBarcodeCode {
 
-    String message() default "Barcode must be a positive integer";
+    String message() default "Code must be a valid barcode code";
 
     Class<?>[] groups() default {};
 

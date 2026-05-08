@@ -291,9 +291,9 @@ class FeltControllerIntegrationTest {
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(dto)
                     .exchange()
-                    .expectStatus().isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY)
+                    .expectStatus().isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT)
                     .expectBody(ErrorResponse.class)
-                    .value(err -> assertThat(err.status()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY.value()));
+                    .value(err -> assertThat(err.status()).isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT.value()));
         }
 
         @Test
@@ -309,9 +309,9 @@ class FeltControllerIntegrationTest {
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(dto)
                     .exchange()
-                    .expectStatus().isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY)
+                    .expectStatus().isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT)
                     .expectBody(ErrorResponse.class)
-                    .value(err -> assertThat(err.status()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY.value()));
+                    .value(err -> assertThat(err.status()).isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT.value()));
         }
     }
 
@@ -511,9 +511,9 @@ class FeltControllerIntegrationTest {
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(new UpdateFeltDto(null, null, null, null, null, null, null, 99999L))
                     .exchange()
-                    .expectStatus().isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY)
+                    .expectStatus().isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT)
                     .expectBody(ErrorResponse.class)
-                    .value(err -> assertThat(err.status()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY.value()));
+                    .value(err -> assertThat(err.status()).isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT.value()));
         }
 
         @Test
@@ -525,9 +525,9 @@ class FeltControllerIntegrationTest {
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(new UpdateFeltDto(null, null, null, null, null, null, 99999L, null))
                     .exchange()
-                    .expectStatus().isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY)
+                    .expectStatus().isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT)
                     .expectBody(ErrorResponse.class)
-                    .value(err -> assertThat(err.status()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY.value()));
+                    .value(err -> assertThat(err.status()).isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT.value()));
         }
 
         @Test

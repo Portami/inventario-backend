@@ -1,17 +1,18 @@
 package ch.portami.inventorybackend.core.exceptions;
 
-import java.util.stream.Collectors;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.ErrorResponseException;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 /**
@@ -32,6 +33,19 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return buildProblemDetail(HttpStatus.UNPROCESSABLE_CONTENT, "A referenced id does not exit", ex);
     }
 
+    @ExceptionHandler(BusinessRuleViolationException.class)
+    public ProblemDetail handleBusinessRuleViolation(BusinessRuleViolationException ex) {
+        return buildProblemDetail(HttpStatus.CONFLICT, "Business rule violated", ex);
+    }
+
+    @ExceptionHandler(ResourceSpecificException.class)
+    public ProblemDetail handleResourceSpecificException(ResourceSpecificException ex) {
+        log.warn("ResourceSpecificException reached fallback handler. A specific @ExceptionHandler should have handled this exception: [{}] {}",
+                ex.getClass().getSimpleName(), ex.getMessage(), ex);
+
+        return buildProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, "Unhandled resource-specific exception", ex);
+    }
+
     private ProblemDetail buildProblemDetail(HttpStatus httpStatus, String title, ResourceSpecificException ex) {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(httpStatus, ex.getMessage());
         pd.setTitle(title);
@@ -42,88 +56,45 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return pd;
     }
 
-    //OLD ------------------------------------------------------------------------------------------------------------------------------------------------
-
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException ex) {
-        String message = ex.getBindingResult()
-                           .getFieldErrors()
-                           .stream()
-                           .map(fe -> "'%s' %s".formatted(fe.getField(), fe.getDefaultMessage()))
-                           .collect(Collectors.joining("; "));
-
-        return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body(ErrorResponse.of(HttpStatus.BAD_REQUEST.value(), message));
-    }
-
-    // Handles ResponseStatusException thrown by services (e.g. NOT_FOUND with a detail message).
-    // Spring picks this over the ErrorResponseException handler below because it is more specific.
-    @ExceptionHandler(ResponseStatusException.class)
-    public ResponseEntity<ErrorResponse> handleResponseStatus(ResponseStatusException ex) {
-        int status = ex.getStatusCode()
-                       .value();
-        String message = ex.getReason() != null ? ex.getReason() : reasonPhrase(status);
-
-        return ResponseEntity
-                .status(ex.getStatusCode())
-                .body(ErrorResponse.of(status, message));
-    }
-
-    // Handles framework exceptions such as NoResourceFoundException (404 for unknown routes)
-    // and MethodNotAllowedException (405), which extend ErrorResponseException but NOT
-    // ResponseStatusException.
-    @ExceptionHandler(ErrorResponseException.class)
-    public ResponseEntity<ErrorResponse> handleErrorResponse(ErrorResponseException ex) {
-        int status = ex.getStatusCode()
-                       .value();
-
-        return ResponseEntity
-                .status(ex.getStatusCode())
-                .body(ErrorResponse.of(status, reasonPhrase(status)));
-    }
-
     @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<ErrorResponse> handleDataIntegrity(DataIntegrityViolationException ex) {
-        return ResponseEntity
-                .status(HttpStatus.CONFLICT)
-                .body(ErrorResponse.of(HttpStatus.CONFLICT.value(),
-                        "Cannot delete: resource is still referenced by other inventory items"));
+    public ProblemDetail handleDataIntegrity(DataIntegrityViolationException ex) {
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+        pd.setTitle("Cannot delete: resource is still referenced by other inventory items");
+        return pd;
     }
 
-    @ExceptionHandler(BusinessRuleViolationException.class)
-    public ResponseEntity<ErrorResponse> handleBusinessRuleViolation(BusinessRuleViolationException ex) {
-        return ResponseEntity
-                .status(HttpStatus.CONFLICT)
-                .body(ErrorResponse.of(HttpStatus.CONFLICT.value(), ex.getMessage()));
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ProblemDetail handleConstraintViolation(ConstraintViolationException ex) {
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        pd.setTitle("Validation failed");
+
+        List<Map<String, Object>> violations = ex.getConstraintViolations()
+                                                 .stream()
+                                                 .map(GlobalExceptionHandler::toProblemDetailErrorFormat)
+                                                 .toList();
+
+        pd.setProperty("errors", violations);
+
+        return pd;
     }
 
-    @ExceptionHandler(InvalidInputException.class)
-    public ResponseEntity<ErrorResponse> handleInvalidInput(InvalidInputException ex) {
-        return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body(ErrorResponse.of(HttpStatus.BAD_REQUEST.value(), ex.getMessage()));
-    }
+    private static @NonNull Map<String, Object> toProblemDetailErrorFormat(ConstraintViolation<?> constraintViolation) {
+        Map<String, Object> map = new HashMap<>();
 
-    @ExceptionHandler(ResourceSpecificException.class)
-    public ResponseEntity<ErrorResponse> handleNotFound(ResourceSpecificException ex) {
-        return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(ErrorResponse.of(HttpStatus.NOT_FOUND.value(), ex.getMessage()));
+        map.put("field", constraintViolation.getPropertyPath().toString());
+        map.put("rejected", constraintViolation.getInvalidValue());
+        map.put("message", constraintViolation.getMessage());
+
+        return map;
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGeneric(Exception ex) {
-        log.error("Unhandled exception", ex);
-        return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ErrorResponse.of(
-                        HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                        "An unexpected error occurred"));
-    }
+    public ProblemDetail handleGeneric(Exception ex) {
+        log.error("Exception reached fallback handler. A specific @ExceptionHandler should have handled this exception: [{}] {}",
+                ex.getClass().getName(), ex.getMessage(), ex);
 
-    private static String reasonPhrase(int status) {
-        HttpStatus resolved = HttpStatus.resolve(status);
-        return resolved != null ? resolved.getReasonPhrase() : String.valueOf(status);
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred");
+        pd.setTitle("Unhandled exception");
+        return pd;
     }
 }

@@ -8,14 +8,33 @@ public class BarcodeCodeValidator implements ConstraintValidator<ValidBarcodeCod
 
     @Override
     public boolean isValid(BarcodeCode barcodeCode, ConstraintValidatorContext context) {
-        if (barcodeCode == null || barcodeCode.value() == null || barcodeCode.value().isBlank()) {
+        if (barcodeCode == null || barcodeCode.value() == null) {
+            addViolation(context, "Barcode must not be null");
+            return false;
+        }
+
+        if (barcodeCode.value().isBlank()) {
+            addViolation(context, "Barcode must not be blank");
             return false;
         }
 
         try {
-            return Long.parseLong(barcodeCode.value()) > 0;
+            long parsed = Long.parseLong(barcodeCode.value());
+            if (parsed <= 0) {
+                addViolation(context, "Barcode must be a positive number");
+                return false;
+            }
         } catch (NumberFormatException _) {
+            addViolation(context, "Barcode must be numeric");
             return false;
         }
+
+        return true;
+    }
+
+    private void addViolation(ConstraintValidatorContext context, String message) {
+        context.disableDefaultConstraintViolation();
+        context.buildConstraintViolationWithTemplate(message)
+               .addConstraintViolation();
     }
 }
