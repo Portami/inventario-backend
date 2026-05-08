@@ -1,7 +1,7 @@
 package ch.portami.inventorybackend.api;
 
 import ch.portami.inventorybackend.core.storage.entity.Storage;
-import ch.portami.inventorybackend.core.exceptions.ErrorResponse;
+import org.springframework.http.ProblemDetail;
 import ch.portami.inventorybackend.core.storage.repository.StorageRepository;
 import ch.portami.inventorybackend.felt.dto.CreateFeltDto;
 import ch.portami.inventorybackend.felt.dto.CreateFeltRollDto;
@@ -148,8 +148,8 @@ class FeltRollControllerIntegrationTest {
             restTestClient.get().uri("/api/felts/99999/rolls")
                     .exchange()
                     .expectStatus().isNotFound()
-                    .expectBody(ErrorResponse.class)
-                    .value(err -> assertThat(err.status()).isEqualTo(HttpStatus.NOT_FOUND.value()));
+                    .expectBody(ProblemDetail.class)
+                    .value(err -> assertThat(err.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value()));
         }
     }
 
@@ -208,8 +208,8 @@ class FeltRollControllerIntegrationTest {
                     .body(new CreateFeltRollDto(99999L, 10.0, 1.5, null, null))
                     .exchange()
                     .expectStatus().isNotFound()
-                    .expectBody(ErrorResponse.class)
-                    .value(err -> assertThat(err.status()).isEqualTo(HttpStatus.NOT_FOUND.value()));
+                    .expectBody(ProblemDetail.class)
+                    .value(err -> assertThat(err.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value()));
         }
 
         @Test
@@ -220,8 +220,8 @@ class FeltRollControllerIntegrationTest {
                     .body(new CreateFeltRollDto(null, 10.0, 1.5, null, null))
                     .exchange()
                     .expectStatus().isBadRequest()
-                    .expectBody(ErrorResponse.class)
-                    .value(err -> assertThat(err.message()).contains("feltId"));
+                    .expectBody(ProblemDetail.class)
+                    .value(err -> assertThat(err.getDetail()).contains("feltId"));
         }
 
         @Test
@@ -232,8 +232,8 @@ class FeltRollControllerIntegrationTest {
                     .body(new CreateFeltRollDto(feltId, null, 1.5, null, null))
                     .exchange()
                     .expectStatus().isBadRequest()
-                    .expectBody(ErrorResponse.class)
-                    .value(err -> assertThat(err.message()).contains("length"));
+                    .expectBody(ProblemDetail.class)
+                    .value(err -> assertThat(err.getDetail()).contains("length"));
         }
 
         @Test
@@ -244,8 +244,8 @@ class FeltRollControllerIntegrationTest {
                     .body(new CreateFeltRollDto(feltId, 10.0, null, null, null))
                     .exchange()
                     .expectStatus().isBadRequest()
-                    .expectBody(ErrorResponse.class)
-                    .value(err -> assertThat(err.message()).contains("width"));
+                    .expectBody(ProblemDetail.class)
+                    .value(err -> assertThat(err.getDetail()).contains("width"));
         }
 
         @Test
@@ -256,8 +256,8 @@ class FeltRollControllerIntegrationTest {
                     .body(new CreateFeltRollDto(feltId, -5.0, 1.5, null, null))
                     .exchange()
                     .expectStatus().isBadRequest()
-                    .expectBody(ErrorResponse.class)
-                    .value(err -> assertThat(err.message()).contains("length"));
+                    .expectBody(ProblemDetail.class)
+                    .value(err -> assertThat(err.getDetail()).contains("length"));
         }
     }
 
@@ -294,8 +294,8 @@ class FeltRollControllerIntegrationTest {
             restTestClient.get().uri("/api/rolls/99999")
                     .exchange()
                     .expectStatus().isNotFound()
-                    .expectBody(ErrorResponse.class)
-                    .value(err -> assertThat(err.status()).isEqualTo(HttpStatus.NOT_FOUND.value()));
+                    .expectBody(ProblemDetail.class)
+                    .value(err -> assertThat(err.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value()));
         }
     }
 
@@ -369,8 +369,8 @@ class FeltRollControllerIntegrationTest {
                     .body(new UpdateFeltRollDto(10.0, 1.5, null, null))
                     .exchange()
                     .expectStatus().isNotFound()
-                    .expectBody(ErrorResponse.class)
-                    .value(err -> assertThat(err.status()).isEqualTo(HttpStatus.NOT_FOUND.value()));
+                    .expectBody(ProblemDetail.class)
+                    .value(err -> assertThat(err.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value()));
         }
     }
 
@@ -400,8 +400,8 @@ class FeltRollControllerIntegrationTest {
             restTestClient.delete().uri("/api/rolls/99999")
                     .exchange()
                     .expectStatus().isNotFound()
-                    .expectBody(ErrorResponse.class)
-                    .value(err -> assertThat(err.status()).isEqualTo(HttpStatus.NOT_FOUND.value()));
+                    .expectBody(ProblemDetail.class)
+                    .value(err -> assertThat(err.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value()));
         }
     }
 }

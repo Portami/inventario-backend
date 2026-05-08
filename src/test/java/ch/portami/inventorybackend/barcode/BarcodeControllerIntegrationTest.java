@@ -3,7 +3,7 @@ package ch.portami.inventorybackend.barcode;
 import ch.portami.inventorybackend.barcode.dto.BarcodeLookupDto;
 import ch.portami.inventorybackend.barcode.entity.Barcode;
 import ch.portami.inventorybackend.barcode.repository.BarcodeRepository;
-import ch.portami.inventorybackend.core.exceptions.ErrorResponse;
+import org.springframework.http.ProblemDetail;
 import ch.portami.inventorybackend.felt.dto.CreateFeltDto;
 import ch.portami.inventorybackend.felt.dto.CreateFeltRollDto;
 import ch.portami.inventorybackend.felt.dto.FeltDto;
@@ -195,10 +195,10 @@ class BarcodeControllerIntegrationTest {
             restTestClient.get().uri("/api/barcodes/{code}", 99999L)
                     .exchange()
                     .expectStatus().isNotFound()
-                    .expectBody(ErrorResponse.class)
+                    .expectBody(ProblemDetail.class)
                     .value(err -> {
-                        assertThat(err.status()).isEqualTo(HttpStatus.NOT_FOUND.value());
-                        assertThat(err.message()).isEqualTo("Barcode not found");
+                        assertThat(err.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value());
+                        assertThat(err.getDetail()).isEqualTo("Barcode not found");
                     });
         }
 
@@ -218,8 +218,8 @@ class BarcodeControllerIntegrationTest {
             restTestClient.get().uri("/api/barcodes/{code}", seeded.code())
                     .exchange()
                     .expectStatus().isNotFound()
-                    .expectBody(ErrorResponse.class)
-                    .value(err -> assertThat(err.message()).isEqualTo("Barcode not found"));
+                    .expectBody(ProblemDetail.class)
+                    .value(err -> assertThat(err.getDetail()).isEqualTo("Barcode not found"));
         }
     }
 
@@ -263,10 +263,10 @@ class BarcodeControllerIntegrationTest {
             restTestClient.get().uri("/api/barcodes/{code}", code)
                     .exchange()
                     .expectStatus().isBadRequest()
-                    .expectBody(ErrorResponse.class)
+                    .expectBody(ProblemDetail.class)
                     .value(err -> {
-                        assertThat(err.status()).isEqualTo(HttpStatus.BAD_REQUEST.value());
-                        assertThat(err.message()).isEqualTo(expectedMessage);
+                        assertThat(err.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+                        assertThat(err.getDetail()).isEqualTo(expectedMessage);
                     });
         }
     }
