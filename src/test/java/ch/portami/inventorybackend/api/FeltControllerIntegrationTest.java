@@ -1,6 +1,6 @@
 package ch.portami.inventorybackend.api;
 
-import ch.portami.inventorybackend.core.exceptions.ErrorResponse;
+import org.springframework.http.ProblemDetail;
 import ch.portami.inventorybackend.felt.dto.CreateFeltDto;
 import ch.portami.inventorybackend.felt.dto.FeltDto;
 import ch.portami.inventorybackend.felt.dto.UpdateFeltDto;
@@ -162,8 +162,8 @@ class FeltControllerIntegrationTest {
             restTestClient.get().uri("/api/felts/{id}", 99999)
                     .exchange()
                     .expectStatus().isNotFound()
-                    .expectBody(ErrorResponse.class)
-                    .value(err -> assertThat(err.status()).isEqualTo(HttpStatus.NOT_FOUND.value()));
+                    .expectBody(ProblemDetail.class)
+                    .value(err -> assertThat(err.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value()));
         }
     }
 
@@ -274,13 +274,13 @@ class FeltControllerIntegrationTest {
                     .body(invalid)
                     .exchange()
                     .expectStatus().isBadRequest()
-                    .expectBody(ErrorResponse.class)
-                    .value(err -> assertThat(err.message()).contains("color"));
+                    .expectBody(ProblemDetail.class)
+                    .value(err -> assertThat(err.getDetail()).contains("color"));
         }
 
         @Test
-        @DisplayName("returns 404 when feltTypeId does not exist")
-        void returns404ForUnknownFeltType() {
+        @DisplayName("returns 422 when feltTypeId does not exist")
+        void returns422ForUnknownFeltType() {
             var dto = new CreateFeltDto(
                     "Red", "Supplier Red",
                     2.0, 300.0, new BigDecimal("12.50"),
@@ -291,14 +291,14 @@ class FeltControllerIntegrationTest {
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(dto)
                     .exchange()
-                    .expectStatus().isNotFound()
-                    .expectBody(ErrorResponse.class)
-                    .value(err -> assertThat(err.status()).isEqualTo(HttpStatus.NOT_FOUND.value()));
+                    .expectStatus().isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT)
+                    .expectBody(ProblemDetail.class)
+                    .value(err -> assertThat(err.getStatus()).isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT.value()));
         }
 
         @Test
-        @DisplayName("returns 404 when supplier does not exist")
-        void returns404ForUnknownSupplier() {
+        @DisplayName("returns 422 when supplier does not exist")
+        void returns422ForUnknownSupplier() {
             var dto = new CreateFeltDto(
                     "Red", "Supplier Red",
                     2.0, 300.0, new BigDecimal("12.50"),
@@ -309,9 +309,9 @@ class FeltControllerIntegrationTest {
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(dto)
                     .exchange()
-                    .expectStatus().isNotFound()
-                    .expectBody(ErrorResponse.class)
-                    .value(err -> assertThat(err.status()).isEqualTo(HttpStatus.NOT_FOUND.value()));
+                    .expectStatus().isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT)
+                    .expectBody(ProblemDetail.class)
+                    .value(err -> assertThat(err.getStatus()).isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT.value()));
         }
     }
 
@@ -498,36 +498,36 @@ class FeltControllerIntegrationTest {
                     .body(new UpdateFeltDto(null, null, null, null, null, null, null, null))
                     .exchange()
                     .expectStatus().isNotFound()
-                    .expectBody(ErrorResponse.class)
-                    .value(err -> assertThat(err.status()).isEqualTo(HttpStatus.NOT_FOUND.value()));
+                    .expectBody(ProblemDetail.class)
+                    .value(err -> assertThat(err.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value()));
         }
 
         @Test
-        @DisplayName("returns 404 when feltTypeId does not exist")
-        void returns404ForUnknownFeltType() {
+        @DisplayName("returns 422 when feltTypeId does not exist")
+        void returns422ForUnknownFeltType() {
             FeltDto created = postFelt(validCreate());
 
             restTestClient.patch().uri("/api/felts/{id}", created.id())
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(new UpdateFeltDto(null, null, null, null, null, null, null, 99999L))
                     .exchange()
-                    .expectStatus().isNotFound()
-                    .expectBody(ErrorResponse.class)
-                    .value(err -> assertThat(err.status()).isEqualTo(HttpStatus.NOT_FOUND.value()));
+                    .expectStatus().isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT)
+                    .expectBody(ProblemDetail.class)
+                    .value(err -> assertThat(err.getStatus()).isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT.value()));
         }
 
         @Test
-        @DisplayName("returns 404 when supplier does not exist")
-        void returns404ForUnknownSupplier() {
+        @DisplayName("returns 422 when supplier does not exist")
+        void returns422ForUnknownSupplier() {
             FeltDto created = postFelt(validCreate());
 
             restTestClient.patch().uri("/api/felts/{id}", created.id())
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(new UpdateFeltDto(null, null, null, null, null, null, 99999L, null))
                     .exchange()
-                    .expectStatus().isNotFound()
-                    .expectBody(ErrorResponse.class)
-                    .value(err -> assertThat(err.status()).isEqualTo(HttpStatus.NOT_FOUND.value()));
+                    .expectStatus().isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT)
+                    .expectBody(ProblemDetail.class)
+                    .value(err -> assertThat(err.getStatus()).isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT.value()));
         }
 
         @Test
@@ -657,8 +657,8 @@ class FeltControllerIntegrationTest {
                     .body(new UpdateFeltDto(null, null, -1.0, null, null, null, null, null))
                     .exchange()
                     .expectStatus().isBadRequest()
-                    .expectBody(ErrorResponse.class)
-                    .value(err -> assertThat(err.message()).contains("thickness"));
+                    .expectBody(ProblemDetail.class)
+                    .value(err -> assertThat(err.getDetail()).contains("thickness"));
         }
     }
 
@@ -725,8 +725,8 @@ class FeltControllerIntegrationTest {
             restTestClient.delete().uri("/api/felts/{id}", 99999)
                     .exchange()
                     .expectStatus().isNotFound()
-                    .expectBody(ErrorResponse.class)
-                    .value(err -> assertThat(err.status()).isEqualTo(HttpStatus.NOT_FOUND.value()));
+                    .expectBody(ProblemDetail.class)
+                    .value(err -> assertThat(err.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value()));
         }
     }
 }

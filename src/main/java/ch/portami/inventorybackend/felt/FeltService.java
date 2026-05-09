@@ -8,18 +8,19 @@ import ch.portami.inventorybackend.felt.entity.FeltColorVariant;
 import ch.portami.inventorybackend.felt.entity.FeltType;
 import ch.portami.inventorybackend.felt.entity.FeltVariant;
 import ch.portami.inventorybackend.felt.entity.Supplier;
+import ch.portami.inventorybackend.felt.exception.FeltNotFoundException;
 import ch.portami.inventorybackend.felt.repository.FeltColorVariantRepository;
 import ch.portami.inventorybackend.felt.repository.FeltRepository;
 import ch.portami.inventorybackend.felt.repository.FeltTypeRepository;
 import ch.portami.inventorybackend.felt.repository.FeltVariantRepository;
 import ch.portami.inventorybackend.felt.repository.SupplierRepository;
+import ch.portami.inventorybackend.felt.exception.InvalidFeltTypeReferenceException;
+import ch.portami.inventorybackend.felt.exception.InvalidSupplierReferenceException;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @Transactional(readOnly = true)
@@ -57,24 +58,18 @@ public class FeltService {
         return feltColorVariantRepo
             .findById(id)
             .map(this::toDto)
-            .orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Felt not found"))
-            ;
+            .orElseThrow(() -> new FeltNotFoundException(id));
     }
 
     @Transactional
     public FeltDto create(CreateFeltDto dto) {
         FeltType feltType = feltTypeRepo
             .findById(dto.feltTypeId())
-            .orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "FeltType not found")
-            );
+            .orElseThrow(() -> new InvalidFeltTypeReferenceException(dto.feltTypeId()));
 
         Supplier supplier = supplierRepo
             .findById(dto.supplierId())
-            .orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Supplier not found")
-            );
+            .orElseThrow(() -> new InvalidSupplierReferenceException(dto.supplierId()));
 
         Felt felt = feltRepo
             .findByFeltTypeAndSupplierAndArticleNumber(feltType, supplier, dto.articleNumber())
@@ -99,9 +94,7 @@ public class FeltService {
     public FeltDto update(Long id, UpdateFeltDto dto) {
         FeltColorVariant feltColorVariant = feltColorVariantRepo
             .findById(id)
-            .orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Felt not found")
-            );
+            .orElseThrow(() -> new FeltNotFoundException(id));
 
         if (dto.color() != null) {
             feltColorVariant.setColor(dto.color());
@@ -119,9 +112,7 @@ public class FeltService {
     public void delete(Long id) {
         FeltColorVariant colorVariant = feltColorVariantRepo
             .findById(id)
-            .orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Felt not found")
-            );
+            .orElseThrow(() -> new FeltNotFoundException(id));
 
         FeltVariant variant = colorVariant.getFeltVariant();
         Felt felt = variant.getFelt();
@@ -162,14 +153,14 @@ public class FeltService {
         if (dto.feltTypeId() != null) { // only update if not null
             targetType = feltTypeRepo
                 .findById(dto.feltTypeId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "FeltType not found"));
+                .orElseThrow(() -> new InvalidFeltTypeReferenceException(dto.feltTypeId()));
         }
 
         Supplier targetSupplier = currentFelt.getSupplier();
         if (dto.supplierId() != null) { // only update if not null
             targetSupplier = supplierRepo
                 .findById(dto.supplierId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Supplier not found"));
+                .orElseThrow(() -> new InvalidSupplierReferenceException(dto.supplierId()));
         }
 
         updateFeltAndVariant(dto, colorVariant, currentFelt, variant, targetType, targetSupplier);
