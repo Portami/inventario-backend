@@ -55,7 +55,6 @@ public class ProductVariant {
     public Product getProduct() { return product; }
     public void setProduct(Product product) { this.product = product; }
 
-    // Was missing — `name` is nullable=false, inserts would have failed.
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 
