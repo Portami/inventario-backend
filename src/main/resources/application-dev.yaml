@@ -1,3 +1,10 @@
+spring:
+  sql:
+    init:
+      mode: always
+  jpa:
+    defer-datasource-initialization: true
+
 springdoc:
   api-docs:
     enabled: true
