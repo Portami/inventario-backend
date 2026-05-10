@@ -18,6 +18,9 @@ import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Service for managing product inventory across different storage locations.
+ */
 @Service
 public class ProductInventoryService {
 
@@ -26,6 +29,16 @@ public class ProductInventoryService {
     private final StorageRepository storageRepository;
     private final ProductInventoryMapper productInventoryMapper;
 
+    /**
+     * Creates a new ProductInventoryService with the given dependencies.
+     *
+     * @param productInventoryRepository the repository for accessing product inventory data
+     * @param productVariantRepository   the repository for accessing product variant data, needed for resolving product
+     *                                   variant references
+     * @param storageRepository          the repository for accessing storage data, needed for resolving storage
+     *                                   references
+     * @param productInventoryMapper     the mapper for converting between ProductInventory entities and DTOs
+     */
     public ProductInventoryService(ProductInventoryRepository productInventoryRepository,
             ProductVariantRepository productVariantRepository, StorageRepository storageRepository,
             ProductInventoryMapper productInventoryMapper) {
@@ -35,6 +48,20 @@ public class ProductInventoryService {
         this.productInventoryMapper = productInventoryMapper;
     }
 
+    /**
+     * Applies a list of inventory changes atomically, which can include both additions and removals of inventory for
+     * specific product variants and storage locations.
+     *
+     * @param inventoryChanges a list of inventory changes to apply
+     * @return a list of DTOs representing the updated inventory entries after applying the changes. They are returned
+     * in the same order as in the input list and multiple changes for the same product variant and storage location are
+     * returned as separate DTOs.
+     * @throws InvalidProductVariantReferenceException if any of the changes reference a product variant that does not
+     *                                                 exist
+     * @throws InvalidStorageReferenceException        if any of the changes reference a storage location that does not
+     *                                                 exist
+     * @throws NotEnoughInventoryException             if any of the changes would result in negative inventory
+     */
     @Transactional
     public List<ProductInventoryDto> changeInventory(List<UpdateProductInventoryDto> inventoryChanges) {
 
