@@ -1,6 +1,5 @@
 package ch.portami.inventorybackend.felt.api;
 
-import ch.portami.inventorybackend.felt.FeltRollService;
 import ch.portami.inventorybackend.felt.FeltService;
 import ch.portami.inventorybackend.felt.dto.CreateFeltDto;
 import ch.portami.inventorybackend.felt.dto.FeltDto;
@@ -29,11 +28,9 @@ import org.springframework.web.bind.annotation.RestController;
 public class FeltController {
 
     private final FeltService feltService;
-    private final FeltRollService rollService;
 
-    public FeltController(FeltService feltService, FeltRollService rollService) {
+    public FeltController(FeltService feltService) {
         this.feltService = feltService;
-        this.rollService = rollService;
     }
 
     @Operation(summary = "List all felts")
@@ -90,6 +87,6 @@ public class FeltController {
     @GetMapping("/{feltId}/rolls")
     public ResponseEntity<List<FeltRollDto>> getAll(
             @Parameter(description = "Felt (color variant) ID") @PathVariable Long feltId) {
-        return ResponseEntity.ok(rollService.findAllByFelt(feltId));
+        return ResponseEntity.ok(feltService.findAllByFelt(feltId));
     }
 }

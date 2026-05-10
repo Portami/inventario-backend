@@ -1,6 +1,6 @@
 package ch.portami.inventorybackend.felt.api;
 
-import ch.portami.inventorybackend.felt.FeltRollService;
+import ch.portami.inventorybackend.felt.FeltService;
 import ch.portami.inventorybackend.felt.dto.CreateFeltRollDto;
 import ch.portami.inventorybackend.felt.dto.FeltRollDto;
 import ch.portami.inventorybackend.felt.dto.UpdateFeltRollDto;
@@ -27,9 +27,9 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 public class RollController {
 
-    private final FeltRollService service;
+    private final FeltService service;
 
-    public RollController(FeltRollService service) {
+    public RollController(FeltService service) {
         this.service = service;
     }
 
@@ -39,7 +39,7 @@ public class RollController {
     @ApiResponse(responseCode = "404", description = "Felt, batch, or storage not found")
     @PostMapping
     public ResponseEntity<FeltRollDto> create(@RequestBody @Valid CreateFeltRollDto dto) {
-        FeltRollDto created = service.create(dto);
+        FeltRollDto created = service.createRoll(dto);
         URI location = URI.create("/api/rolls/" + created.id());
         return ResponseEntity.created(location)
                              .body(created);
@@ -50,7 +50,7 @@ public class RollController {
     @ApiResponse(responseCode = "404", description = "No roll exists with the given ID")
     @GetMapping("/{id}")
     public ResponseEntity<FeltRollDto> getById(@Parameter(description = "Roll ID") @PathVariable Long id) {
-        return ResponseEntity.ok(service.findById(id));
+        return ResponseEntity.ok(service.findRollById(id));
     }
 
     @Operation(summary = "Partially update a roll", description = "Omit any field to leave it unchanged. Null batch or storage preserves the existing assignment.")
@@ -60,7 +60,7 @@ public class RollController {
     @PatchMapping("/{id}")
     public ResponseEntity<FeltRollDto> update(@Parameter(description = "Roll ID") @PathVariable Long id,
             @RequestBody @Valid UpdateFeltRollDto dto) {
-        return ResponseEntity.ok(service.update(id, dto));
+        return ResponseEntity.ok(service.updateRoll(id, dto));
     }
 
     @Operation(summary = "Delete a roll")
@@ -68,7 +68,7 @@ public class RollController {
     @ApiResponse(responseCode = "404", description = "No roll exists with the given ID")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@Parameter(description = "Roll ID") @PathVariable Long id) {
-        service.delete(id);
+        service.deleteRoll(id);
         return ResponseEntity.noContent()
                              .build();
     }
