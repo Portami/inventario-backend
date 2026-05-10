@@ -22,6 +22,7 @@ import ch.portami.inventorybackend.product.repository.ProductVariantRepository;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -421,7 +422,7 @@ class ProductVariantControllerIntegrationTest {
             ProductInventoryDto inventoryRecord2 = body.inventory()
                                                        .get(1);
 
-            if (inventoryRecord1.storageId() == storageA.getId()) {
+            if (Objects.equals(inventoryRecord1.storageId(), storageA.getId())) {
                 assertThat(inventoryRecord1.storageName()).isEqualTo(storageA.getName());
                 assertThat(inventoryRecord1.quantity()).isEqualTo(100);
 
