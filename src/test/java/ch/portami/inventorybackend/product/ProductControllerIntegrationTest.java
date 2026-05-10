@@ -78,12 +78,14 @@ class ProductControllerIntegrationTest {
     }
 
     private Product createTestProduct() {
-        Product product = new Product(categoryRepository.findById(testCategory1Id).orElseThrow(), "Test Product");
+        Product product = new Product(categoryRepository.findById(testCategory1Id)
+                                                        .orElseThrow(), "Test Product");
         return productRepository.save(product);
     }
 
     private Product createTestProductWithAttributes() {
-        Product product = new Product(categoryRepository.findById(testCategory1Id).orElseThrow(), "Product with Attributes");
+        Product product = new Product(categoryRepository.findById(testCategory1Id)
+                                                        .orElseThrow(), "Product with Attributes");
         ProductAttribute attribute1 = new ProductAttribute(product, "Material");
         ProductAttribute attribute2 = new ProductAttribute(product, "Weight");
 
@@ -94,7 +96,8 @@ class ProductControllerIntegrationTest {
     }
 
     private Product createTestProductWithVariants() {
-        Product product = new Product(categoryRepository.findById(testCategory1Id).orElseThrow(), "Product with Variants");
+        Product product = new Product(categoryRepository.findById(testCategory1Id)
+                                                        .orElseThrow(), "Product with Variants");
 
         ProductAttribute attribute = new ProductAttribute(product, "Color");
         product.addProductAttribute(attribute);
@@ -124,17 +127,19 @@ class ProductControllerIntegrationTest {
             );
 
             ProductDto body = restTestClient.post()
-                    .uri(PRODUCTS_URL)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(createProductDto)
-                    .exchange()
-                    .expectStatus().isCreated()
-                    .returnResult(ProductDto.class)
-                    .getResponseBody();
+                                            .uri(PRODUCTS_URL)
+                                            .contentType(MediaType.APPLICATION_JSON)
+                                            .body(createProductDto)
+                                            .exchange()
+                                            .expectStatus()
+                                            .isCreated()
+                                            .returnResult(ProductDto.class)
+                                            .getResponseBody();
 
             assertThat(body).isNotNull();
             assertThat(body.name()).isEqualTo("Test Product");
-            assertThat(body.category().id()).isEqualTo(testCategory1Id);
+            assertThat(body.category()
+                           .id()).isEqualTo(testCategory1Id);
             assertThat(body.attributes()).isEmpty();
             assertThat(body.variants()).isEmpty();
             assertThat(body.id()).isGreaterThan(0);
@@ -154,17 +159,19 @@ class ProductControllerIntegrationTest {
             );
 
             ProductDto body = restTestClient.post()
-                    .uri(PRODUCTS_URL)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(createProductDto)
-                    .exchange()
-                    .expectStatus().isCreated()
-                    .returnResult(ProductDto.class)
-                    .getResponseBody();
+                                            .uri(PRODUCTS_URL)
+                                            .contentType(MediaType.APPLICATION_JSON)
+                                            .body(createProductDto)
+                                            .exchange()
+                                            .expectStatus()
+                                            .isCreated()
+                                            .returnResult(ProductDto.class)
+                                            .getResponseBody();
 
             assertThat(body).isNotNull();
             assertThat(body.attributes()).hasSize(2);
-            assertThat(body.attributes()).extracting(ProductAttributeDto::name).contains("Color", "Size");
+            assertThat(body.attributes()).extracting(ProductAttributeDto::name)
+                                         .contains("Color", "Size");
         }
 
         @Test
@@ -177,11 +184,12 @@ class ProductControllerIntegrationTest {
             );
 
             restTestClient.post()
-                    .uri(PRODUCTS_URL)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(createProductDto)
-                    .exchange()
-                    .expectStatus().isBadRequest();
+                          .uri(PRODUCTS_URL)
+                          .contentType(MediaType.APPLICATION_JSON)
+                          .body(createProductDto)
+                          .exchange()
+                          .expectStatus()
+                          .isBadRequest();
         }
 
         @Test
@@ -194,11 +202,12 @@ class ProductControllerIntegrationTest {
             );
 
             restTestClient.post()
-                    .uri(PRODUCTS_URL)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(createProductDto)
-                    .exchange()
-                    .expectStatus().isBadRequest();
+                          .uri(PRODUCTS_URL)
+                          .contentType(MediaType.APPLICATION_JSON)
+                          .body(createProductDto)
+                          .exchange()
+                          .expectStatus()
+                          .isBadRequest();
         }
 
         @Test
@@ -214,11 +223,12 @@ class ProductControllerIntegrationTest {
             );
 
             restTestClient.post()
-                    .uri(PRODUCTS_URL)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(createProductDto)
-                    .exchange()
-                    .expectStatus().isBadRequest();
+                          .uri(PRODUCTS_URL)
+                          .contentType(MediaType.APPLICATION_JSON)
+                          .body(createProductDto)
+                          .exchange()
+                          .expectStatus()
+                          .isBadRequest();
         }
 
         @Test
@@ -231,11 +241,12 @@ class ProductControllerIntegrationTest {
             );
 
             restTestClient.post()
-                    .uri(PRODUCTS_URL)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(createProductDto)
-                    .exchange()
-                    .expectStatus().isEqualTo(422);
+                          .uri(PRODUCTS_URL)
+                          .contentType(MediaType.APPLICATION_JSON)
+                          .body(createProductDto)
+                          .exchange()
+                          .expectStatus()
+                          .isEqualTo(422);
         }
 
     }
@@ -251,16 +262,18 @@ class ProductControllerIntegrationTest {
             Long productId = product.getId();
 
             ProductDto body = restTestClient.get()
-                    .uri(PRODUCTS_URL + "/{id}", productId)
-                    .exchange()
-                    .expectStatus().isOk()
-                    .returnResult(ProductDto.class)
-                    .getResponseBody();
+                                            .uri(PRODUCTS_URL + "/{id}", productId)
+                                            .exchange()
+                                            .expectStatus()
+                                            .isOk()
+                                            .returnResult(ProductDto.class)
+                                            .getResponseBody();
 
             assertThat(body).isNotNull();
             assertThat(body.id()).isEqualTo(productId);
             assertThat(body.name()).isEqualTo("Test Product");
-            assertThat(body.category().id()).isEqualTo(testCategory1Id);
+            assertThat(body.category()
+                           .id()).isEqualTo(testCategory1Id);
             assertThat(body.attributes()).isEmpty();
             assertThat(body.variants()).isEmpty();
         }
@@ -271,16 +284,18 @@ class ProductControllerIntegrationTest {
             Product product = createTestProductWithAttributes();
 
             ProductDto body = restTestClient.get()
-                    .uri(PRODUCTS_URL + "/{id}", product.getId())
-                    .exchange()
-                    .expectStatus().isOk()
-                    .returnResult(ProductDto.class)
-                    .getResponseBody();
+                                            .uri(PRODUCTS_URL + "/{id}", product.getId())
+                                            .exchange()
+                                            .expectStatus()
+                                            .isOk()
+                                            .returnResult(ProductDto.class)
+                                            .getResponseBody();
 
             assertThat(body).isNotNull();
             assertThat(body.id()).isEqualTo(product.getId());
             assertThat(body.attributes()).isNotEmpty();
-            assertThat(body.attributes()).extracting(ProductAttributeDto::name).contains("Material", "Weight");
+            assertThat(body.attributes()).extracting(ProductAttributeDto::name)
+                                         .contains("Material", "Weight");
         }
 
         @Test
@@ -289,25 +304,28 @@ class ProductControllerIntegrationTest {
             Product product = createTestProductWithVariants();
 
             ProductDto body = restTestClient.get()
-                    .uri(PRODUCTS_URL + "/{id}", product.getId())
-                    .exchange()
-                    .expectStatus().isOk()
-                    .returnResult(ProductDto.class)
-                    .getResponseBody();
+                                            .uri(PRODUCTS_URL + "/{id}", product.getId())
+                                            .exchange()
+                                            .expectStatus()
+                                            .isOk()
+                                            .returnResult(ProductDto.class)
+                                            .getResponseBody();
 
             assertThat(body).isNotNull();
             assertThat(body.id()).isEqualTo(product.getId());
             assertThat(body.variants()).hasSize(2);
-            assertThat(body.variants()).extracting(ProductVariantDto::name).contains("Red Variant", "Blue Variant");
+            assertThat(body.variants()).extracting(ProductVariantDto::name)
+                                       .contains("Red Variant", "Blue Variant");
         }
 
         @Test
         @DisplayName("Should return 404 when product does not exist")
         void testGetProductByIdNotFound() {
             restTestClient.get()
-                    .uri(PRODUCTS_URL + "/{id}", 99999L)
-                    .exchange()
-                    .expectStatus().isNotFound();
+                          .uri(PRODUCTS_URL + "/{id}", 99999L)
+                          .exchange()
+                          .expectStatus()
+                          .isNotFound();
         }
     }
 
@@ -319,11 +337,13 @@ class ProductControllerIntegrationTest {
         @DisplayName("Should return empty list when no products exist")
         void testGetAllProductsEmpty() {
             List<ProductDto> body = restTestClient.get()
-                    .uri(PRODUCTS_URL)
-                    .exchange()
-                    .expectStatus().isOk()
-                    .returnResult(new ParameterizedTypeReference<List<ProductDto>>() {})
-                    .getResponseBody();
+                                                  .uri(PRODUCTS_URL)
+                                                  .exchange()
+                                                  .expectStatus()
+                                                  .isOk()
+                                                  .returnResult(new ParameterizedTypeReference<List<ProductDto>>() {
+                                                  })
+                                                  .getResponseBody();
 
             assertThat(body).isEmpty();
         }
@@ -337,14 +357,17 @@ class ProductControllerIntegrationTest {
             productRepository.saveAll(List.of(product1, product2, product3));
 
             List<ProductDto> body = restTestClient.get()
-                    .uri(PRODUCTS_URL)
-                    .exchange()
-                    .expectStatus().isOk()
-                    .returnResult(new ParameterizedTypeReference<List<ProductDto>>() {})
-                    .getResponseBody();
+                                                  .uri(PRODUCTS_URL)
+                                                  .exchange()
+                                                  .expectStatus()
+                                                  .isOk()
+                                                  .returnResult(new ParameterizedTypeReference<List<ProductDto>>() {
+                                                  })
+                                                  .getResponseBody();
 
             assertThat(body).hasSize(3);
-            assertThat(body).extracting(ProductDto::name).contains("Test Product", "Product with Attributes", "Product with Variants");
+            assertThat(body).extracting(ProductDto::name)
+                            .contains("Test Product", "Product with Attributes", "Product with Variants");
         }
 
     }
@@ -371,13 +394,14 @@ class ProductControllerIntegrationTest {
             );
 
             ProductDto body = restTestClient.patch()
-                    .uri(PRODUCTS_URL + "/{id}", productId)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(updateProductDto)
-                    .exchange()
-                    .expectStatus().isOk()
-                    .returnResult(ProductDto.class)
-                    .getResponseBody();
+                                            .uri(PRODUCTS_URL + "/{id}", productId)
+                                            .contentType(MediaType.APPLICATION_JSON)
+                                            .body(updateProductDto)
+                                            .exchange()
+                                            .expectStatus()
+                                            .isOk()
+                                            .returnResult(ProductDto.class)
+                                            .getResponseBody();
 
             assertThat(body).isNotNull();
             assertThat(body.name()).isEqualTo("Updated Name");
@@ -394,16 +418,18 @@ class ProductControllerIntegrationTest {
             );
 
             ProductDto body = restTestClient.patch()
-                    .uri(PRODUCTS_URL + "/{id}", productId)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(updateProductDto)
-                    .exchange()
-                    .expectStatus().isOk()
-                    .returnResult(ProductDto.class)
-                    .getResponseBody();
+                                            .uri(PRODUCTS_URL + "/{id}", productId)
+                                            .contentType(MediaType.APPLICATION_JSON)
+                                            .body(updateProductDto)
+                                            .exchange()
+                                            .expectStatus()
+                                            .isOk()
+                                            .returnResult(ProductDto.class)
+                                            .getResponseBody();
 
             assertThat(body).isNotNull();
-            assertThat(body.category().id()).isEqualTo(testCategory2Id);
+            assertThat(body.category()
+                           .id()).isEqualTo(testCategory2Id);
         }
 
         @Test
@@ -416,17 +442,19 @@ class ProductControllerIntegrationTest {
             );
 
             ProductDto body = restTestClient.patch()
-                    .uri(PRODUCTS_URL + "/{id}", productId)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(updateProductDto)
-                    .exchange()
-                    .expectStatus().isOk()
-                    .returnResult(ProductDto.class)
-                    .getResponseBody();
+                                            .uri(PRODUCTS_URL + "/{id}", productId)
+                                            .contentType(MediaType.APPLICATION_JSON)
+                                            .body(updateProductDto)
+                                            .exchange()
+                                            .expectStatus()
+                                            .isOk()
+                                            .returnResult(ProductDto.class)
+                                            .getResponseBody();
 
             assertThat(body).isNotNull();
             assertThat(body.name()).isEqualTo("New Name");
-            assertThat(body.category().id()).isEqualTo(testCategory2Id);
+            assertThat(body.category()
+                           .id()).isEqualTo(testCategory2Id);
         }
 
         @Test
@@ -440,28 +468,35 @@ class ProductControllerIntegrationTest {
             );
 
             ProductDto updatedProduct = restTestClient.patch()
-                    .uri(PRODUCTS_URL + "/{id}", productId)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(updateDto)
-                    .exchange()
-                    .expectStatus().isOk()
-                    .returnResult(ProductDto.class)
-                    .getResponseBody();
+                                                      .uri(PRODUCTS_URL + "/{id}", productId)
+                                                      .contentType(MediaType.APPLICATION_JSON)
+                                                      .body(updateDto)
+                                                      .exchange()
+                                                      .expectStatus()
+                                                      .isOk()
+                                                      .returnResult(ProductDto.class)
+                                                      .getResponseBody();
 
             assertThat(updatedProduct).isNotNull();
             assertThat(updatedProduct.attributes()).hasSize(1);
-            assertThat(updatedProduct.attributes().getFirst().name()).isEqualTo("Size");
+            assertThat(updatedProduct.attributes()
+                                     .getFirst()
+                                     .name()).isEqualTo("Size");
         }
 
         @Test
         @DisplayName("Should update existing product attribute")
         void testUpdateProductExistingAttribute() {
             Product product = createTestProductWithAttributes();
-            ProductAttribute attributeToModify = product.getProductAttributes().getFirst();
-            ProductAttribute otherAttribute = product.getProductAttributes().getLast();
+            ProductAttribute attributeToModify = product.getProductAttributes()
+                                                        .getFirst();
+            ProductAttribute otherAttribute = product.getProductAttributes()
+                                                     .getLast();
 
-            ProductAttributeChangeDto attributeToModifyDto = new ProductAttributeChangeDto(attributeToModify.getId(), "Updated Attribute Name");
-            ProductAttributeChangeDto otherAttributeDto = new ProductAttributeChangeDto(otherAttribute.getId(), otherAttribute.getName());
+            ProductAttributeChangeDto attributeToModifyDto = new ProductAttributeChangeDto(attributeToModify.getId(),
+                    "Updated Attribute Name");
+            ProductAttributeChangeDto otherAttributeDto = new ProductAttributeChangeDto(otherAttribute.getId(),
+                    otherAttribute.getName());
             UpdateProductDto updateDto = new UpdateProductDto(
                     null,
                     null,
@@ -469,17 +504,19 @@ class ProductControllerIntegrationTest {
             );
 
             ProductDto updatedProduct = restTestClient.patch()
-                    .uri(PRODUCTS_URL + "/{id}", product.getId())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(updateDto)
-                    .exchange()
-                    .expectStatus().isOk()
-                    .returnResult(ProductDto.class)
-                    .getResponseBody();
+                                                      .uri(PRODUCTS_URL + "/{id}", product.getId())
+                                                      .contentType(MediaType.APPLICATION_JSON)
+                                                      .body(updateDto)
+                                                      .exchange()
+                                                      .expectStatus()
+                                                      .isOk()
+                                                      .returnResult(ProductDto.class)
+                                                      .getResponseBody();
 
             assertThat(updatedProduct).isNotNull();
             assertThat(updatedProduct.attributes()).hasSize(2);
-            assertThat(updatedProduct.attributes()).extracting(ProductAttributeDto::name).contains("Updated Attribute Name", otherAttribute.getName());
+            assertThat(updatedProduct.attributes()).extracting(ProductAttributeDto::name)
+                                                   .contains("Updated Attribute Name", otherAttribute.getName());
         }
 
         @Test
@@ -493,13 +530,14 @@ class ProductControllerIntegrationTest {
             );
 
             ProductDto updatedProduct = restTestClient.patch()
-                    .uri(PRODUCTS_URL + "/{id}", product.getId())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(updateDto)
-                    .exchange()
-                    .expectStatus().isOk()
-                    .returnResult(ProductDto.class)
-                    .getResponseBody();
+                                                      .uri(PRODUCTS_URL + "/{id}", product.getId())
+                                                      .contentType(MediaType.APPLICATION_JSON)
+                                                      .body(updateDto)
+                                                      .exchange()
+                                                      .expectStatus()
+                                                      .isOk()
+                                                      .returnResult(ProductDto.class)
+                                                      .getResponseBody();
 
             assertThat(updatedProduct).isNotNull();
             assertThat(updatedProduct.attributes()).isEmpty();
@@ -515,11 +553,12 @@ class ProductControllerIntegrationTest {
             );
 
             restTestClient.patch()
-                    .uri(PRODUCTS_URL + "/{id}", 99999L)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(updateProductDto)
-                    .exchange()
-                    .expectStatus().isNotFound();
+                          .uri(PRODUCTS_URL + "/{id}", 99999L)
+                          .contentType(MediaType.APPLICATION_JSON)
+                          .body(updateProductDto)
+                          .exchange()
+                          .expectStatus()
+                          .isNotFound();
         }
 
         @Test
@@ -532,11 +571,12 @@ class ProductControllerIntegrationTest {
             );
 
             restTestClient.patch()
-                    .uri(PRODUCTS_URL + "/{id}", productId)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(updateProductDto)
-                    .exchange()
-                    .expectStatus().isEqualTo(422);
+                          .uri(PRODUCTS_URL + "/{id}", productId)
+                          .contentType(MediaType.APPLICATION_JSON)
+                          .body(updateProductDto)
+                          .exchange()
+                          .expectStatus()
+                          .isEqualTo(422);
         }
 
     }
@@ -549,7 +589,8 @@ class ProductControllerIntegrationTest {
 
         @BeforeEach
         void setup() {
-            Product product = new Product(categoryRepository.findById(testCategory1Id).orElseThrow(), "Test Product");
+            Product product = new Product(categoryRepository.findById(testCategory1Id)
+                                                            .orElseThrow(), "Test Product");
             Product savedProduct = productRepository.save(product);
             productId = savedProduct.getId();
         }
@@ -558,9 +599,10 @@ class ProductControllerIntegrationTest {
         @DisplayName("Should delete product successfully")
         void testDeleteProductSuccess() {
             restTestClient.delete()
-                    .uri(PRODUCTS_URL + "/{id}", productId)
-                    .exchange()
-                    .expectStatus().isNoContent();
+                          .uri(PRODUCTS_URL + "/{id}", productId)
+                          .exchange()
+                          .expectStatus()
+                          .isNoContent();
 
             assertThat(productRepository.existsById(productId)).isFalse();
         }
@@ -569,9 +611,10 @@ class ProductControllerIntegrationTest {
         @DisplayName("Should do nothing when deleting non-existent product")
         void testDeleteProductNotFound() {
             restTestClient.delete()
-                    .uri(PRODUCTS_URL + "/{id}", 99999L)
-                    .exchange()
-                    .expectStatus().isNoContent();
+                          .uri(PRODUCTS_URL + "/{id}", 99999L)
+                          .exchange()
+                          .expectStatus()
+                          .isNoContent();
         }
 
     }

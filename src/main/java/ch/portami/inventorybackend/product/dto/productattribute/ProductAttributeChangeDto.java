@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotNull;
 public record ProductAttributeChangeDto(
         @Schema(description = "ID of the product attribute. Omit or set to null to create a new product attribute, provide an existing ID to update an existing product attribute.")
         Long id,
-        
+
         @Schema(description = "Name of the product attribute", example = "Color")
         @NotNull String name
 ) {

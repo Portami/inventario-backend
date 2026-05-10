@@ -71,13 +71,14 @@ class CategoryControllerIntegrationTest {
             CreateCategoryDto createCategoryDto = new CreateCategoryDto("Test Category");
 
             CategoryDto body = restTestClient.post()
-                    .uri(CATEGORIES_URL)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(createCategoryDto)
-                    .exchange()
-                    .expectStatus().isCreated()
-                    .returnResult(CategoryDto.class)
-                    .getResponseBody();
+                                             .uri(CATEGORIES_URL)
+                                             .contentType(MediaType.APPLICATION_JSON)
+                                             .body(createCategoryDto)
+                                             .exchange()
+                                             .expectStatus()
+                                             .isCreated()
+                                             .returnResult(CategoryDto.class)
+                                             .getResponseBody();
 
             assertThat(body).isNotNull();
             assertThat(body.name()).isEqualTo("Test Category");
@@ -90,11 +91,12 @@ class CategoryControllerIntegrationTest {
             CreateCategoryDto createCategoryDto = new CreateCategoryDto(null);
 
             restTestClient.post()
-                    .uri(CATEGORIES_URL)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(createCategoryDto)
-                    .exchange()
-                    .expectStatus().isBadRequest();
+                          .uri(CATEGORIES_URL)
+                          .contentType(MediaType.APPLICATION_JSON)
+                          .body(createCategoryDto)
+                          .exchange()
+                          .expectStatus()
+                          .isBadRequest();
         }
 
     }
@@ -110,11 +112,12 @@ class CategoryControllerIntegrationTest {
             Long categoryId = category.getId();
 
             CategoryDto body = restTestClient.get()
-                    .uri(CATEGORIES_URL + "/{id}", categoryId)
-                    .exchange()
-                    .expectStatus().isOk()
-                    .returnResult(CategoryDto.class)
-                    .getResponseBody();
+                                             .uri(CATEGORIES_URL + "/{id}", categoryId)
+                                             .exchange()
+                                             .expectStatus()
+                                             .isOk()
+                                             .returnResult(CategoryDto.class)
+                                             .getResponseBody();
 
             assertThat(body).isNotNull();
             assertThat(body.id()).isEqualTo(categoryId);
@@ -125,9 +128,10 @@ class CategoryControllerIntegrationTest {
         @DisplayName("Should return 404 when category does not exist")
         void testGetCategoryByIdNotFound() {
             restTestClient.get()
-                    .uri(CATEGORIES_URL + "/{id}", 99999L)
-                    .exchange()
-                    .expectStatus().isNotFound();
+                          .uri(CATEGORIES_URL + "/{id}", 99999L)
+                          .exchange()
+                          .expectStatus()
+                          .isNotFound();
         }
 
     }
@@ -140,11 +144,13 @@ class CategoryControllerIntegrationTest {
         @DisplayName("Should return empty list when no categories exist")
         void testGetAllCategoriesEmpty() {
             List<CategoryDto> body = restTestClient.get()
-                    .uri(CATEGORIES_URL)
-                    .exchange()
-                    .expectStatus().isOk()
-                    .returnResult(new ParameterizedTypeReference<List<CategoryDto>>() {})
-                    .getResponseBody();
+                                                   .uri(CATEGORIES_URL)
+                                                   .exchange()
+                                                   .expectStatus()
+                                                   .isOk()
+                                                   .returnResult(new ParameterizedTypeReference<List<CategoryDto>>() {
+                                                   })
+                                                   .getResponseBody();
 
             assertThat(body).isEmpty();
         }
@@ -157,14 +163,17 @@ class CategoryControllerIntegrationTest {
             createTestCategory("Category 3");
 
             List<CategoryDto> body = restTestClient.get()
-                    .uri(CATEGORIES_URL)
-                    .exchange()
-                    .expectStatus().isOk()
-                    .returnResult(new ParameterizedTypeReference<List<CategoryDto>>() {})
-                    .getResponseBody();
+                                                   .uri(CATEGORIES_URL)
+                                                   .exchange()
+                                                   .expectStatus()
+                                                   .isOk()
+                                                   .returnResult(new ParameterizedTypeReference<List<CategoryDto>>() {
+                                                   })
+                                                   .getResponseBody();
 
             assertThat(body).hasSize(3);
-            assertThat(body).extracting(CategoryDto::name).contains("Category 1", "Category 2", "Category 3");
+            assertThat(body).extracting(CategoryDto::name)
+                            .contains("Category 1", "Category 2", "Category 3");
         }
 
     }
@@ -187,13 +196,14 @@ class CategoryControllerIntegrationTest {
             UpdateCategoryDto updateCategoryDto = new UpdateCategoryDto("Updated Name");
 
             CategoryDto body = restTestClient.patch()
-                    .uri(CATEGORIES_URL + "/{id}", categoryId)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(updateCategoryDto)
-                    .exchange()
-                    .expectStatus().isOk()
-                    .returnResult(CategoryDto.class)
-                    .getResponseBody();
+                                             .uri(CATEGORIES_URL + "/{id}", categoryId)
+                                             .contentType(MediaType.APPLICATION_JSON)
+                                             .body(updateCategoryDto)
+                                             .exchange()
+                                             .expectStatus()
+                                             .isOk()
+                                             .returnResult(CategoryDto.class)
+                                             .getResponseBody();
 
             assertThat(body).isNotNull();
             assertThat(body.name()).isEqualTo("Updated Name");
@@ -206,13 +216,14 @@ class CategoryControllerIntegrationTest {
             UpdateCategoryDto updateCategoryDto = new UpdateCategoryDto(null);
 
             CategoryDto body = restTestClient.patch()
-                    .uri(CATEGORIES_URL + "/{id}", categoryId)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(updateCategoryDto)
-                    .exchange()
-                    .expectStatus().isOk()
-                    .returnResult(CategoryDto.class)
-                    .getResponseBody();
+                                             .uri(CATEGORIES_URL + "/{id}", categoryId)
+                                             .contentType(MediaType.APPLICATION_JSON)
+                                             .body(updateCategoryDto)
+                                             .exchange()
+                                             .expectStatus()
+                                             .isOk()
+                                             .returnResult(CategoryDto.class)
+                                             .getResponseBody();
 
             assertThat(body).isNotNull();
             assertThat(body.name()).isEqualTo("Original Name");
@@ -224,11 +235,12 @@ class CategoryControllerIntegrationTest {
             UpdateCategoryDto updateCategoryDto = new UpdateCategoryDto("Updated Name");
 
             restTestClient.patch()
-                    .uri(CATEGORIES_URL + "/{id}", 99999L)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(updateCategoryDto)
-                    .exchange()
-                    .expectStatus().isNotFound();
+                          .uri(CATEGORIES_URL + "/{id}", 99999L)
+                          .contentType(MediaType.APPLICATION_JSON)
+                          .body(updateCategoryDto)
+                          .exchange()
+                          .expectStatus()
+                          .isNotFound();
         }
 
     }
@@ -244,9 +256,10 @@ class CategoryControllerIntegrationTest {
             Long categoryId = category.getId();
 
             restTestClient.delete()
-                    .uri(CATEGORIES_URL + "/{id}", categoryId)
-                    .exchange()
-                    .expectStatus().isNoContent();
+                          .uri(CATEGORIES_URL + "/{id}", categoryId)
+                          .exchange()
+                          .expectStatus()
+                          .isNoContent();
 
             assertThat(categoryRepository.existsById(categoryId)).isFalse();
         }
@@ -255,9 +268,10 @@ class CategoryControllerIntegrationTest {
         @DisplayName("Should do nothing when deleting non-existent category")
         void testDeleteCategoryNotFound() {
             restTestClient.delete()
-                    .uri(CATEGORIES_URL + "/{id}", 99999L)
-                    .exchange()
-                    .expectStatus().isNoContent();
+                          .uri(CATEGORIES_URL + "/{id}", 99999L)
+                          .exchange()
+                          .expectStatus()
+                          .isNoContent();
         }
 
         @Test
@@ -274,8 +288,8 @@ class CategoryControllerIntegrationTest {
             assertThat(productRepository.existsById(productId)).isTrue();
 
             restTestClient.delete()
-                    .uri(CATEGORIES_URL + "/{id}", categoryId)
-                    .exchange();
+                          .uri(CATEGORIES_URL + "/{id}", categoryId)
+                          .exchange();
 
             assertThat(categoryRepository.existsById(categoryId)).isTrue();
             assertThat(productRepository.existsById(productId)).isTrue();

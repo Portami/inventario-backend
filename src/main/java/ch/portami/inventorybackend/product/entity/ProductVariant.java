@@ -42,7 +42,8 @@ public class ProductVariant {
     @OneToMany(mappedBy = "productVariant", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private final List<ProductInventory> productInventories = new ArrayList<>();
 
-    public ProductVariant() {}
+    public ProductVariant() {
+    }
 
     public ProductVariant(Product product, String name, BigDecimal price) {
         this.product = product;
@@ -50,18 +51,37 @@ public class ProductVariant {
         this.price = price;
     }
 
-    public Long getId() { return id; }
+    public Long getId() {
+        return id;
+    }
 
-    public Product getProduct() { return product; }
-    public void setProduct(Product product) { this.product = product; }
+    public Product getProduct() {
+        return product;
+    }
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public void setProduct(Product product) {
+        this.product = product;
+    }
 
-    public BigDecimal getPrice() { return price; }
-    public void setPrice(BigDecimal price) { this.price = price; }
+    public String getName() {
+        return name;
+    }
 
-    public List<ProductAttributeValue> getProductAttributeValues() { return productAttributeValues; }
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public BigDecimal getPrice() {
+        return price;
+    }
+
+    public void setPrice(BigDecimal price) {
+        this.price = price;
+    }
+
+    public List<ProductAttributeValue> getProductAttributeValues() {
+        return productAttributeValues;
+    }
 
     public Optional<ProductAttributeValue> getProductAttributeValueByAttributeId(Long attributeId) {
         return productAttributeValues.stream()
@@ -70,7 +90,9 @@ public class ProductVariant {
                                      .findFirst();
     }
 
-    public List<ProductInventory> getProductInventories() { return productInventories; }
+    public List<ProductInventory> getProductInventories() {
+        return productInventories;
+    }
 
     // --- Sync helpers ---------------------------------------------------
 
@@ -98,8 +120,12 @@ public class ProductVariant {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof ProductVariant that)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof ProductVariant that)) {
+            return false;
+        }
         return id != null && Objects.equals(id, that.id);
     }
 

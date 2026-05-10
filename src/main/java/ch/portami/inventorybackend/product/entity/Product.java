@@ -38,22 +38,37 @@ public class Product {
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private final List<ProductVariant> productVariants = new ArrayList<>();
 
-    public Product() {}
+    public Product() {
+    }
 
     public Product(Category category, String name) {
         this.category = category;
         this.name = name;
     }
 
-    public Long getId() { return id; }
+    public Long getId() {
+        return id;
+    }
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public String getName() {
+        return name;
+    }
 
-    public Category getCategory() { return category; }
-    public void setCategory(Category category) { this.category = category; }
+    public void setName(String name) {
+        this.name = name;
+    }
 
-    public List<ProductAttribute> getProductAttributes() { return productAttributes; }
+    public Category getCategory() {
+        return category;
+    }
+
+    public void setCategory(Category category) {
+        this.category = category;
+    }
+
+    public List<ProductAttribute> getProductAttributes() {
+        return productAttributes;
+    }
 
     public Optional<ProductAttribute> getProductAttributeById(Long attributeId) {
         return productAttributes.stream()
@@ -61,7 +76,9 @@ public class Product {
                                 .findFirst();
     }
 
-    public List<ProductVariant> getProductVariants() { return productVariants; }
+    public List<ProductVariant> getProductVariants() {
+        return productVariants;
+    }
 
     // --- Sync helpers ---------------------------------------------------
 
@@ -89,8 +106,12 @@ public class Product {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Product that)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Product that)) {
+            return false;
+        }
         return id != null && Objects.equals(id, that.id);
     }
 
