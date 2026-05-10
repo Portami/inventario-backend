@@ -42,7 +42,13 @@ public record FeltDto(
     Long feltTypeId,
 
     @Schema(description = "Felt type name (e.g. 'Wool', 'Synthetic').")
-    String feltTypeName
+    String feltTypeName,
+
+    @Schema(description = "Whether this roll is flagged as low on supply and needs reordering.")
+    boolean lowOnSupply,
+
+    @Schema(description = "Whether a reorder for this roll is already in process.")
+    boolean reordered
 ) {
 
 }

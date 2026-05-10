@@ -16,6 +16,8 @@ import ch.portami.inventorybackend.felt.repository.FeltVariantRepository;
 import ch.portami.inventorybackend.felt.repository.SupplierRepository;
 import ch.portami.inventorybackend.felt.exception.InvalidFeltTypeReferenceException;
 import ch.portami.inventorybackend.felt.exception.InvalidSupplierReferenceException;
+import ch.portami.inventorybackend.restocking.RestockingService;
+import ch.portami.inventorybackend.restocking.entity.Supply;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
@@ -31,61 +33,65 @@ public class FeltService {
     private final FeltVariantRepository feltVariantRepo;
     private final FeltColorVariantRepository feltColorVariantRepo;
     private final SupplierRepository supplierRepo;
+    private final RestockingService restockingService;
 
     public FeltService(
-        FeltTypeRepository feltTypeRepo,
-        FeltRepository feltRepo,
-        FeltVariantRepository feltVariantRepo,
-        FeltColorVariantRepository feltColorVariantRepo,
-        SupplierRepository supplierRepo
+            FeltTypeRepository feltTypeRepo,
+            FeltRepository feltRepo,
+            FeltVariantRepository feltVariantRepo,
+            FeltColorVariantRepository feltColorVariantRepo,
+            SupplierRepository supplierRepo, RestockingService restockingService
     ) {
         this.feltTypeRepo = feltTypeRepo;
         this.feltRepo = feltRepo;
         this.feltVariantRepo = feltVariantRepo;
         this.feltColorVariantRepo = feltColorVariantRepo;
         this.supplierRepo = supplierRepo;
+        this.restockingService = restockingService;
     }
 
     public List<FeltDto> findAll() {
         return feltColorVariantRepo
-            .findAll()
-            .stream()
-            .map(this::toDto)
-            .toList();
+                .findAll()
+                .stream()
+                .map(this::toDto)
+                .toList();
     }
 
     public FeltDto findById(Long id) {
         return feltColorVariantRepo
-            .findById(id)
-            .map(this::toDto)
-            .orElseThrow(() -> new FeltNotFoundException(id));
+                .findById(id)
+                .map(this::toDto)
+                .orElseThrow(() -> new FeltNotFoundException(id));
     }
 
     @Transactional
     public FeltDto create(CreateFeltDto dto) {
         FeltType feltType = feltTypeRepo
-            .findById(dto.feltTypeId())
-            .orElseThrow(() -> new InvalidFeltTypeReferenceException(dto.feltTypeId()));
+                .findById(dto.feltTypeId())
+                .orElseThrow(() -> new InvalidFeltTypeReferenceException(dto.feltTypeId()));
 
         Supplier supplier = supplierRepo
-            .findById(dto.supplierId())
-            .orElseThrow(() -> new InvalidSupplierReferenceException(dto.supplierId()));
+                .findById(dto.supplierId())
+                .orElseThrow(() -> new InvalidSupplierReferenceException(dto.supplierId()));
 
         Felt felt = feltRepo
-            .findByFeltTypeAndSupplierAndArticleNumber(feltType, supplier, dto.articleNumber())
-            .orElseGet(
-                () -> feltRepo.save(new Felt(feltType, supplier, dto.articleNumber()))
-            );
+                .findByFeltTypeAndSupplierAndArticleNumber(feltType, supplier, dto.articleNumber())
+                .orElseGet(
+                        () -> feltRepo.save(new Felt(feltType, supplier, dto.articleNumber()))
+                );
 
         FeltVariant feltVariant = feltVariantRepo
-            .findByFeltAndThicknessAndDensityAndPrice(felt, dto.thickness(), dto.density(), dto.price())
-            .orElseGet(
-                () -> feltVariantRepo.save(new FeltVariant(felt, dto.thickness(), dto.density(), dto.price()))
-            );
+                .findByFeltAndThicknessAndDensityAndPrice(felt, dto.thickness(), dto.density(), dto.price())
+                .orElseGet(
+                        () -> feltVariantRepo.save(new FeltVariant(felt, dto.thickness(), dto.density(), dto.price()))
+                );
 
         FeltColorVariant feltColorVariant = new FeltColorVariant(feltVariant, dto.color());
         feltColorVariant.setSupplierColor(dto.supplierColor());
         feltColorVariant = feltColorVariantRepo.save(feltColorVariant);
+
+        restockingService.createForFelt(feltColorVariant);
 
         return toDto(feltColorVariant);
     }
@@ -93,8 +99,8 @@ public class FeltService {
     @Transactional
     public FeltDto update(Long id, UpdateFeltDto dto) {
         FeltColorVariant feltColorVariant = feltColorVariantRepo
-            .findById(id)
-            .orElseThrow(() -> new FeltNotFoundException(id));
+                .findById(id)
+                .orElseThrow(() -> new FeltNotFoundException(id));
 
         if (dto.color() != null) {
             feltColorVariant.setColor(dto.color());
@@ -111,8 +117,8 @@ public class FeltService {
     @Transactional
     public void delete(Long id) {
         FeltColorVariant colorVariant = feltColorVariantRepo
-            .findById(id)
-            .orElseThrow(() -> new FeltNotFoundException(id));
+                .findById(id)
+                .orElseThrow(() -> new FeltNotFoundException(id));
 
         FeltVariant variant = colorVariant.getFeltVariant();
         Felt felt = variant.getFelt();
@@ -152,27 +158,27 @@ public class FeltService {
         FeltType targetType = currentFelt.getFeltType();
         if (dto.feltTypeId() != null) { // only update if not null
             targetType = feltTypeRepo
-                .findById(dto.feltTypeId())
-                .orElseThrow(() -> new InvalidFeltTypeReferenceException(dto.feltTypeId()));
+                    .findById(dto.feltTypeId())
+                    .orElseThrow(() -> new InvalidFeltTypeReferenceException(dto.feltTypeId()));
         }
 
         Supplier targetSupplier = currentFelt.getSupplier();
         if (dto.supplierId() != null) { // only update if not null
             targetSupplier = supplierRepo
-                .findById(dto.supplierId())
-                .orElseThrow(() -> new InvalidSupplierReferenceException(dto.supplierId()));
+                    .findById(dto.supplierId())
+                    .orElseThrow(() -> new InvalidSupplierReferenceException(dto.supplierId()));
         }
 
         updateFeltAndVariant(dto, colorVariant, currentFelt, variant, targetType, targetSupplier);
     }
 
     private void updateFeltAndVariant(
-        UpdateFeltDto dto,
-        FeltColorVariant colorVariant,
-        Felt currentFelt,
-        FeltVariant variant,
-        FeltType targetType,
-        Supplier targetSupplier
+            UpdateFeltDto dto,
+            FeltColorVariant colorVariant,
+            Felt currentFelt,
+            FeltVariant variant,
+            FeltType targetType,
+            Supplier targetSupplier
     ) {
         // we only update if the property is not null in the dto
         String targetArticle = dto.articleNumber() != null ? dto.articleNumber() : currentFelt.getArticleNumber();
@@ -192,8 +198,8 @@ public class FeltService {
         if (variantIsShared) {
             // Cannot mutate anything in-place — find-or-create at both levels.
             Felt targetFelt = feltChanged
-                ? resolveFelt(targetType, targetSupplier, targetArticle)
-                : currentFelt;
+                    ? resolveFelt(targetType, targetSupplier, targetArticle)
+                    : currentFelt;
             updateSharedFeltVariant(colorVariant, targetFelt, targetThick, targetDensity, targetPrice);
             return;
         }
@@ -204,8 +210,7 @@ public class FeltService {
                 // Other FeltVariants depend on this Felt — find-or-create, never mutate it.
                 // Set FK directly — do not touch in-memory collections to avoid orphan-removal trap
                 variant.setFelt(resolveFelt(targetType, targetSupplier, targetArticle));
-            }
-            else {
+            } else {
                 updateFelt(currentFelt, variant, targetType, targetSupplier, targetArticle);
             }
         }
@@ -217,15 +222,15 @@ public class FeltService {
     }
 
     private void updateFelt(
-        Felt currentFelt,
-        FeltVariant variant,
-        FeltType targetType,
-        Supplier targetSupplier,
-        String targetArticle
+            Felt currentFelt,
+            FeltVariant variant,
+            FeltType targetType,
+            Supplier targetSupplier,
+            String targetArticle
     ) {
         // Felt is also exclusive — prefer in-place mutation to avoid orphaned records.
         Optional<Felt> existingFelt = feltRepo
-            .findByFeltTypeAndSupplierAndArticleNumber(targetType, targetSupplier, targetArticle);
+                .findByFeltTypeAndSupplierAndArticleNumber(targetType, targetSupplier, targetArticle);
 
         if (existingFelt.isPresent() && !existingFelt.get()
                                                      .getId()
@@ -247,17 +252,17 @@ public class FeltService {
     }
 
     private void updateSharedFeltVariant(
-        FeltColorVariant colorVariant,
-        Felt targetFelt,
-        Double thickness,
-        Double density,
-        BigDecimal price
+            FeltColorVariant colorVariant,
+            Felt targetFelt,
+            Double thickness,
+            Double density,
+            BigDecimal price
     ) {
         FeltVariant targetVariant = feltVariantRepo
-            .findByFeltAndThicknessAndDensityAndPrice(targetFelt, thickness, density, price)
-            .orElseGet(() -> feltVariantRepo.save(
-                new FeltVariant(targetFelt, thickness, density, price))
-            );
+                .findByFeltAndThicknessAndDensityAndPrice(targetFelt, thickness, density, price)
+                .orElseGet(() -> feltVariantRepo.save(
+                        new FeltVariant(targetFelt, thickness, density, price))
+                );
         // Set FK directly — do not touch in-memory collections to avoid orphan-removal trap
         colorVariant.setFeltVariant(targetVariant);
     }
@@ -266,25 +271,25 @@ public class FeltService {
         return !felt.getFeltType()
                     .getId()
                     .equals(targetTypeId)
-            || !felt.getSupplier()
-                    .getId()
-                    .equals(targetSupplierId)
-            || !felt.getArticleNumber()
-                    .equals(targetArticleNumber);
+                || !felt.getSupplier()
+                        .getId()
+                        .equals(targetSupplierId)
+                || !felt.getArticleNumber()
+                        .equals(targetArticleNumber);
     }
 
     private boolean hasVariantChanged(
-        FeltVariant feltVariant,
-        Double targetThickness,
-        Double targetDensity,
-        BigDecimal targetPrice
+            FeltVariant feltVariant,
+            Double targetThickness,
+            Double targetDensity,
+            BigDecimal targetPrice
     ) {
         return !feltVariant.getThickness()
                            .equals(targetThickness)
-            || !feltVariant.getDensity()
-                           .equals(targetDensity)
-            || feltVariant.getPrice()
-                          .compareTo(targetPrice) != 0;
+                || !feltVariant.getDensity()
+                               .equals(targetDensity)
+                || feltVariant.getPrice()
+                              .compareTo(targetPrice) != 0;
     }
 
     /**
@@ -292,8 +297,8 @@ public class FeltService {
      */
     private Felt resolveFelt(FeltType type, Supplier supplier, String articleNumber) {
         return feltRepo
-            .findByFeltTypeAndSupplierAndArticleNumber(type, supplier, articleNumber)
-            .orElseGet(() -> feltRepo.save(new Felt(type, supplier, articleNumber)));
+                .findByFeltTypeAndSupplierAndArticleNumber(type, supplier, articleNumber)
+                .orElseGet(() -> feltRepo.save(new Felt(type, supplier, articleNumber)));
     }
 
     private FeltDto toDto(FeltColorVariant feltColorVariant) {
@@ -302,20 +307,31 @@ public class FeltService {
         FeltType feltType = felt.getFeltType();
         Supplier supplier = felt.getSupplier();
 
+        boolean lowOnSupply = false;
+        boolean reordered = false;
+        Supply supply = restockingService.findByRollId(feltVariant.getId())
+                                         .orElse(null);
+        if (supply != null) {
+            lowOnSupply = supply.isLowOnSupply();
+            reordered = supply.isHasBeenReordered();
+        }
+
         return new FeltDto(
-            feltColorVariant.getId(),
-            feltColorVariant.getColor(),
-            feltColorVariant.getSupplierColor(),
-            feltVariant.getThickness(),
-            feltVariant.getDensity(),
-            feltVariant.getPrice(),
-            feltVariant.getId(),
-            felt.getArticleNumber(),
-            supplier.getId(),
-            supplier.getName(),
-            felt.getId(),
-            feltType.getId(),
-            feltType.getName()
+                feltColorVariant.getId(),
+                feltColorVariant.getColor(),
+                feltColorVariant.getSupplierColor(),
+                feltVariant.getThickness(),
+                feltVariant.getDensity(),
+                feltVariant.getPrice(),
+                feltVariant.getId(),
+                felt.getArticleNumber(),
+                supplier.getId(),
+                supplier.getName(),
+                felt.getId(),
+                feltType.getId(),
+                feltType.getName(),
+                lowOnSupply,
+                reordered
         );
     }
 }

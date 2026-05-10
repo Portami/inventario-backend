@@ -1,6 +1,6 @@
 package ch.portami.inventorybackend.restocking.entity;
 
-import ch.portami.inventorybackend.felt.entity.FeltRoll;
+import ch.portami.inventorybackend.felt.entity.FeltColorVariant;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -8,6 +8,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
 @Table(name = "supply")
@@ -25,15 +27,16 @@ public class Supply {
     @OneToOne
     @MapsId
     @JoinColumn(name = "id")
-    private FeltRoll feltRoll;
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private FeltColorVariant feltColorVariant;
 
     protected Supply() {
     }
 
-    public Supply(boolean isLowOnSupply, boolean hasBeenReordered, FeltRoll feltRoll) {
+    public Supply(boolean isLowOnSupply, boolean hasBeenReordered, FeltColorVariant feltColorVariant) {
         this.isLowOnSupply = isLowOnSupply;
         this.hasBeenReordered = hasBeenReordered;
-        this.feltRoll = feltRoll;
+        this.feltColorVariant = feltColorVariant;
     }
 
     public Long getId() {
@@ -56,11 +59,11 @@ public class Supply {
         this.hasBeenReordered = hasBeenReordered;
     }
 
-    public FeltRoll getFeltRoll() {
-        return feltRoll;
+    public FeltColorVariant getFeltColorVariant() {
+        return feltColorVariant;
     }
 
-    public void setFeltRoll(FeltRoll feltRoll) {
-        this.feltRoll = feltRoll;
+    public void setFeltColorVariant(FeltColorVariant feltColorVariant) {
+        this.feltColorVariant = feltColorVariant;
     }
 }

@@ -26,8 +26,8 @@ public class RestockingService {
     }
 
     @Transactional
-    public void createForRoll(FeltRoll roll) {
-        supplyRepository.save(new Supply(false, false, roll));
+    public void createForFelt(FeltColorVariant feltColorVariant) {
+        supplyRepository.save(new Supply(false, false, feltColorVariant));
     }
 
     public Optional<Supply> findByRollId(Long rollId) {
@@ -57,16 +57,14 @@ public class RestockingService {
     }
 
     private SupplyDto toDto(Supply supply) {
-        FeltRoll roll = supply.getFeltRoll();
-        FeltColorVariant colorVariant = roll.getFeltColorVariant();
+        FeltColorVariant colorVariant = supply.getFeltColorVariant();
         FeltVariant variant = colorVariant.getFeltVariant();
         Felt felt = variant.getFelt();
 
         return new SupplyDto(
-                roll.getId(),
+                colorVariant.getId(),
                 supply.isLowOnSupply(),
                 supply.isHasBeenReordered(),
-                colorVariant.getId(),
                 colorVariant.getColor(),
                 felt.getArticleNumber(),
                 felt.getSupplier().getName(),
