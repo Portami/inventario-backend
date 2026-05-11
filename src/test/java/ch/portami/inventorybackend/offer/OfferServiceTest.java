@@ -14,6 +14,7 @@ import ch.portami.inventorybackend.offer.entity.OfferItem;
 import ch.portami.inventorybackend.offer.mapper.OfferMapper;
 import ch.portami.inventorybackend.offer.mapper.OfferMapperImpl;
 import ch.portami.inventorybackend.offer.repository.CustomerRepository;
+import ch.portami.inventorybackend.offer.repository.OfferItemRepository;
 import ch.portami.inventorybackend.offer.repository.OfferRepository;
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
@@ -39,6 +40,9 @@ class OfferServiceTest {
     OfferRepository offerRepository;
 
     @Mock
+    OfferItemRepository offerItemRepository;
+
+    @Mock
     CustomerRepository customerRepository;
 
     private final OfferMapper offerMapper = new OfferMapperImpl();
@@ -47,7 +51,58 @@ class OfferServiceTest {
 
     @BeforeEach
     void setUp() {
-        offerService = new OfferService(offerMapper, offerRepository, customerRepository);
+        offerService = new OfferService(offerMapper, offerRepository, offerItemRepository, customerRepository);
+    }
+
+    @Test
+    void addOfferItem_savesAndReturnsCreatedItem() {
+        Offer offer = persistedOffer();
+        given(offerRepository.findById(ID)).willReturn(Optional.of(offer));
+        given(offerItemRepository.save(any(OfferItem.class))).willAnswer(inv -> {
+            OfferItem it = inv.getArgument(0);
+            it.setId(2L);
+            return it;
+        });
+
+        var dto = new ch.portami.inventorybackend.offer.dto.CreateOfferItemOptionalDto(10L, "Desc", 1, new BigDecimal("1.00"));
+        var result = offerService.addOfferItem(ID, dto);
+
+        assertThat(result).isNotNull();
+        assertThat(result.id()).isEqualTo(2L);
+        assertThat(result.productVariantId()).isEqualTo(10L);
+    }
+
+    @Test
+    void deleteOfferItem_deletesWhenBelongsToOffer() {
+        OfferItem item = new OfferItem(ID, 10L, "Desc", 1, new BigDecimal("1.00"), new BigDecimal("1.00"));
+        item.setId(5L);
+
+        given(offerItemRepository.findById(5L)).willReturn(Optional.of(item));
+
+        offerService.deleteOfferItem(ID, 5L);
+
+        verify(offerItemRepository).deleteById(5L);
+    }
+
+    @Test
+    void deleteOfferItem_noopWhenNotFound() {
+        given(offerItemRepository.findById(99L)).willReturn(Optional.empty());
+
+        offerService.deleteOfferItem(ID, 99L);
+
+        verify(offerItemRepository).findById(99L);
+        verifyNoMoreInteractions(offerItemRepository);
+    }
+
+    @Test
+    void deleteOfferItem_throwsWhenItemNotBelongingToOffer() {
+        OfferItem item = new OfferItem(999L, 10L, "Desc", 1, new BigDecimal("1.00"), new BigDecimal("1.00"));
+        item.setId(6L);
+
+        given(offerItemRepository.findById(6L)).willReturn(Optional.of(item));
+
+        assertThatThrownBy(() -> offerService.deleteOfferItem(ID, 6L))
+                .isInstanceOf(ResourceNotFoundException.class);
     }
 
     private static final Long ID = 1L;
@@ -124,7 +179,7 @@ class OfferServiceTest {
     }
 
     @Test
-    void listOffers_mapsList() {
+    void listOffers_withParam_mapsQueriedList() {
         given(offerRepository.findByState(OfferState.OFFER)).willReturn(List.of(persistedOffer()));
 
         List<OfferDto> result = offerService.listOffers(OfferState.OFFER);
@@ -133,6 +188,22 @@ class OfferServiceTest {
         assertThat(result.getFirst()
                          .customerDto()
                          .name()).isEqualTo(CUSTOMER_NAME);
+
+        verify(offerRepository).findByState(OfferState.OFFER);
+    }
+
+    @Test
+    void listOffers_mapsFullList() {
+        given(offerRepository.findAll()).willReturn(List.of(persistedOffer()));
+
+        List<OfferDto> result = offerService.listOffers(null);
+
+        assertThat(result).hasSize(1);
+        assertThat(result.getFirst()
+                         .customerDto()
+                         .name()).isEqualTo(CUSTOMER_NAME);
+
+        verify(offerRepository).findAll();
     }
 
     @Test
