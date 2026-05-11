@@ -2,7 +2,10 @@ package ch.portami.inventorybackend.offer.mapper;
 
 import ch.portami.inventorybackend.offer.dto.CreateOfferDto;
 import ch.portami.inventorybackend.offer.dto.CreateOfferItemDto;
+import ch.portami.inventorybackend.offer.dto.CreateOfferItemOptionalDto;
 import ch.portami.inventorybackend.offer.dto.CustomerDto;
+import ch.portami.inventorybackend.offer.dto.CreateCustomerDto;
+import ch.portami.inventorybackend.offer.dto.UpdateCustomerDto;
 import ch.portami.inventorybackend.offer.dto.OfferDto;
 import ch.portami.inventorybackend.offer.dto.OfferItemDto;
 import ch.portami.inventorybackend.offer.dto.UpdateOfferDto;
@@ -47,9 +50,20 @@ public interface OfferMapper {
     @Mapping(target = "updatedAt", ignore = true)
     OfferItem toOfferItem(CreateOfferItemDto dto);
 
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "offerId", ignore = true)
+    @Mapping(target = "totalPrice", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    OfferItem toOfferItem(CreateOfferItemOptionalDto dto);
+
     OfferItemDto toOfferItemDto(OfferItem offerItem);
 
     CustomerDto toCustomerDto(Customer customer);
+
+    Customer toCustomer(CreateCustomerDto dto);
+
+    void updateCustomer(UpdateCustomerDto dto, @MappingTarget Customer customer);
 
     @Named("customerFromName")
     default Customer customerFromName(String customerName) {

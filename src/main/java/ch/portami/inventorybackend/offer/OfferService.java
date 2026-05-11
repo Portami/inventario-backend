@@ -3,12 +3,16 @@ package ch.portami.inventorybackend.offer;
 import ch.portami.inventorybackend.core.exceptions.ResourceNotFoundException;
 import ch.portami.inventorybackend.offer.domain.OfferState;
 import ch.portami.inventorybackend.offer.dto.CreateOfferDto;
+import ch.portami.inventorybackend.offer.dto.CreateOfferItemOptionalDto;
 import ch.portami.inventorybackend.offer.dto.OfferDto;
+import ch.portami.inventorybackend.offer.dto.OfferItemDto;
 import ch.portami.inventorybackend.offer.dto.UpdateOfferDto;
 import ch.portami.inventorybackend.offer.entity.Customer;
 import ch.portami.inventorybackend.offer.entity.Offer;
+import ch.portami.inventorybackend.offer.entity.OfferItem;
 import ch.portami.inventorybackend.offer.mapper.OfferMapper;
 import ch.portami.inventorybackend.offer.repository.CustomerRepository;
+import ch.portami.inventorybackend.offer.repository.OfferItemRepository;
 import ch.portami.inventorybackend.offer.repository.OfferRepository;
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -20,12 +24,14 @@ public class OfferService {
 
     private final OfferMapper offerMapper;
     private final OfferRepository offerRepository;
+    private final OfferItemRepository offerItemRepository;
     private final CustomerRepository customerRepository;
 
     public OfferService(OfferMapper offerMapper, OfferRepository offerRepository,
-            CustomerRepository customerRepository) {
+            OfferItemRepository offerItemRepository, CustomerRepository customerRepository) {
         this.offerMapper = offerMapper;
         this.offerRepository = offerRepository;
+        this.offerItemRepository = offerItemRepository;
         this.customerRepository = customerRepository;
     }
 
@@ -44,6 +50,13 @@ public class OfferService {
 
     @Transactional(readOnly = true)
     public List<OfferDto> listOffers(OfferState state) {
+        if (state == null) {
+            return offerRepository.findAll()
+                                  .stream()
+                                  .map(offerMapper::toOfferDto)
+                                  .toList();
+        }
+
         return offerRepository.findByState(state)
                               .stream()
                               .map(offerMapper::toOfferDto)
@@ -64,6 +77,25 @@ public class OfferService {
 
     public void deleteOffer(Long id) {
         offerRepository.deleteById(id);
+    }
+
+    public OfferItemDto addOfferItem(Long offerId, CreateOfferItemOptionalDto dto) {
+        Offer offer = findById(offerId);
+
+        OfferItem item = offerMapper.toOfferItem(dto);
+        item.setOfferId(offer.getId());
+
+        OfferItem saved = offerItemRepository.save(item);
+        return offerMapper.toOfferItemDto(saved);
+    }
+
+    public void deleteOfferItem(Long offerId, Long itemId) {
+        offerItemRepository.findById(itemId).ifPresent(item -> {
+            if (!offerId.equals(item.getOfferId())) {
+                throw new ResourceNotFoundException("Offer item not found: " + itemId);
+            }
+            offerItemRepository.deleteById(itemId);
+        });
     }
 
     private Offer findById(Long id) {
