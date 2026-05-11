@@ -53,7 +53,7 @@ public class OfferController {
     @Operation(summary = "List offers")
     @ApiResponse(responseCode = "200", description = "List of all offers by state (may be empty)")
     @GetMapping
-    public ResponseEntity<List<OfferDto>> listOffersByState(@RequestParam OfferState state) {
+    public ResponseEntity<List<OfferDto>> listOffersByState(@RequestParam(required = false) OfferState state) {
         return ResponseEntity.ok(offerService.listOffers(state));
     }
 
@@ -75,6 +75,5 @@ public class OfferController {
         return ResponseEntity.noContent()
                              .build();
     }
-
 }
 
