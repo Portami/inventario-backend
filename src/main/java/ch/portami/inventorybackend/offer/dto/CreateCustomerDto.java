@@ -2,13 +2,10 @@ package ch.portami.inventorybackend.offer.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-@Schema(description = "A customer - including contact and address information.")
-public record CustomerDto(
+@Schema(description = "Request body for creating a customer")
+public record CreateCustomerDto(
 
-    @Schema(description = "Unique identifier of the customer.")
-    Long id,
-
-    @Schema(description = "name of the customer")
+    @Schema(description = "Name of the customer")
     String name,
 
     @Schema(description = "Contact person at the customer")
