@@ -1,4 +1,4 @@
-package ch.portami.inventorybackend.restocking.dto;
+package ch.portami.inventorybackend.felt.supply.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 

@@ -16,7 +16,6 @@ import ch.portami.inventorybackend.felt.entity.FeltRoll;
 import ch.portami.inventorybackend.felt.entity.FeltType;
 import ch.portami.inventorybackend.felt.entity.FeltVariant;
 import ch.portami.inventorybackend.felt.entity.Supplier;
-import ch.portami.inventorybackend.felt.event.FeltColorVariantCreatedEvent;
 import ch.portami.inventorybackend.felt.event.FeltRollCreatedEvent;
 import ch.portami.inventorybackend.felt.exception.FeltNotFoundException;
 import ch.portami.inventorybackend.felt.exception.FeltRollNotFoundException;
@@ -32,7 +31,9 @@ import ch.portami.inventorybackend.felt.repository.FeltRollRepository;
 import ch.portami.inventorybackend.felt.repository.FeltTypeRepository;
 import ch.portami.inventorybackend.felt.repository.FeltVariantRepository;
 import ch.portami.inventorybackend.felt.repository.SupplierRepository;
-import ch.portami.inventorybackend.restocking.repository.SupplyRepository;
+import ch.portami.inventorybackend.felt.supply.SupplyService;
+import ch.portami.inventorybackend.felt.supply.entity.Supply;
+import ch.portami.inventorybackend.felt.supply.exception.SupplyNotFoundException;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
@@ -44,6 +45,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class FeltService {
 
+    private final SupplyService supplyService;
     private final FeltTypeRepository feltTypeRepo;
     private final FeltRepository feltRepo;
     private final FeltVariantRepository feltVariantRepo;
@@ -52,13 +54,12 @@ public class FeltService {
     private final FeltRollRepository feltRollRepo;
     private final BatchRepository batchRepo;
     private final StorageRepository storageRepo;
-    private final SupplyRepository supplyRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final FeltMapper feltMapper;
     private final FeltRollMapper feltRollMapper;
 
     public FeltService(
-            FeltTypeRepository feltTypeRepo,
+            SupplyService supplyService, FeltTypeRepository feltTypeRepo,
             FeltRepository feltRepo,
             FeltVariantRepository feltVariantRepo,
             FeltColorVariantRepository feltColorVariantRepo,
@@ -66,11 +67,11 @@ public class FeltService {
             FeltRollRepository feltRollRepo,
             BatchRepository batchRepo,
             StorageRepository storageRepo,
-            SupplyRepository supplyRepository,
             ApplicationEventPublisher eventPublisher,
             FeltMapper feltMapper,
             FeltRollMapper feltRollMapper
     ) {
+        this.supplyService = supplyService;
         this.feltTypeRepo = feltTypeRepo;
         this.feltRepo = feltRepo;
         this.feltVariantRepo = feltVariantRepo;
@@ -79,7 +80,6 @@ public class FeltService {
         this.feltRollRepo = feltRollRepo;
         this.batchRepo = batchRepo;
         this.storageRepo = storageRepo;
-        this.supplyRepository = supplyRepository;
         this.eventPublisher = eventPublisher;
         this.feltMapper = feltMapper;
         this.feltRollMapper = feltRollMapper;
@@ -128,7 +128,7 @@ public class FeltService {
         feltColorVariant.setSupplierColor(dto.supplierColor());
         feltColorVariant = feltColorVariantRepo.save(feltColorVariant);
 
-        eventPublisher.publishEvent(new FeltColorVariantCreatedEvent(feltColorVariant));
+        supplyService.createForFelt(feltColorVariant);
 
         return toFeltDto(feltColorVariant);
     }
@@ -175,6 +175,13 @@ public class FeltService {
 
     // ─── Felt Roll CRUD ──────────────────────────────────────────────────────────
 
+    public List<FeltRollDto> findAllRolls() {
+        return feltRollRepo.findAll()
+                           .stream()
+                           .map(feltRollMapper::toDto)
+                           .toList();
+    }
+
     public List<FeltRollDto> findAllByFelt(Long feltId) {
         if (!feltColorVariantRepo.existsById(feltId)) {
             throw new FeltRollNotFoundException(feltId);
@@ -194,7 +201,8 @@ public class FeltService {
     @Transactional
     public FeltRollDto createRoll(CreateFeltRollDto dto) {
         FeltColorVariant colorVariant = feltColorVariantRepo.findById(dto.feltId())
-                                                            .orElseThrow(() -> new FeltRollNotFoundException(dto.feltId()));
+                                                            .orElseThrow(
+                                                                    () -> new FeltRollNotFoundException(dto.feltId()));
 
         Batch batch = resolveOptionalBatch(dto.batchId());
         Storage storage = resolveOptionalStorage(dto.storageId());
@@ -239,20 +247,9 @@ public class FeltService {
     // ─── Private helpers ─────────────────────────────────────────────────────────
 
     private FeltDto toFeltDto(FeltColorVariant feltColorVariant) {
-        FeltDto dto = feltMapper.toDto(feltColorVariant);
-        return enrichWithSupply(dto);
-    }
-
-    private FeltDto enrichWithSupply(FeltDto dto) {
-        return supplyRepository.findById(dto.id())
-                .map(supply -> new FeltDto(
-                        dto.id(), dto.color(), dto.supplierColor(),
-                        dto.thickness(), dto.density(), dto.price(),
-                        dto.feltVariantId(), dto.articleNumber(),
-                        dto.supplierId(), dto.supplierName(),
-                        dto.feltId(), dto.feltTypeId(), dto.feltTypeName(),
-                        supply.isLowOnSupply(), supply.isHasBeenReordered()))
-                .orElse(dto);
+        Supply supply = supplyService.findByRollId(feltColorVariant.getId())
+                                     .orElseThrow(() -> new SupplyNotFoundException(feltColorVariant.getId()));
+        return feltMapper.toDto(feltColorVariant, supply);
     }
 
     private Batch resolveOptionalBatch(Long batchId) {

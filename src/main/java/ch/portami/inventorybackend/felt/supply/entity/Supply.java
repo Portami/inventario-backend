@@ -1,4 +1,4 @@
-package ch.portami.inventorybackend.restocking.entity;
+package ch.portami.inventorybackend.felt.supply.entity;
 
 import ch.portami.inventorybackend.felt.entity.FeltColorVariant;
 import jakarta.persistence.Column;

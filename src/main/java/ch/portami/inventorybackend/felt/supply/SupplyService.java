@@ -1,13 +1,12 @@
-package ch.portami.inventorybackend.restocking;
+package ch.portami.inventorybackend.felt.supply;
 
 import ch.portami.inventorybackend.felt.entity.Felt;
 import ch.portami.inventorybackend.felt.entity.FeltColorVariant;
-import ch.portami.inventorybackend.felt.entity.FeltRoll;
 import ch.portami.inventorybackend.felt.entity.FeltVariant;
-import ch.portami.inventorybackend.restocking.dto.SupplyDto;
-import ch.portami.inventorybackend.restocking.dto.UpdateSupplyDto;
-import ch.portami.inventorybackend.restocking.entity.Supply;
-import ch.portami.inventorybackend.restocking.repository.SupplyRepository;
+import ch.portami.inventorybackend.felt.supply.dto.SupplyDto;
+import ch.portami.inventorybackend.felt.supply.dto.UpdateSupplyDto;
+import ch.portami.inventorybackend.felt.supply.entity.Supply;
+import ch.portami.inventorybackend.felt.supply.repository.SupplyRepository;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.http.HttpStatus;
@@ -17,11 +16,11 @@ import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @Transactional(readOnly = true)
-public class RestockingService {
+public class SupplyService {
 
     private final SupplyRepository supplyRepository;
 
-    public RestockingService(SupplyRepository supplyRepository) {
+    public SupplyService(SupplyRepository supplyRepository) {
         this.supplyRepository = supplyRepository;
     }
 
