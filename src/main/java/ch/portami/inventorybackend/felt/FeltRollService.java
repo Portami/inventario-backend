@@ -42,6 +42,13 @@ public class FeltRollService {
         this.barcodeService = barcodeService;
     }
 
+    public List<FeltRollDto> findAll() {
+        return feltRollRepo.findAll()
+                           .stream()
+                           .map(this::toDto)
+                           .toList();
+    }
+
     public List<FeltRollDto> findAllByFelt(Long feltId) {
         if (!feltColorVariantRepo.existsById(feltId)) {
             throw new FeltRollNotFoundException(feltId);

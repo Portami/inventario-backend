@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.net.URI;
+import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -31,6 +32,13 @@ public class RollController {
 
     public RollController(FeltRollService service) {
         this.service = service;
+    }
+
+    @Operation(summary = "List all rolls")
+    @ApiResponse(responseCode = "200", description = "All rolls returned")
+    @GetMapping
+    public ResponseEntity<List<FeltRollDto>> getAll() {
+        return ResponseEntity.ok(service.findAll());
     }
 
     @Operation(summary = "Create a roll", description = "Batch and storage are optional.")
