@@ -1,11 +1,10 @@
 package ch.portami.inventorybackend.felt.api;
 
-import ch.portami.inventorybackend.felt.FeltService;
+import ch.portami.inventorybackend.felt.FeltRollService;
 import ch.portami.inventorybackend.felt.dto.CreateFeltRollDto;
-import ch.portami.inventorybackend.felt.dto.FeltDto;
 import ch.portami.inventorybackend.felt.dto.FeltRollDto;
+import ch.portami.inventorybackend.felt.dto.SplitFeltRollDto;
 import ch.portami.inventorybackend.felt.dto.UpdateFeltRollDto;
-import ch.portami.inventorybackend.felt.entity.FeltRoll;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -32,9 +31,9 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 public class RollController {
 
-    private final FeltService service;
+    private final FeltRollService service;
 
-    public RollController(FeltService service) {
+    public RollController(FeltRollService service) {
         this.service = service;
     }
 
@@ -43,7 +42,7 @@ public class RollController {
     @ResponseStatus(HttpStatus.OK)
     @GetMapping
     public List<FeltRollDto> getAll() {
-        return service.findAllRolls();
+        return service.findAll();
     }
 
     @Operation(summary = "Get a roll by ID")
@@ -51,7 +50,7 @@ public class RollController {
     @ApiResponse(responseCode = "404", description = "No roll exists with the given ID")
     @GetMapping("/{id}")
     public ResponseEntity<FeltRollDto> getById(@Parameter(description = "Roll ID") @PathVariable Long id) {
-        return ResponseEntity.ok(service.findRollById(id));
+        return ResponseEntity.ok(service.findById(id));
     }
 
     @Operation(summary = "Create a roll", description = "Batch and storage are optional.")
@@ -60,7 +59,7 @@ public class RollController {
     @ApiResponse(responseCode = "404", description = "Felt, batch, or storage not found")
     @PostMapping
     public ResponseEntity<FeltRollDto> create(@RequestBody @Valid CreateFeltRollDto dto) {
-        FeltRollDto created = service.createRoll(dto);
+        FeltRollDto created = service.create(dto);
         URI location = URI.create("/api/rolls/" + created.id());
         return ResponseEntity.created(location)
                              .body(created);
@@ -73,7 +72,21 @@ public class RollController {
     @PatchMapping("/{id}")
     public ResponseEntity<FeltRollDto> update(@Parameter(description = "Roll ID") @PathVariable Long id,
             @RequestBody @Valid UpdateFeltRollDto dto) {
-        return ResponseEntity.ok(service.updateRoll(id, dto));
+        return ResponseEntity.ok(service.update(id, dto));
+    }
+
+    @Operation(summary = "Split a roll", description = "Creates a new roll by cross-cutting the source roll. The new roll's length equals the source roll's width. The source roll's length is reduced by the specified width.")
+    @ApiResponse(responseCode = "201", description = "New roll created from split — Location header points to the new resource")
+    @ApiResponse(responseCode = "400", description = "Validation error (width must be positive)")
+    @ApiResponse(responseCode = "404", description = "Source roll not found")
+    @ApiResponse(responseCode = "409", description = "Width exceeds source roll length")
+    @PostMapping("/{id}/split")
+    public ResponseEntity<FeltRollDto> split(@Parameter(description = "Source Roll ID") @PathVariable Long id,
+            @RequestBody @Valid SplitFeltRollDto dto) {
+        FeltRollDto created = service.split(id, dto);
+        URI location = URI.create("/api/rolls/" + created.id());
+        return ResponseEntity.created(location)
+                             .body(created);
     }
 
     @Operation(summary = "Delete a roll")
@@ -81,7 +94,7 @@ public class RollController {
     @ApiResponse(responseCode = "404", description = "No roll exists with the given ID")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@Parameter(description = "Roll ID") @PathVariable Long id) {
-        service.deleteRoll(id);
+        service.delete(id);
         return ResponseEntity.noContent()
                              .build();
     }

@@ -1,9 +1,12 @@
 package ch.portami.inventorybackend.felt.api;
 
+import ch.portami.inventorybackend.felt.FeltRollService;
 import ch.portami.inventorybackend.felt.FeltService;
+import ch.portami.inventorybackend.felt.ScrapPieceService;
 import ch.portami.inventorybackend.felt.dto.CreateFeltDto;
 import ch.portami.inventorybackend.felt.dto.FeltDto;
 import ch.portami.inventorybackend.felt.dto.FeltRollDto;
+import ch.portami.inventorybackend.felt.dto.ScrapPieceDto;
 import ch.portami.inventorybackend.felt.dto.UpdateFeltDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -28,9 +31,13 @@ import org.springframework.web.bind.annotation.RestController;
 public class FeltController {
 
     private final FeltService feltService;
+    private final FeltRollService feltRollService;
+    private final ScrapPieceService scrapPieceService;
 
-    public FeltController(FeltService feltService) {
+    public FeltController(FeltService feltService, FeltRollService feltRollService, ScrapPieceService scrapPieceService) {
         this.feltService = feltService;
+        this.feltRollService = feltRollService;
+        this.scrapPieceService = scrapPieceService;
     }
 
     @Operation(summary = "List all felts")
@@ -87,6 +94,15 @@ public class FeltController {
     @GetMapping("/{feltId}/rolls")
     public ResponseEntity<List<FeltRollDto>> getAll(
             @Parameter(description = "Felt (color variant) ID") @PathVariable Long feltId) {
-        return ResponseEntity.ok(feltService.findAllByFelt(feltId));
+        return ResponseEntity.ok(feltRollService.findAllByFelt(feltId));
+    }
+
+    @Operation(summary = "List scrap pieces for a felt")
+    @ApiResponse(responseCode = "200", description = "List of scrap pieces (may be empty)")
+    @ApiResponse(responseCode = "404", description = "No felt exists with the given ID")
+    @GetMapping("/{feltId}/scraps")
+    public ResponseEntity<List<ScrapPieceDto>> getScraps(
+            @Parameter(description = "Felt (color variant) ID") @PathVariable Long feltId) {
+        return ResponseEntity.ok(scrapPieceService.findAllByFelt(feltId));
     }
 }
