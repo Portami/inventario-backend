@@ -47,7 +47,7 @@ class CuttingStockLoaderTest {
         setId(roll, 11L);
 
         ScrapPiece scrap = new ScrapPiece();
-        scrap.setFeltColorVariant(colorVariant);
+        scrap.setFelt(colorVariant);
         scrap.setLength(44.0);
         scrap.setWidth(44.0);
         setId(scrap, 22L);

@@ -22,8 +22,8 @@ public class FeltRoll {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "felt_color_variant_id", nullable = false)
-    private FeltColorVariant feltColorVariant;
+    @JoinColumn(name = "felt_id", nullable = false)
+    private Felt felt;
 
     // Optional: a roll may not yet be assigned to a batch.
     @ManyToOne(fetch = FetchType.LAZY)
@@ -43,9 +43,9 @@ public class FeltRoll {
 
     public FeltRoll() {}
 
-    public FeltRoll(FeltColorVariant feltColorVariant, Batch batch, Storage storage,
+    public FeltRoll(Felt felt, Batch batch, Storage storage,
                     Double length, Double width) {
-        this.feltColorVariant = feltColorVariant;
+        this.felt = felt;
         this.batch = batch;
         this.storage = storage;
         this.length = length;
@@ -54,8 +54,8 @@ public class FeltRoll {
 
     public Long getId() { return id; }
 
-    public FeltColorVariant getFeltColorVariant() { return feltColorVariant; }
-    public void setFeltColorVariant(FeltColorVariant feltColorVariant) { this.feltColorVariant = feltColorVariant; }
+    public Felt getFelt() { return felt; }
+    public void setFelt(Felt feltColorVariant) { this.felt = feltColorVariant; }
 
     public Batch getBatch() { return batch; }
     public void setBatch(Batch batch) { this.batch = batch; }

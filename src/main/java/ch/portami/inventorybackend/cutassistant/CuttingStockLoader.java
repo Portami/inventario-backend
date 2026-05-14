@@ -45,7 +45,7 @@ public class CuttingStockLoader {
         }
 
         for (ScrapPiece s : scrapPieceRepository.findAll()) {
-            FeltColorVariant feltColorVariant = s.getFeltColorVariant();
+            FeltColorVariant feltColorVariant = s.getFelt();
 
             if (feltColorVariant == null) {
                 continue;
