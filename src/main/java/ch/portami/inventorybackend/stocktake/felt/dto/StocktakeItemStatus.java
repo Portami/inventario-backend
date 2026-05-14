@@ -1,6 +1,6 @@
 package ch.portami.inventorybackend.stocktake.felt.dto;
 
-public enum StocktakeRollStatus {
+public enum StocktakeItemStatus {
     INITIAL,
     OK,
     MISSING,

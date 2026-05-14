@@ -1,7 +1,7 @@
 package ch.portami.inventorybackend.stocktake.felt.api;
 
 import ch.portami.inventorybackend.stocktake.felt.dto.ResolveFeltStocktakeProblemDto;
-import ch.portami.inventorybackend.stocktake.felt.dto.StocktakeRollDto;
+import ch.portami.inventorybackend.stocktake.felt.dto.StocktakeItemDto;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
@@ -14,24 +14,37 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/stocktakes/{stocktakeId}/rolls")
-public class FeltStocktakeRollsController {
+@RequestMapping("/api/stocktakes/{stocktakeId}/items")
+public class FeltStocktakeItemController {
 
     @GetMapping
-    public ResponseEntity<List<StocktakeRollDto>> getStocktakeRolls(@PathVariable Long stocktakeId,
+    public ResponseEntity<List<StocktakeItemDto>> getStocktakeItems(@PathVariable Long stocktakeId,
             @RequestParam(required = false) Long storageId) {
         throw new RuntimeException("Not implemented yet");
     }
 
-    @GetMapping("/{rollId}")
-    public ResponseEntity<StocktakeRollDto> getStocktakeRollById(@PathVariable Long stocktakeId,
+    @GetMapping("/roll/{rollId}")
+    public ResponseEntity<StocktakeItemDto> getStocktakeRollById(@PathVariable Long stocktakeId,
             @PathVariable Long rollId) {
         throw new RuntimeException("Not implemented yet");
     }
 
-    @PostMapping("/{rollId}/resolve")
-    public ResponseEntity<StocktakeRollDto> resolveStocktakeProblem(@PathVariable Long stocktakeId,
+    @GetMapping("/scrap/{scrapId}")
+    public ResponseEntity<StocktakeItemDto> getStocktakeScrapById(@PathVariable Long stocktakeId,
+            @PathVariable Long scrapId) {
+        throw new RuntimeException("Not implemented yet");
+    }
+
+    @PostMapping("/roll/{rollId}/resolve")
+    public ResponseEntity<StocktakeItemDto> resolveStocktakeRollProblem(@PathVariable Long stocktakeId,
             @PathVariable Long rollId,
+            @RequestBody @Valid ResolveFeltStocktakeProblemDto resolveFeltStocktakeProblemDto) {
+        throw new RuntimeException("Not implemented yet");
+    }
+
+    @PostMapping("/scrap/{scrapId}/resolve")
+    public ResponseEntity<StocktakeItemDto> resolveStocktakeScrapProblem(@PathVariable Long stocktakeId,
+            @PathVariable Long scrapId,
             @RequestBody @Valid ResolveFeltStocktakeProblemDto resolveFeltStocktakeProblemDto) {
         throw new RuntimeException("Not implemented yet");
     }

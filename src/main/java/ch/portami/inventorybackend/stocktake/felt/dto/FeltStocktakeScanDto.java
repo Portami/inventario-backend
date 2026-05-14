@@ -5,7 +5,8 @@ import java.time.Instant;
 
 public record FeltStocktakeScanDto(
         Long scanId,
-        @Nullable Long rollId,
+        @Nullable FeltStocktakeItemType type,
+        @Nullable Long itemId,
         String barcode,
         Long scannedStorageId,
         Boolean isVoided,
