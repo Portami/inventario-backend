@@ -7,7 +7,7 @@ import ch.portami.inventorybackend.cutassistant.domain.CuttableStock;
 import ch.portami.inventorybackend.cutassistant.domain.CuttingAssignment;
 import ch.portami.inventorybackend.cutassistant.domain.RequiredPiece;
 import ch.portami.inventorybackend.cutassistant.domain.StockType;
-import ch.portami.inventorybackend.cutassistant.impl.SimpleCuttingOptimizer;
+import ch.portami.inventorybackend.cutassistant.impl.GuillotineCuttingOptimizer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -22,16 +22,16 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
-class SimpleCuttingOptimizerTest {
+class GuillotineCuttingOptimizerTest {
 
     @Mock
     private CuttingStockLoader cuttingStockLoaderMock;
 
     @InjectMocks
-    private SimpleCuttingOptimizer testee;
+    private GuillotineCuttingOptimizer testee;
 
     @Test
-    void optimizer_assigns_when_stock_matches_and_outputs_padded_dimensions() {
+    void givenStockAndPiece_whenOptimize_thenAssignsWhenStockMatchesAndOutputsPaddedDimensions() {
         RequiredPiece req = new RequiredPiece(10L, "blue", 100.0, 50.0, 1);
         CuttableStock s = new CuttableStock(StockType.ROLL, 10L, "blue", 200.0, 100.0);
 
@@ -55,7 +55,7 @@ class SimpleCuttingOptimizerTest {
     }
 
     @Test
-    void optimizer_prioritizes_scraps_over_rolls() {
+    void givenRollAndScrap_whenOptimize_thenPrioritizesScrapsOverRolls() {
         RequiredPiece req = new RequiredPiece(10L, "blue", 50.0, 50.0, 1); // Customer gets: 53 x 53
         CuttableStock roll = new CuttableStock(StockType.ROLL, 10L, 100L, "blue", 200.0, 100.0);
         CuttableStock scrap = new CuttableStock(StockType.SCRAP, 10L, 101L, "blue", 60.0, 60.0);
@@ -70,7 +70,7 @@ class SimpleCuttingOptimizerTest {
     }
 
     @Test
-    void optimizer_places_pieces_side_by_side_in_2d() {
+    void givenMultiplePieces_whenOptimize_thenPlacesPiecesSideBySideIn2d() {
         RequiredPiece req = new RequiredPiece(10L, "blue", 40.0, 40.0, 4);
 
         // Stock is 100x100.
@@ -90,7 +90,7 @@ class SimpleCuttingOptimizerTest {
     }
 
     @Test
-    void optimizer_respects_margins_for_multiple_pieces_preventing_fit() {
+    void givenPiecesWithMargins_whenOptimize_thenRespectsMarginsForMultiplePiecesPreventingFit() {
         // 2 pieces of 48x48. With 1.5 margins, customer needs 51x51 space each.
         RequiredPiece req = new RequiredPiece(10L, "blue", 48.0, 48.0, 2);
 
@@ -106,7 +106,7 @@ class SimpleCuttingOptimizerTest {
     }
 
     @Test
-    void optimizer_assigns_multiple_pieces_across_multiple_stocks() {
+    void givenMultiplePiecesAndMultipleScraps_whenOptimize_thenAssignsMultiplePiecesAcrossMultipleStocks() {
         // Requires three 50x50 pieces (customer gets 53x53).
         RequiredPiece req = new RequiredPiece(10L, "blue", 50.0, 50.0, 3);
 
@@ -125,7 +125,7 @@ class SimpleCuttingOptimizerTest {
     }
 
     @Test
-    void optimizer_minimizes_waste_by_selecting_smaller_scrap() {
+    void givenLargeAndSmallScrap_whenOptimize_thenMinimizesWasteBySelectingSmallerScrap() {
         RequiredPiece req = new RequiredPiece(10L, "blue", 50.0, 50.0, 1); // Customer gets 53 x 53
         CuttableStock largeScrap = new CuttableStock(StockType.SCRAP, 10L, 100L, "blue", 150.0, 150.0);
         CuttableStock smallScrap = new CuttableStock(StockType.SCRAP, 10L, 101L, "blue", 60.0, 60.0);
@@ -140,7 +140,7 @@ class SimpleCuttingOptimizerTest {
     }
 
     @Test
-    void optimizer_reports_infeasible_when_no_stock() {
+    void givenNoStock_whenOptimize_thenReportsInfeasible() {
         RequiredPiece req = new RequiredPiece(10L, "blue", 100.0, 50.0, 1);
 
         Mockito.when(cuttingStockLoaderMock.loadAll()).thenReturn(List.of());
@@ -153,7 +153,7 @@ class SimpleCuttingOptimizerTest {
     }
 
     @Test
-    void optimizer_reports_infeasible_when_stock_too_small() {
+    void givenStockTooSmall_whenOptimize_thenReportsInfeasible() {
         RequiredPiece req = new RequiredPiece(10L, "blue", 150.0, 50.0, 1);
         CuttableStock roll = new CuttableStock(StockType.ROLL, 10L, 100L, "blue", 100.0, 100.0);
 
@@ -166,7 +166,7 @@ class SimpleCuttingOptimizerTest {
     }
 
     @Test
-    void optimizer_reports_infeasible_due_to_added_margin() {
+    void givenPieceFittingWithoutMarginButNotWith_whenOptimize_thenReportsInfeasibleDueToAddedMargin() {
         // Without margin, this 100x100 piece would fit perfectly into the 100x100 stock.
         // With the 1.5 cm margin on all sides, it becomes 103x103 and should be rejected.
         RequiredPiece req = new RequiredPiece(10L, "blue", 100.0, 100.0, 1);
@@ -182,7 +182,7 @@ class SimpleCuttingOptimizerTest {
     }
 
     @Test
-    void optimizer_reports_infeasible_when_wrong_color() {
+    void givenWrongColorStock_whenOptimize_thenReportsInfeasible() {
         RequiredPiece req = new RequiredPiece(10L, "red", 50.0, 50.0, 1);
         CuttableStock roll = new CuttableStock(StockType.ROLL, 10L, 100L, "blue", 100.0, 100.0);
 

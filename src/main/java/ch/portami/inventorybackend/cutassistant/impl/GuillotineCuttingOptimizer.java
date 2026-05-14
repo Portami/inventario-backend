@@ -48,13 +48,13 @@ import org.springframework.stereotype.Service;
  * </ol>
  */
 @Service
-public class SimpleCuttingOptimizer implements CuttingOptimizer {
+public class GuillotineCuttingOptimizer implements CuttingOptimizer {
 
-    private static final double MARGIN = 1.5;
+    private static final Double MARGIN = 1.5;
 
     private final CuttingStockLoader stockLoader;
 
-    public SimpleCuttingOptimizer(CuttingStockLoader stockLoader) {
+    public GuillotineCuttingOptimizer(CuttingStockLoader stockLoader) {
         this.stockLoader = stockLoader;
     }
 
@@ -78,8 +78,8 @@ public class SimpleCuttingOptimizer implements CuttingOptimizer {
         Map<CuttableStock, List<RequiredPiece>> assignments = new HashMap<>();
 
         for (RequiredPiece piece : piecesToCut) {
-            double paddedLength = piece.length() + (MARGIN * 2);
-            double paddedWidth = piece.width() + (MARGIN * 2);
+            Double paddedLength = piece.length() + (MARGIN * 2);
+            Double paddedWidth = piece.width() + (MARGIN * 2);
 
             Placement bestPlacement = findBestPlacement(piece, paddedLength, paddedWidth, availableStocks, stockSpaces);
 
@@ -158,25 +158,25 @@ public class SimpleCuttingOptimizer implements CuttingOptimizer {
      * the space that leaves the smallest remaining void. This minimizes loose, unusable gaps.
      *
      * @param piece the required piece to place
-     * @param paddedLen the piece's required length, including cutting margins
-     * @param paddedWid the piece's required width, including cutting margins
+     * @param paddedLength the piece's required length, including cutting margins
+     * @param paddedWidth the piece's required width, including cutting margins
      * @param stocks the prioritized list of available stocks
      * @param stockSpaces the current map of available free spaces
      * @return a {@link Placement} object containing the chosen stock and space, or {@code null} if no fit exists
      */
-    private Placement findBestPlacement(RequiredPiece piece, double paddedLen, double paddedWid,
+    private Placement findBestPlacement(RequiredPiece piece, Double paddedLength, Double paddedWidth,
             List<CuttableStock> stocks, Map<CuttableStock, List<FreeSpace>> stockSpaces) {
 
         Placement bestPlacement = null;
-        double bestAreaFit = Double.MAX_VALUE;
+        Double bestAreaFit = Double.MAX_VALUE;
 
         for (CuttableStock stock : stocks) {
             if (!matchesVariantAndColor(stock, piece)) continue;
 
             List<FreeSpace> spaces = stockSpaces.get(stock);
             for (FreeSpace space : spaces) {
-                if (space.length >= paddedLen && space.width >= paddedWid) {
-                    double remainingArea = (space.length * space.width) - (paddedLen * paddedWid);
+                if (space.length >= paddedLength && space.width >= paddedWidth) {
+                    Double remainingArea = (space.length * space.width) - (paddedLength * paddedWidth);
 
                     if (remainingArea < bestAreaFit) {
                         bestAreaFit = remainingArea;
@@ -203,14 +203,14 @@ public class SimpleCuttingOptimizer implements CuttingOptimizer {
      * @param pieceWid the padded width of the piece being removed
      * @param stockSpaces the tracking map to be updated with the newly generated free spaces
      */
-    private void splitFreeSpace(CuttableStock stock, FreeSpace usedSpace, double pieceLen, double pieceWid,
+    private void splitFreeSpace(CuttableStock stock, FreeSpace usedSpace, Double pieceLen, Double pieceWid,
             Map<CuttableStock, List<FreeSpace>> stockSpaces) {
 
         List<FreeSpace> spaces = stockSpaces.get(stock);
         spaces.remove(usedSpace);
 
-        double rightLength = usedSpace.length - pieceLen;
-        double topWidth = usedSpace.width - pieceWid;
+        Double rightLength = usedSpace.length - pieceLen;
+        Double topWidth = usedSpace.width - pieceWid;
 
         if (rightLength > topWidth) {
             if (rightLength > 0) spaces.add(new FreeSpace(rightLength, usedSpace.width));
@@ -229,7 +229,7 @@ public class SimpleCuttingOptimizer implements CuttingOptimizer {
      */
     private CutResult createCutResult(Map<CuttableStock, List<RequiredPiece>> assignments) {
         List<CuttingAssignment> results = new ArrayList<>();
-        double totalWaste = 0.0;
+        Double totalWaste = 0.0;
 
         for (Map.Entry<CuttableStock, List<RequiredPiece>> entry : assignments.entrySet()) {
             CuttableStock stock = entry.getKey();
@@ -244,7 +244,7 @@ public class SimpleCuttingOptimizer implements CuttingOptimizer {
                                                                p.width() + (MARGIN * 2)))
                                                        .toList();
 
-            double stockWaste = calculateTotalWasteForStock(stock, pieces);
+            Double stockWaste = calculateTotalWasteForStock(stock, pieces);
 
             results.add(new CuttingAssignment(stock, assignedPieces, stockWaste));
             totalWaste += stockWaste;
@@ -265,9 +265,9 @@ public class SimpleCuttingOptimizer implements CuttingOptimizer {
      * @param pieces the list of pieces assigned to this stock item
      * @return the calculated remaining area (waste) in square units
      */
-    private double calculateTotalWasteForStock(CuttableStock stock, List<RequiredPiece> pieces) {
-        double totalStockArea = stock.length() * stock.width();
-        double usedPaddedArea = pieces.stream()
+    private Double calculateTotalWasteForStock(CuttableStock stock, List<RequiredPiece> pieces) {
+        Double totalStockArea = stock.length() * stock.width();
+        Double usedPaddedArea = pieces.stream()
                                       .mapToDouble(p -> (p.length() + (MARGIN * 2)) * (p.width() + (MARGIN * 2)))
                                       .sum();
 
@@ -292,12 +292,12 @@ public class SimpleCuttingOptimizer implements CuttingOptimizer {
      * over dimension constraints for clearer user feedback.
      *
      * @param piece the piece that failed to place
-     * @param paddedLen the piece's required length with margins
-     * @param paddedWid the piece's required width with margins
+     * @param paddedLength the piece's required length with margins
+     * @param paddedWidth the piece's required width with margins
      * @param stocks the full list of available stock items
      * @return a human-readable string explaining the failure reason
      */
-    private String determineInfeasibleReason(RequiredPiece piece, double paddedLen, double paddedWid, List<CuttableStock> stocks) {
+    private String determineInfeasibleReason(RequiredPiece piece, Double paddedLength, Double paddedWidth, List<CuttableStock> stocks) {
         boolean hasMatchingVariantAndColor = stocks.stream()
                                                    .anyMatch(stock -> matchesVariantAndColor(stock, piece));
 
@@ -307,7 +307,7 @@ public class SimpleCuttingOptimizer implements CuttingOptimizer {
         }
 
         return String.format("Request exceeding available space for piece %.1f x %.1f (requires %.1f x %.1f with margins)",
-                piece.length(), piece.width(), paddedLen, paddedWid);
+                piece.length(), piece.width(), paddedLength, paddedWidth);
     }
 
     // --- Helper Domain Classes for 2D Geometry ---
@@ -317,8 +317,8 @@ public class SimpleCuttingOptimizer implements CuttingOptimizer {
      * Used by the 2D Guillotine algorithm to track available space.
      */
     private static class FreeSpace {
-        final double length;
-        final double width;
+        final Double length;
+        final Double width;
 
         /**
          * Creates a new FreeSpace instance.
@@ -326,7 +326,7 @@ public class SimpleCuttingOptimizer implements CuttingOptimizer {
          * @param length the length of the available rectangle
          * @param width the width of the available rectangle
          */
-        FreeSpace(double length, double width) {
+        FreeSpace(Double length, Double width) {
             this.length = length;
             this.width = width;
         }
