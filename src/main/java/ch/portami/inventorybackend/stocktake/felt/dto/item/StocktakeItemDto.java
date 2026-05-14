@@ -1,5 +1,7 @@
-package ch.portami.inventorybackend.stocktake.felt.dto;
+package ch.portami.inventorybackend.stocktake.felt.dto.item;
 
+import ch.portami.inventorybackend.stocktake.felt.dto.FeltStocktakeItemType;
+import ch.portami.inventorybackend.stocktake.felt.dto.scan.FeltStocktakeScanDto;
 import jakarta.annotation.Nullable;
 import java.util.List;
 

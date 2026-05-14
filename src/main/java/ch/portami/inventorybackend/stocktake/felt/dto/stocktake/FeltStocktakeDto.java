@@ -1,4 +1,4 @@
-package ch.portami.inventorybackend.stocktake.felt.dto;
+package ch.portami.inventorybackend.stocktake.felt.dto.stocktake;
 
 import jakarta.annotation.Nullable;
 import java.time.Instant;

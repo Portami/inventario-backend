@@ -1,8 +1,8 @@
 package ch.portami.inventorybackend.stocktake.felt.api;
 
-import ch.portami.inventorybackend.stocktake.felt.dto.CreateFeltStocktakeDto;
-import ch.portami.inventorybackend.stocktake.felt.dto.ExtendStocktakeDto;
-import ch.portami.inventorybackend.stocktake.felt.dto.FeltStocktakeDto;
+import ch.portami.inventorybackend.stocktake.felt.dto.stocktake.CreateFeltStocktakeDto;
+import ch.portami.inventorybackend.stocktake.felt.dto.stocktake.ExtendStocktakeDto;
+import ch.portami.inventorybackend.stocktake.felt.dto.stocktake.FeltStocktakeDto;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.ResponseEntity;

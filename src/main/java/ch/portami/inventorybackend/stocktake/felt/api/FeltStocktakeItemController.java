@@ -1,7 +1,7 @@
 package ch.portami.inventorybackend.stocktake.felt.api;
 
-import ch.portami.inventorybackend.stocktake.felt.dto.ResolveFeltStocktakeProblemDto;
-import ch.portami.inventorybackend.stocktake.felt.dto.StocktakeItemDto;
+import ch.portami.inventorybackend.stocktake.felt.dto.item.ResolveFeltStocktakeProblemDto;
+import ch.portami.inventorybackend.stocktake.felt.dto.item.StocktakeItemDto;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.ResponseEntity;

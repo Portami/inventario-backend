@@ -1,7 +1,7 @@
 package ch.portami.inventorybackend.stocktake.felt.api;
 
-import ch.portami.inventorybackend.stocktake.felt.dto.CreateFeltStocktakeScanDto;
-import ch.portami.inventorybackend.stocktake.felt.dto.FeltStocktakeScanDto;
+import ch.portami.inventorybackend.stocktake.felt.dto.scan.CreateFeltStocktakeScanDto;
+import ch.portami.inventorybackend.stocktake.felt.dto.scan.FeltStocktakeScanDto;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;

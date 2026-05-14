@@ -1,4 +1,4 @@
-package ch.portami.inventorybackend.stocktake.felt.dto;
+package ch.portami.inventorybackend.stocktake.felt.dto.scan;
 
 import jakarta.validation.constraints.NotNull;
 
