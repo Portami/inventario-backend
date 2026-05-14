@@ -1,10 +1,11 @@
-package ch.portami.inventorybackend.stocktaking.felt.dto;
+package ch.portami.inventorybackend.stocktake.felt.dto;
 
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
 
-public record ExtendStocktakingDto(
+public record ExtendStocktakeDto(
         List<@NotNull Long> storageIds
 ) {
 
 }
+

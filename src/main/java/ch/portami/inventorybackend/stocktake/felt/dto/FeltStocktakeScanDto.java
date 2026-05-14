@@ -1,9 +1,9 @@
-package ch.portami.inventorybackend.stocktaking.felt.dto;
+package ch.portami.inventorybackend.stocktake.felt.dto;
 
 import jakarta.annotation.Nullable;
 import java.time.Instant;
 
-public record FeltStocktakingScanDto(
+public record FeltStocktakeScanDto(
         Long scanId,
         @Nullable Long rollId,
         String barcode,
@@ -13,3 +13,4 @@ public record FeltStocktakingScanDto(
 ) {
 
 }
+

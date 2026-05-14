@@ -1,6 +1,6 @@
-package ch.portami.inventorybackend.stocktaking.felt.dto;
+package ch.portami.inventorybackend.stocktake.felt.dto;
 
-public enum StocktakingRollStatus {
+public enum StocktakeRollStatus {
     INITIAL,
     OK,
     MISSING,
@@ -9,3 +9,4 @@ public enum StocktakingRollStatus {
     ALREADY_REMOVED,
     UNKNOWN
 }
+

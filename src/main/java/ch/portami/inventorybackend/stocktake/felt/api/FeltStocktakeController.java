@@ -1,8 +1,8 @@
-package ch.portami.inventorybackend.stocktaking.felt.api;
+package ch.portami.inventorybackend.stocktake.felt.api;
 
-import ch.portami.inventorybackend.stocktaking.felt.dto.CreateFeltStocktakingDto;
-import ch.portami.inventorybackend.stocktaking.felt.dto.ExtendStocktakingDto;
-import ch.portami.inventorybackend.stocktaking.felt.dto.FeltStocktakingDto;
+import ch.portami.inventorybackend.stocktake.felt.dto.CreateFeltStocktakeDto;
+import ch.portami.inventorybackend.stocktake.felt.dto.ExtendStocktakeDto;
+import ch.portami.inventorybackend.stocktake.felt.dto.FeltStocktakeDto;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
@@ -15,39 +15,40 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/stocktakings")
-public class FeltStocktakingController {
+@RequestMapping("/api/stocktakes")
+public class FeltStocktakeController {
 
     @PostMapping
-    public ResponseEntity<FeltStocktakingDto> createStocktaking(
-            @RequestBody @Valid CreateFeltStocktakingDto createFeltStocktakingDto) {
+    public ResponseEntity<FeltStocktakeDto> createStocktake(
+            @RequestBody @Valid CreateFeltStocktakeDto createFeltStocktakeDto) {
         throw new RuntimeException("Not implemented yet");
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<FeltStocktakingDto> getStocktakingById(@PathVariable Long id) {
+    public ResponseEntity<FeltStocktakeDto> getStocktakeById(@PathVariable Long id) {
         throw new RuntimeException("Not implemented yet");
     }
 
     @GetMapping
-    public ResponseEntity<List<FeltStocktakingDto>> getAllStocktakings() {
+    public ResponseEntity<List<FeltStocktakeDto>> getAllStocktakes() {
         throw new RuntimeException("Not implemented yet");
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteStocktakingById(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteStocktakeById(@PathVariable Long id) {
         throw new RuntimeException("Not implemented yet");
     }
 
     @PostMapping("/{id}/extend")
-    public ResponseEntity<FeltStocktakingDto> extendStocktaking(@PathVariable Long id,
-            @RequestBody @Valid ExtendStocktakingDto extendStocktakingDto) {
+    public ResponseEntity<FeltStocktakeDto> extendStocktake(@PathVariable Long id,
+            @RequestBody @Valid ExtendStocktakeDto extendStocktakeDto) {
         throw new RuntimeException("Not implemented yet");
     }
 
     @PostMapping("/{id}/complete")
-    public ResponseEntity<FeltStocktakingDto> finalizeStocktaking(@PathVariable Long id) {
+    public ResponseEntity<FeltStocktakeDto> finalizeStocktake(@PathVariable Long id) {
         throw new RuntimeException("Not implemented yet");
     }
 
 }
+

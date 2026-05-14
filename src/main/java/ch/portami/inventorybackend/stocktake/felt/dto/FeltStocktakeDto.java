@@ -1,17 +1,18 @@
-package ch.portami.inventorybackend.stocktaking.felt.dto;
+package ch.portami.inventorybackend.stocktake.felt.dto;
 
 import jakarta.annotation.Nullable;
 import java.time.Instant;
 import java.util.List;
 
-public record FeltStocktakingDto(
+public record FeltStocktakeDto(
         Long id,
         String description,
         Instant createdAt,
-        List<FeltStocktakingListInfoDto> storageLists,
+        List<FeltStocktakeListInfoDto> storageLists,
         Boolean isCompleted,
         @Nullable Instant completedAt
 ) {
 
 
 }
+

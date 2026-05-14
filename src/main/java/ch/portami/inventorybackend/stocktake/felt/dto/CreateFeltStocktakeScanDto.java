@@ -1,10 +1,11 @@
-package ch.portami.inventorybackend.stocktaking.felt.dto;
+package ch.portami.inventorybackend.stocktake.felt.dto;
 
 import jakarta.validation.constraints.NotNull;
 
-public record CreateFeltStocktakingScanDto(
+public record CreateFeltStocktakeScanDto(
         @NotNull String barcode,
         @NotNull Long scannedStorageId
 ) {
 
 }
+

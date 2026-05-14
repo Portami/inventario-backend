@@ -1,6 +1,6 @@
-package ch.portami.inventorybackend.stocktaking.felt.dto;
+package ch.portami.inventorybackend.stocktake.felt.dto;
 
-public enum FeltStocktakingResolutionType {
+public enum FeltStocktakeResolutionType {
     ADJUST_STORAGE,
     MOVE_PHYSICALLY,
     IGNORE_MISSING,
@@ -8,3 +8,4 @@ public enum FeltStocktakingResolutionType {
     RESTORE,
     IGNORE_UNKNOWN
 }
+
