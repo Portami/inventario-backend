@@ -6,7 +6,7 @@ import java.text.MessageFormat;
 
 public class SupplyNotFoundException extends ResourceNotFoundException {
 
-    public SupplyNotFoundException(long feltColorVariantId) {
-        super(MessageFormat.format("Supply with id {0} not found", feltColorVariantId), new ResourceIdentifier("feltColorVariantId", feltColorVariantId));
+    public SupplyNotFoundException(long feltId) {
+        super(MessageFormat.format("Supply with id {0} not found", feltId), new ResourceIdentifier("feltId", feltId));
     }
 }

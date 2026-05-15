@@ -173,7 +173,7 @@ class FeltRollControllerIntegrationTest {
                         assertThat(roll.id()).isNotNull();
                         assertThat(roll.length()).isEqualTo(10.0);
                         assertThat(roll.width()).isEqualTo(1.5);
-                        assertThat(roll.feltColorVariantId()).isEqualTo(feltId);
+                        assertThat(roll.feltId()).isEqualTo(feltId);
                         assertThat(roll.batchId()).isNull();
                         assertThat(roll.storageId()).isNull();
                     });
@@ -280,7 +280,7 @@ class FeltRollControllerIntegrationTest {
                         assertThat(roll.id()).isEqualTo(created.id());
                         assertThat(roll.length()).isEqualTo(10.0);
                         assertThat(roll.width()).isEqualTo(1.5);
-                        assertThat(roll.feltColorVariantId()).isEqualTo(feltId);
+                        assertThat(roll.feltId()).isEqualTo(feltId);
                         assertThat(roll.color()).isEqualTo("Red");
                         assertThat(roll.articleNumber()).isEqualTo("ART-001");
                         assertThat(roll.batchId()).isNull();

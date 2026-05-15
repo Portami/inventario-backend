@@ -6,5 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface FeltRollRepository extends JpaRepository<FeltRoll, Long> {
 
-    List<FeltRoll> findByFeltColorVariantId(Long feltColorVariantId);
+    List<FeltRoll> findByFeltId(Long feltId);
 }

@@ -7,14 +7,15 @@ import ch.portami.inventorybackend.felt.dto.CreateScrapPieceDto;
 import ch.portami.inventorybackend.felt.dto.ScrapPieceDto;
 import ch.portami.inventorybackend.felt.dto.UpdateScrapPieceDto;
 import ch.portami.inventorybackend.felt.entity.Batch;
-import ch.portami.inventorybackend.felt.entity.FeltColorVariant;
+import ch.portami.inventorybackend.felt.entity.Felt;
 import ch.portami.inventorybackend.felt.entity.ScrapPiece;
 import ch.portami.inventorybackend.felt.event.ScrapPieceCreatedEvent;
+import ch.portami.inventorybackend.felt.exception.FeltNotFoundException;
 import ch.portami.inventorybackend.felt.exception.InvalidBatchReferenceException;
 import ch.portami.inventorybackend.felt.exception.ScrapPieceNotFoundException;
 import ch.portami.inventorybackend.felt.mapper.ScrapPieceMapper;
 import ch.portami.inventorybackend.felt.repository.BatchRepository;
-import ch.portami.inventorybackend.felt.repository.FeltColorVariantRepository;
+import ch.portami.inventorybackend.felt.repository.FeltRepository;
 import ch.portami.inventorybackend.felt.repository.ScrapPieceRepository;
 import java.util.List;
 import org.springframework.context.ApplicationEventPublisher;
@@ -25,7 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class ScrapPieceService {
 
-    private final FeltColorVariantRepository feltColorVariantRepo;
+    private final FeltRepository feltRepo;
     private final ScrapPieceRepository scrapPieceRepo;
     private final BatchRepository batchRepo;
     private final StorageRepository storageRepo;
@@ -33,14 +34,14 @@ public class ScrapPieceService {
     private final ScrapPieceMapper scrapPieceMapper;
 
     public ScrapPieceService(
-            FeltColorVariantRepository feltColorVariantRepo,
+            FeltRepository feltRepo,
             ScrapPieceRepository scrapPieceRepo,
             BatchRepository batchRepo,
             StorageRepository storageRepo,
             ApplicationEventPublisher eventPublisher,
             ScrapPieceMapper scrapPieceMapper
     ) {
-        this.feltColorVariantRepo = feltColorVariantRepo;
+        this.feltRepo = feltRepo;
         this.scrapPieceRepo = scrapPieceRepo;
         this.batchRepo = batchRepo;
         this.storageRepo = storageRepo;
@@ -56,10 +57,10 @@ public class ScrapPieceService {
     }
 
     public List<ScrapPieceDto> findAllByFelt(Long feltId) {
-        if (!feltColorVariantRepo.existsById(feltId)) {
-            throw new ScrapPieceNotFoundException(feltId);
+        if (!feltRepo.existsById(feltId)) {
+            throw new FeltNotFoundException(feltId);
         }
-        return scrapPieceRepo.findByFeltColorVariantId(feltId)
+        return scrapPieceRepo.findByFeltId(feltId)
                              .stream()
                              .map(scrapPieceMapper::toDto)
                              .toList();
@@ -73,14 +74,13 @@ public class ScrapPieceService {
 
     @Transactional
     public ScrapPieceDto create(CreateScrapPieceDto dto) {
-        FeltColorVariant colorVariant = feltColorVariantRepo.findById(dto.feltId())
-                                                            .orElseThrow(
-                                                                    () -> new ScrapPieceNotFoundException(dto.feltId()));
+        Felt felt = feltRepo.findById(dto.feltId())
+                .orElseThrow(() -> new FeltNotFoundException(dto.feltId()));
 
         Batch batch = resolveOptionalBatch(dto.batchId());
         Storage storage = resolveOptionalStorage(dto.storageId());
 
-        ScrapPiece scrapPiece = new ScrapPiece(colorVariant, batch, storage, dto.length(), dto.width());
+        ScrapPiece scrapPiece = new ScrapPiece(felt, batch, storage, dto.length(), dto.width());
         scrapPiece = scrapPieceRepo.save(scrapPiece);
 
         eventPublisher.publishEvent(new ScrapPieceCreatedEvent(scrapPiece));

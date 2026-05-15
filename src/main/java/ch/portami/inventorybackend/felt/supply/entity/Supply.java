@@ -1,6 +1,6 @@
 package ch.portami.inventorybackend.felt.supply.entity;
 
-import ch.portami.inventorybackend.felt.entity.FeltColorVariant;
+import ch.portami.inventorybackend.felt.entity.Felt;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -28,15 +28,15 @@ public class Supply {
     @MapsId
     @JoinColumn(name = "id")
     @OnDelete(action = OnDeleteAction.CASCADE)
-    private FeltColorVariant feltColorVariant;
+    private Felt felt;
 
     protected Supply() {
     }
 
-    public Supply(boolean isLowOnSupply, boolean hasBeenReordered, FeltColorVariant feltColorVariant) {
+    public Supply(boolean isLowOnSupply, boolean hasBeenReordered, Felt felt) {
         this.isLowOnSupply = isLowOnSupply;
         this.hasBeenReordered = hasBeenReordered;
-        this.feltColorVariant = feltColorVariant;
+        this.felt = felt;
     }
 
     public Long getId() {
@@ -59,11 +59,11 @@ public class Supply {
         this.hasBeenReordered = hasBeenReordered;
     }
 
-    public FeltColorVariant getFeltColorVariant() {
-        return feltColorVariant;
+    public Felt getFelt() {
+        return felt;
     }
 
-    public void setFeltColorVariant(FeltColorVariant feltColorVariant) {
-        this.feltColorVariant = feltColorVariant;
+    public void setFelt(Felt felt) {
+        this.felt = felt;
     }
 }

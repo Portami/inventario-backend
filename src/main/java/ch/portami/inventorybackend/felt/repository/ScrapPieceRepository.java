@@ -6,5 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ScrapPieceRepository extends JpaRepository<ScrapPiece, Long> {
 
-    List<ScrapPiece> findByFeltColorVariantId(Long feltColorVariantId);
+    List<ScrapPiece> findByFeltId(Long feltId);
 }

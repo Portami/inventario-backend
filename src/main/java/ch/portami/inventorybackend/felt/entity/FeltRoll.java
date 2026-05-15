@@ -55,7 +55,7 @@ public class FeltRoll {
     public Long getId() { return id; }
 
     public Felt getFelt() { return felt; }
-    public void setFelt(Felt feltColorVariant) { this.felt = feltColorVariant; }
+    public void setFelt(Felt felt) { this.felt = felt; }
 
     public Batch getBatch() { return batch; }
     public void setBatch(Batch batch) { this.batch = batch; }

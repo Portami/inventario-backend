@@ -1,8 +1,6 @@
 package ch.portami.inventorybackend.felt.supply;
 
 import ch.portami.inventorybackend.felt.entity.Felt;
-import ch.portami.inventorybackend.felt.entity.FeltColorVariant;
-import ch.portami.inventorybackend.felt.entity.FeltVariant;
 import ch.portami.inventorybackend.felt.supply.dto.SupplyDto;
 import ch.portami.inventorybackend.felt.supply.dto.UpdateSupplyDto;
 import ch.portami.inventorybackend.felt.supply.entity.Supply;
@@ -25,8 +23,8 @@ public class SupplyService {
     }
 
     @Transactional
-    public void createForFelt(FeltColorVariant feltColorVariant) {
-        supplyRepository.save(new Supply(false, false, feltColorVariant));
+    public void createForFelt(Felt felt) {
+        supplyRepository.save(new Supply(false, false, felt));
     }
 
     public Optional<Supply> findByRollId(Long rollId) {
@@ -56,15 +54,13 @@ public class SupplyService {
     }
 
     private SupplyDto toDto(Supply supply) {
-        FeltColorVariant colorVariant = supply.getFeltColorVariant();
-        FeltVariant variant = colorVariant.getFeltVariant();
-        Felt felt = variant.getFelt();
+        Felt felt = supply.getFelt();
 
         return new SupplyDto(
-                colorVariant.getId(),
+                felt.getId(),
                 supply.isLowOnSupply(),
                 supply.isHasBeenReordered(),
-                colorVariant.getColor(),
+                felt.getColor(),
                 felt.getArticleNumber(),
                 felt.getSupplier().getName(),
                 felt.getFeltType().getName()

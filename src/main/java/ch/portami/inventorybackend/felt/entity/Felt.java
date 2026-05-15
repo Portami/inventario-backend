@@ -59,10 +59,17 @@ public class Felt {
     public Felt() {
     }
 
-    public Felt(FeltType feltType, Supplier supplier, String articleNumber) {
+    public Felt(FeltType feltType, Supplier supplier, String articleNumber,
+                Double thickness, Double density, BigDecimal price,
+                String color, String supplierColor) {
         this.feltType = feltType;
         this.supplier = supplier;
         this.articleNumber = articleNumber;
+        this.thickness = thickness;
+        this.density = density;
+        this.price = price;
+        this.color = color;
+        this.supplierColor = supplierColor;
     }
 
     public Long getId() {

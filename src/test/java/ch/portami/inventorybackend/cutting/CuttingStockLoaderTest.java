@@ -1,8 +1,7 @@
 package ch.portami.inventorybackend.cutting;
 
 import ch.portami.inventorybackend.cutassistant.CuttingStockLoader;
-import ch.portami.inventorybackend.felt.entity.FeltColorVariant;
-import ch.portami.inventorybackend.felt.entity.FeltVariant;
+import ch.portami.inventorybackend.felt.entity.Felt;
 import ch.portami.inventorybackend.felt.entity.FeltRoll;
 import ch.portami.inventorybackend.felt.entity.ScrapPiece;
 import ch.portami.inventorybackend.felt.repository.FeltRollRepository;
@@ -33,21 +32,18 @@ class CuttingStockLoaderTest {
 
     @Test
     void loadAll_mapsRollsAndScraps() throws Exception {
-        FeltVariant variant = new FeltVariant();
-        FeltColorVariant colorVariant = new FeltColorVariant();
-        setId(variant, 42L);
-        setId(colorVariant, 7L);
-        colorVariant.setFeltVariant(variant);
-        colorVariant.setColor("red");
+        Felt felt = new Felt();
+        setId(felt, 7L);
+        felt.setColor("red");
 
         FeltRoll roll = new FeltRoll();
-        roll.setFeltColorVariant(colorVariant);
+        roll.setFelt(felt);
         roll.setLength(200.0);
         roll.setWidth(100.0);
         setId(roll, 11L);
 
         ScrapPiece scrap = new ScrapPiece();
-        scrap.setFelt(colorVariant);
+        scrap.setFelt(felt);
         scrap.setLength(44.0);
         scrap.setWidth(44.0);
         setId(scrap, 22L);
@@ -59,8 +55,7 @@ class CuttingStockLoaderTest {
 
         assertEquals(2, stocks.size());
         var r = stocks.stream().filter(s -> s.stockType().name().equals("ROLL")).findFirst().orElseThrow();
-        assertEquals(42L, r.feltVariantId());
-        assertEquals(7L, r.feltColorVariantId());
+        assertEquals(7L, r.feltId());
         assertEquals("red", r.color());
         assertEquals(200.0, r.length());
     }
@@ -81,4 +76,3 @@ class CuttingStockLoaderTest {
         f.set(target, id);
     }
 }
-

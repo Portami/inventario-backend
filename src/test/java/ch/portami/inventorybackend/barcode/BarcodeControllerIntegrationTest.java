@@ -7,11 +7,11 @@ import ch.portami.inventorybackend.felt.dto.CreateFeltDto;
 import ch.portami.inventorybackend.felt.dto.CreateFeltRollDto;
 import ch.portami.inventorybackend.felt.dto.FeltDto;
 import ch.portami.inventorybackend.felt.dto.FeltRollDto;
-import ch.portami.inventorybackend.felt.entity.FeltColorVariant;
+import ch.portami.inventorybackend.felt.entity.Felt;
 import ch.portami.inventorybackend.felt.entity.FeltType;
 import ch.portami.inventorybackend.felt.entity.ScrapPiece;
 import ch.portami.inventorybackend.felt.entity.Supplier;
-import ch.portami.inventorybackend.felt.repository.FeltColorVariantRepository;
+import ch.portami.inventorybackend.felt.repository.FeltRepository;
 import ch.portami.inventorybackend.felt.repository.FeltRollRepository;
 import ch.portami.inventorybackend.felt.repository.FeltTypeRepository;
 import ch.portami.inventorybackend.felt.repository.ScrapPieceRepository;
@@ -65,7 +65,7 @@ class BarcodeControllerIntegrationTest {
     @Autowired
     private ScrapPieceRepository scrapPieceRepository;
     @Autowired
-    private FeltColorVariantRepository feltColorVariantRepository;
+    private FeltRepository feltRepository;
     @Autowired
     private FeltTypeRepository feltTypeRepository;
     @Autowired
@@ -129,11 +129,11 @@ class BarcodeControllerIntegrationTest {
     }
 
     private SeededBarcode seedScrapBarcode() {
-        FeltColorVariant variant = feltColorVariantRepository.findById(feltId)
-                                                             .orElseThrow(() -> new AssertionError(
-                                                                     "FeltColorVariant fixture missing"));
+        Felt felt = feltRepository.findById(feltId)
+                                  .orElseThrow(() -> new AssertionError(
+                                          "Felt fixture missing"));
         ScrapPiece scrap = scrapPieceRepository.save(
-                new ScrapPiece(variant, null, null, 50.0, 50.0));
+                new ScrapPiece(felt, null, null, 50.0, 50.0));
         Barcode barcode = barcodeService.createForScrap(scrap);
         return new SeededBarcode(barcode.getId(), scrap.getId());
     }

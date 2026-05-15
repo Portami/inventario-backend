@@ -10,14 +10,15 @@ import ch.portami.inventorybackend.felt.dto.FeltRollDto;
 import ch.portami.inventorybackend.felt.dto.SplitFeltRollDto;
 import ch.portami.inventorybackend.felt.dto.UpdateFeltRollDto;
 import ch.portami.inventorybackend.felt.entity.Batch;
-import ch.portami.inventorybackend.felt.entity.FeltColorVariant;
+import ch.portami.inventorybackend.felt.entity.Felt;
 import ch.portami.inventorybackend.felt.entity.FeltRoll;
 import ch.portami.inventorybackend.felt.event.FeltRollCreatedEvent;
+import ch.portami.inventorybackend.felt.exception.FeltNotFoundException;
 import ch.portami.inventorybackend.felt.exception.FeltRollNotFoundException;
 import ch.portami.inventorybackend.felt.exception.InvalidBatchReferenceException;
 import ch.portami.inventorybackend.felt.mapper.FeltRollMapper;
 import ch.portami.inventorybackend.felt.repository.BatchRepository;
-import ch.portami.inventorybackend.felt.repository.FeltColorVariantRepository;
+import ch.portami.inventorybackend.felt.repository.FeltRepository;
 import ch.portami.inventorybackend.felt.repository.FeltRollRepository;
 import java.util.List;
 import org.springframework.context.ApplicationEventPublisher;
@@ -28,7 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class FeltRollService {
 
-    private final FeltColorVariantRepository feltColorVariantRepo;
+    private final FeltRepository feltRepo;
     private final FeltRollRepository feltRollRepo;
     private final BatchRepository batchRepo;
     private final StorageRepository storageRepo;
@@ -36,14 +37,14 @@ public class FeltRollService {
     private final FeltRollMapper feltRollMapper;
 
     public FeltRollService(
-            FeltColorVariantRepository feltColorVariantRepo,
+            FeltRepository feltRepo,
             FeltRollRepository feltRollRepo,
             BatchRepository batchRepo,
             StorageRepository storageRepo,
             ApplicationEventPublisher eventPublisher,
             FeltRollMapper feltRollMapper
     ) {
-        this.feltColorVariantRepo = feltColorVariantRepo;
+        this.feltRepo = feltRepo;
         this.feltRollRepo = feltRollRepo;
         this.batchRepo = batchRepo;
         this.storageRepo = storageRepo;
@@ -59,10 +60,10 @@ public class FeltRollService {
     }
 
     public List<FeltRollDto> findAllByFelt(Long feltId) {
-        if (!feltColorVariantRepo.existsById(feltId)) {
-            throw new FeltRollNotFoundException(feltId);
+        if (!feltRepo.existsById(feltId)) {
+            throw new FeltNotFoundException(feltId);
         }
-        return feltRollRepo.findByFeltColorVariantId(feltId)
+        return feltRollRepo.findByFeltId(feltId)
                            .stream()
                            .map(feltRollMapper::toDto)
                            .toList();
@@ -76,14 +77,13 @@ public class FeltRollService {
 
     @Transactional
     public FeltRollDto create(CreateFeltRollDto dto) {
-        FeltColorVariant colorVariant = feltColorVariantRepo.findById(dto.feltId())
-                                                            .orElseThrow(
-                                                                    () -> new FeltRollNotFoundException(dto.feltId()));
+        Felt felt = feltRepo.findById(dto.feltId())
+                            .orElseThrow(() -> new FeltNotFoundException(dto.feltId()));
 
         Batch batch = resolveOptionalBatch(dto.batchId());
         Storage storage = resolveOptionalStorage(dto.storageId());
 
-        FeltRoll roll = new FeltRoll(colorVariant, batch, storage, dto.length(), dto.width());
+        FeltRoll roll = new FeltRoll(felt, batch, storage, dto.length(), dto.width());
         roll = feltRollRepo.save(roll);
 
         eventPublisher.publishEvent(new FeltRollCreatedEvent(roll));
@@ -126,7 +126,7 @@ public class FeltRollService {
         }
 
         FeltRoll newRoll = new FeltRoll(
-                source.getFeltColorVariant(),
+                source.getFelt(),
                 source.getBatch(),
                 source.getStorage(),
                 source.getWidth(),
