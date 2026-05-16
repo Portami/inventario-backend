@@ -124,15 +124,20 @@ class OfferControllerIntegrationTest {
         }
 
         @Test
-        @DisplayName("Should return 400 when items list is null")
+        @DisplayName("Should create offer with null items list (no lines)")
         void testCreateOfferNullItems() {
-            restTestClient.post()
+            OfferDto body = restTestClient.post()
                           .uri(OFFERS_URL)
                           .contentType(MediaType.APPLICATION_JSON)
                           .body(new CreateOfferDto("Acme", null))
                           .exchange()
                           .expectStatus()
-                          .isBadRequest();
+                          .isCreated()
+                          .returnResult(OfferDto.class)
+                          .getResponseBody();
+
+            assertThat(body).isNotNull();
+            assertThat(body.items()).isEmpty();
         }
     }
 

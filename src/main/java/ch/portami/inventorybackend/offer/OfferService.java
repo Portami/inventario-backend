@@ -3,6 +3,7 @@ package ch.portami.inventorybackend.offer;
 import ch.portami.inventorybackend.core.exceptions.ResourceNotFoundException;
 import ch.portami.inventorybackend.offer.domain.OfferState;
 import ch.portami.inventorybackend.offer.dto.CreateOfferDto;
+import ch.portami.inventorybackend.offer.dto.CreateOfferItemDto;
 import ch.portami.inventorybackend.offer.dto.CreateOfferItemOptionalDto;
 import ch.portami.inventorybackend.offer.dto.OfferDto;
 import ch.portami.inventorybackend.offer.dto.OfferItemDto;
@@ -40,8 +41,18 @@ public class OfferService {
         Offer offer = offerMapper.toOffer(dto);
         offer.setCustomer(resolveCustomer(dto.customerName()));
         offer.setState(OfferState.OFFER);
+        Offer savedOffer = offerRepository.save(offer);
 
-        return offerMapper.toOfferDto(offerRepository.save(offer));
+        savedOffer.getOfferItems().clear();
+        if (dto.items() != null) {
+            for (CreateOfferItemDto itemDto : dto.items()) {
+                OfferItem item = offerMapper.toOfferItem(itemDto);
+                item.setOfferId(savedOffer.getId());
+                savedOffer.getOfferItems().add(offerItemRepository.save(item));
+            }
+        }
+
+        return offerMapper.toOfferDto(savedOffer);
     }
 
     @Transactional(readOnly = true)

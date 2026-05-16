@@ -131,6 +131,11 @@ class OfferServiceTest {
             o.setId(ID);
             return o;
         });
+        given(offerItemRepository.save(any(OfferItem.class))).willAnswer(inv -> {
+            OfferItem item = inv.getArgument(0);
+            item.setId(1L);
+            return item;
+        });
 
         OfferDto result = offerService.createOffer(dto);
 
