@@ -5,7 +5,6 @@ import ch.portami.inventorybackend.stocktake.felt.dto.scan.FeltStocktakeScanDto;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -36,8 +35,8 @@ public class FeltStocktakeScanController {
         throw new RuntimeException("Not implemented yet");
     }
 
-    @DeleteMapping("/{scanId}")
-    public ResponseEntity<Void> deleteFeltStocktakeScan(@PathVariable Long stocktakeId, @PathVariable Long scanId) {
+    @PostMapping("/{scanId}/void")
+    public ResponseEntity<Void> voidFeltStocktakeScan(@PathVariable Long stocktakeId, @PathVariable Long scanId) {
         throw new RuntimeException("Not implemented yet");
     }
 
