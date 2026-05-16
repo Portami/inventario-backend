@@ -27,7 +27,10 @@ public record OfferDto(
     ZonedDateTime dueAt,
 
     @Schema(description = "List of line items included in the offer.")
-    List<OfferItemDto> items
+    List<OfferItemDto> items,
+
+    @Schema(description = "Whether this offer document has been sent to the customer. Resets to false on state change.")
+    boolean offerSent
 
 ) {
 

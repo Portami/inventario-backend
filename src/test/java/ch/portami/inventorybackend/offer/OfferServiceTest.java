@@ -220,7 +220,7 @@ class OfferServiceTest {
         given(customerRepository.findByNameIgnoreCase("NewCo")).willReturn(Optional.empty());
         given(customerRepository.save(any(Customer.class))).willAnswer(inv -> inv.getArgument(0));
 
-        OfferDto result = offerService.updateOffer(ID, new UpdateOfferDto("NewCo", null, null, null));
+        OfferDto result = offerService.updateOffer(ID, new UpdateOfferDto("NewCo", null, null, null, null));
 
         assertThat(result.customerDto()
                          .name()).isEqualTo("NewCo");
@@ -236,7 +236,7 @@ class OfferServiceTest {
         given(offerRepository.findById(ID)).willReturn(Optional.of(offer));
         given(offerRepository.save(any(Offer.class))).willAnswer(inv -> inv.getArgument(0));
 
-        OfferDto updatedOffer = offerService.updateOffer(ID, new UpdateOfferDto(null, null, List.of(updatedItem), null));
+        OfferDto updatedOffer = offerService.updateOffer(ID, new UpdateOfferDto(null, null, List.of(updatedItem), null, null));
 
         OfferItemDto item = updatedOffer.items()
                                         .stream()
@@ -254,7 +254,7 @@ class OfferServiceTest {
     void updateOffer_withNullCustomerName_skipsCustomerResolution() {
         given(offerRepository.findById(ID)).willReturn(Optional.of(persistedOffer()));
 
-        offerService.updateOffer(ID, new UpdateOfferDto(null, OfferState.OFFER, null, null));
+        offerService.updateOffer(ID, new UpdateOfferDto(null, OfferState.OFFER, null, null, null));
 
         verifyNoMoreInteractions(customerRepository);
     }
@@ -263,7 +263,7 @@ class OfferServiceTest {
     void updateOffer_notFound_throws() {
         given(offerRepository.findById(ID)).willReturn(Optional.empty());
 
-        assertThatThrownBy(() -> offerService.updateOffer(ID, new UpdateOfferDto(null, null, null, null)))
+        assertThatThrownBy(() -> offerService.updateOffer(ID, new UpdateOfferDto(null, null, null, null, null)))
                 .isInstanceOf(ResourceNotFoundException.class);
     }
 

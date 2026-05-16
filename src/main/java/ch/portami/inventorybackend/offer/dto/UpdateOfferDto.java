@@ -18,7 +18,10 @@ public record UpdateOfferDto(
     List<UpdateOfferItemDto> items,
 
     @Schema(description = "Payment due date for the offer (optional)")
-    ZonedDateTime dueAt
+    ZonedDateTime dueAt,
+
+    @Schema(description = "Mark whether this offer document has been sent to the customer (optional). Automatically reset to false on state change.")
+    Boolean offerSent
 
 ) {
 

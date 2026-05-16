@@ -41,6 +41,7 @@ public interface OfferMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "offerSent", ignore = true)
     @Mapping(source = "items", target = "offerItems")
     void updateOffer(UpdateOfferDto dto, @MappingTarget Offer offer);
 

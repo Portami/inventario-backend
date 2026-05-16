@@ -41,6 +41,7 @@ public class OfferService {
         Offer offer = offerMapper.toOffer(dto);
         offer.setCustomer(resolveCustomer(dto.customerName()));
         offer.setState(OfferState.OFFER);
+        offer.setDueAt(ZonedDateTime.now().plusDays(14));
         Offer savedOffer = offerRepository.save(offer);
 
         savedOffer.getOfferItems().clear();
@@ -82,11 +83,21 @@ public class OfferService {
             offer.setCustomer(resolveCustomer(dto.customerName()));
         }
 
-        offerMapper.updateOffer(dto, offer);
-
-        if (offer.getState() == OfferState.INVOICE && offer.getDueAt() == null) {
-            offer.setDueAt(ZonedDateTime.now().plusDays(30));
+        if (dto.state() != null && !dto.state().equals(offer.getState())) {
+            offer.setOfferSent(false);
+            switch (dto.state()) {
+                case OFFER -> offer.setDueAt(ZonedDateTime.now().plusDays(14));
+                case INVOICE -> offer.setDueAt(ZonedDateTime.now().plusDays(10));
+                case PAYMENT_REMINDER -> offer.setDueAt(ZonedDateTime.now().plusDays(5));
+                default -> { /* leave dueAt unchanged */ }
+            }
         }
+
+        if (dto.offerSent() != null) {
+            offer.setOfferSent(dto.offerSent());
+        }
+
+        offerMapper.updateOffer(dto, offer);
 
         return offerMapper.toOfferDto(offerRepository.save(offer));
     }
