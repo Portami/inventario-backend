@@ -41,6 +41,9 @@ public class Offer {
     @Column(name = "updated_at")
     private ZonedDateTime updatedAt;
 
+    @Column(name = "due_at")
+    private ZonedDateTime dueAt;
+
     @OneToMany(mappedBy = "offerId", fetch = FetchType.LAZY)
     private final List<OfferItem> offerItems = new ArrayList<>();
 
@@ -93,6 +96,14 @@ public class Offer {
 
     public void setUpdatedAt(ZonedDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public ZonedDateTime getDueAt() {
+        return dueAt;
+    }
+
+    public void setDueAt(ZonedDateTime dueAt) {
+        this.dueAt = dueAt;
     }
 
     public List<OfferItem> getOfferItems() {

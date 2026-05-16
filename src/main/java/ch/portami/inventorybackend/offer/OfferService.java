@@ -14,6 +14,7 @@ import ch.portami.inventorybackend.offer.mapper.OfferMapper;
 import ch.portami.inventorybackend.offer.repository.CustomerRepository;
 import ch.portami.inventorybackend.offer.repository.OfferItemRepository;
 import ch.portami.inventorybackend.offer.repository.OfferRepository;
+import java.time.ZonedDateTime;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -71,6 +72,10 @@ public class OfferService {
         }
 
         offerMapper.updateOffer(dto, offer);
+
+        if (offer.getState() == OfferState.INVOICE && offer.getDueAt() == null) {
+            offer.setDueAt(ZonedDateTime.now().plusDays(30));
+        }
 
         return offerMapper.toOfferDto(offerRepository.save(offer));
     }
