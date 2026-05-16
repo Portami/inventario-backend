@@ -1,10 +1,10 @@
 package ch.portami.inventorybackend.felt;
 
+import ch.portami.inventorybackend.core.exceptions.BusinessRuleViolationException;
+import ch.portami.inventorybackend.core.exceptions.ResourceIdentifier;
 import ch.portami.inventorybackend.core.storage.entity.Storage;
 import ch.portami.inventorybackend.core.storage.exception.InvalidStorageReferenceException;
 import ch.portami.inventorybackend.core.storage.repository.StorageRepository;
-import ch.portami.inventorybackend.core.exceptions.BusinessRuleViolationException;
-import ch.portami.inventorybackend.core.exceptions.ResourceIdentifier;
 import ch.portami.inventorybackend.felt.dto.CreateFeltRollDto;
 import ch.portami.inventorybackend.felt.dto.FeltRollDto;
 import ch.portami.inventorybackend.felt.dto.SplitFeltRollDto;
@@ -20,10 +20,13 @@ import ch.portami.inventorybackend.felt.mapper.FeltRollMapper;
 import ch.portami.inventorybackend.felt.repository.BatchRepository;
 import ch.portami.inventorybackend.felt.repository.FeltRepository;
 import ch.portami.inventorybackend.felt.repository.FeltRollRepository;
+import ch.portami.inventorybackend.felt.util.BatchIdentifierGenerator;
 import java.util.List;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static ch.portami.inventorybackend.core.util.NullSafeMapper.applyIfPresent;
 
 @Service
 @Transactional(readOnly = true)
@@ -36,14 +39,8 @@ public class FeltRollService {
     private final ApplicationEventPublisher eventPublisher;
     private final FeltRollMapper feltRollMapper;
 
-    public FeltRollService(
-            FeltRepository feltRepo,
-            FeltRollRepository feltRollRepo,
-            BatchRepository batchRepo,
-            StorageRepository storageRepo,
-            ApplicationEventPublisher eventPublisher,
-            FeltRollMapper feltRollMapper
-    ) {
+    public FeltRollService(FeltRepository feltRepo, FeltRollRepository feltRollRepo, BatchRepository batchRepo,
+            StorageRepository storageRepo, ApplicationEventPublisher eventPublisher, FeltRollMapper feltRollMapper) {
         this.feltRepo = feltRepo;
         this.feltRollRepo = feltRollRepo;
         this.batchRepo = batchRepo;
@@ -81,10 +78,18 @@ public class FeltRollService {
                             .orElseThrow(() -> new FeltNotFoundException(dto.feltId()));
 
         Batch batch = resolveOptionalBatch(dto.batchId());
-        Storage storage = resolveOptionalStorage(dto.storageId());
+        Storage storage = storageRepo.findById(dto.storageId())
+                                     .orElseThrow(() -> new InvalidStorageReferenceException(dto.storageId()));
 
         FeltRoll roll = new FeltRoll(felt, batch, storage, dto.length(), dto.width());
         roll = feltRollRepo.save(roll);
+
+        if (batch == null) {
+            String batchName = BatchIdentifierGenerator.createIdentifier(roll.getId());
+            Batch newBatch = new Batch(batchName);
+            newBatch = batchRepo.save(newBatch);
+            roll.setBatch(newBatch);
+        }
 
         eventPublisher.publishEvent(new FeltRollCreatedEvent(roll));
 
@@ -96,17 +101,20 @@ public class FeltRollService {
         FeltRoll roll = feltRollRepo.findById(id)
                                     .orElseThrow(() -> new FeltRollNotFoundException(id));
 
-        if (dto.length() != null) {
-            roll.setLength(dto.length());
-        }
-        if (dto.width() != null) {
-            roll.setWidth(dto.width());
-        }
+        applyIfPresent(dto::length, roll::setLength);
+        applyIfPresent(dto::width, roll::setWidth);
+
+        applyIfPresent(dto::storageId, storageId -> storageRepo.findById(storageId)
+                                                               .orElseThrow(() -> new InvalidStorageReferenceException(
+                                                                       storageId)), roll::setStorage);
+
+        applyIfPresent(dto::batchId, batchId -> batchRepo.findById(batchId)
+                                                         .orElseThrow(
+                                                                 () -> new InvalidBatchReferenceException(batchId)),
+                roll::setBatch);
+
         if (dto.batchId() != null) {
             roll.setBatch(resolveOptionalBatch(dto.batchId()));
-        }
-        if (dto.storageId() != null) {
-            roll.setStorage(resolveOptionalStorage(dto.storageId()));
         }
 
         return feltRollMapper.toDto(roll);
@@ -125,13 +133,8 @@ public class FeltRollService {
                     new ResourceIdentifier("rollId", sourceRollId));
         }
 
-        FeltRoll newRoll = new FeltRoll(
-                source.getFelt(),
-                source.getBatch(),
-                source.getStorage(),
-                source.getWidth(),
-                cutWidth
-        );
+        FeltRoll newRoll = new FeltRoll(source.getFelt(), source.getBatch(), source.getStorage(), source.getWidth(),
+                cutWidth);
         newRoll = feltRollRepo.save(newRoll);
 
         source.setLength(source.getLength() - cutWidth);
@@ -155,13 +158,5 @@ public class FeltRollService {
         }
         return batchRepo.findById(batchId)
                         .orElseThrow(() -> new InvalidBatchReferenceException(batchId));
-    }
-
-    private Storage resolveOptionalStorage(Long storageId) {
-        if (storageId == null) {
-            return null;
-        }
-        return storageRepo.findById(storageId)
-                          .orElseThrow(() -> new InvalidStorageReferenceException(storageId));
     }
 }

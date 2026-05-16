@@ -39,10 +39,10 @@ public record FeltDto(
     String feltTypeName,
 
     @Schema(description = "Whether this felt is flagged as low on supply.")
-    boolean lowOnSupply,
+    boolean isLowOnSupply,
 
     @Schema(description = "Whether a reorder is already in process.")
-    boolean reordered
+    boolean hasBeenReordered
 ) {
 
 }

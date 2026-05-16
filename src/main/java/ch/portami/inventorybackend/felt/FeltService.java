@@ -81,8 +81,8 @@ public class FeltService {
         applyIfPresent(dto::density, felt::setDensity);
         applyIfPresent(dto::price, felt::setPrice);
         applyIfPresent(dto::articleNumber, felt::setArticleNumber);
-        applyIfPresent(dto::lowOnSupply, felt::setLowOnSupply);
-        applyIfPresent(dto::reordered, felt::setHasBeenReordered);
+        applyIfPresent(dto::isLowOnSupply, felt::setLowOnSupply);
+        applyIfPresent(dto::hasBeenReordered, felt::setHasBeenReordered);
 
         applyIfPresent(dto::feltTypeId, feltTypeId -> feltTypeRepo.findById(feltTypeId)
                                                           .orElseThrow(() -> new InvalidFeltTypeReferenceException(id)), felt::setFeltType);

@@ -35,10 +35,10 @@ public record UpdateFeltDto(
     Long feltTypeId,
 
     @Schema(description = "Whether this felt is flagged as low on supply.")
-    Boolean lowOnSupply,
+    Boolean isLowOnSupply,
 
     @Schema(description = "Whether a reorder is already in process.")
-    Boolean reordered
+    Boolean hasBeenReordered
 ) {
 
 }

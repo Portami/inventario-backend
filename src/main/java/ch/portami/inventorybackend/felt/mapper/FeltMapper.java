@@ -19,7 +19,7 @@ public interface FeltMapper {
     @Mapping(source = "felt.supplier.name", target = "supplierName")
     @Mapping(source = "felt.feltType.id", target = "feltTypeId")
     @Mapping(source = "felt.feltType.name", target = "feltTypeName")
-    @Mapping(source = "felt.lowOnSupply", target = "lowOnSupply")
-    @Mapping(source = "felt.hasBeenReordered", target = "reordered")
+    @Mapping(source = "felt.lowOnSupply", target = "isLowOnSupply")
+    @Mapping(source = "felt.hasBeenReordered", target = "hasBeenReordered")
     FeltDto toDto(Felt felt);
 }
