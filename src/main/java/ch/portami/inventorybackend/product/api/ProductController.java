@@ -46,7 +46,7 @@ public class ProductController {
     @ApiResponse(responseCode = "200", description = "Product found and returned in the response body")
     @ApiResponse(responseCode = "404", description = "No product exists with the given ID")
     @GetMapping("/{id}")
-    public ResponseEntity<ProductDto> getProductById(@PathVariable long id) {
+    public ResponseEntity<ProductDto> getProductById(@PathVariable Long id) {
         ProductDto productDto = productService.getProductById(id);
         return ResponseEntity.ok(productDto);
     }
@@ -65,7 +65,7 @@ public class ProductController {
     @ApiResponse(responseCode = "404", description = "No product exists with the given ID")
     @ApiResponse(responseCode = "422", description = "The request is referencing a category that does not exist, or one or more attributes that do not exist for this product")
     @PatchMapping("/{id}")
-    public ResponseEntity<ProductDto> updateProduct(@PathVariable long id,
+    public ResponseEntity<ProductDto> updateProduct(@PathVariable Long id,
             @RequestBody @Valid UpdateProductDto updateProductDto) {
         ProductDto productDto = productService.updateProduct(id, updateProductDto);
         return ResponseEntity.ok(productDto);
@@ -74,7 +74,7 @@ public class ProductController {
     @Operation(summary = "Delete a product", description = "Deletes a product and all its variants.")
     @ApiResponse(responseCode = "204", description = "Product successfully deleted or is not existing (anymore)")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteProduct(@PathVariable long id) {
+    public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
         productService.deleteProduct(id);
         return ResponseEntity.noContent()
                              .build();

@@ -1,9 +1,10 @@
-package ch.portami.inventorybackend.product.dto.productvariant;
+package ch.portami.inventorybackend.product.mapper;
 
 import ch.portami.inventorybackend.product.dto.productattributevalue.CreateProductAttributeValueDto;
 import ch.portami.inventorybackend.product.dto.productattributevalue.ProductAttributeValueChangeDto;
-import ch.portami.inventorybackend.product.dto.productattributevalue.ProductAttributeValueMapper;
-import ch.portami.inventorybackend.product.dto.productinventory.ProductInventoryMapper;
+import ch.portami.inventorybackend.product.dto.productvariant.CreateProductVariantDto;
+import ch.portami.inventorybackend.product.dto.productvariant.ProductVariantDto;
+import ch.portami.inventorybackend.product.dto.productvariant.UpdateProductVariantDto;
 import ch.portami.inventorybackend.product.entity.Product;
 import ch.portami.inventorybackend.product.entity.ProductAttribute;
 import ch.portami.inventorybackend.product.entity.ProductAttributeValue;

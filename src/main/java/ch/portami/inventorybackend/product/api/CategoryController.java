@@ -45,7 +45,7 @@ public class CategoryController {
     @ApiResponse(responseCode = "200", description = "Category found and returned in the response body")
     @ApiResponse(responseCode = "404", description = "No category exists with the given ID")
     @GetMapping("/{id}")
-    public ResponseEntity<CategoryDto> getCategoryById(@PathVariable long id) {
+    public ResponseEntity<CategoryDto> getCategoryById(@PathVariable Long id) {
         CategoryDto categoryDto = categoryService.getCategoryById(id);
         return ResponseEntity.ok(categoryDto);
     }
@@ -63,7 +63,7 @@ public class CategoryController {
     @ApiResponse(responseCode = "400", description = "Validation error in the request body")
     @ApiResponse(responseCode = "404", description = "No category exists with the given ID")
     @PatchMapping("/{id}")
-    public ResponseEntity<CategoryDto> updateCategory(@PathVariable long id,
+    public ResponseEntity<CategoryDto> updateCategory(@PathVariable Long id,
             @RequestBody @Valid UpdateCategoryDto updateCategoryDto) {
         CategoryDto categoryDto = categoryService.updateCategory(id, updateCategoryDto);
         return ResponseEntity.ok(categoryDto);
@@ -73,7 +73,7 @@ public class CategoryController {
     @ApiResponse(responseCode = "204", description = "Category successfully deleted or is not existing (anymore)")
     @ApiResponse(responseCode = "409", description = "Category still has products attached and cannot be deleted")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCategory(@PathVariable long id) {
+    public ResponseEntity<Void> deleteCategory(@PathVariable Long id) {
         categoryService.deleteCategory(id);
         return ResponseEntity.noContent()
                              .build();

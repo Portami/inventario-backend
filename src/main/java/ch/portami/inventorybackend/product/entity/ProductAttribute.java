@@ -1,8 +1,5 @@
 package ch.portami.inventorybackend.product.entity;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -14,6 +11,9 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Table(name = "product_attribute")
@@ -34,22 +34,37 @@ public class ProductAttribute {
     @OneToMany(mappedBy = "productAttribute", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private final List<ProductAttributeValue> productAttributeValues = new ArrayList<>();
 
-    public ProductAttribute() {}
+    public ProductAttribute() {
+    }
 
     public ProductAttribute(Product product, String name) {
         this.product = product;
         this.name = name;
     }
 
-    public Long getId() { return id; }
+    public Long getId() {
+        return id;
+    }
 
-    public Product getProduct() { return product; }
-    public void setProduct(Product product) { this.product = product; }
+    public Product getProduct() {
+        return product;
+    }
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public void setProduct(Product product) {
+        this.product = product;
+    }
 
-    public List<ProductAttributeValue> getProductAttributeValues() { return productAttributeValues; }
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public List<ProductAttributeValue> getProductAttributeValues() {
+        return productAttributeValues;
+    }
 
     // --- Sync helpers ---------------------------------------------------
 
@@ -67,8 +82,12 @@ public class ProductAttribute {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof ProductAttribute that)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof ProductAttribute that)) {
+            return false;
+        }
         return id != null && Objects.equals(id, that.id);
     }
 

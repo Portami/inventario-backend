@@ -1,6 +1,5 @@
 package ch.portami.inventorybackend.product.entity;
 
-import java.util.Objects;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -11,6 +10,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import java.util.Objects;
 
 @Entity
 @Table(
@@ -38,7 +38,8 @@ public class ProductAttributeValue {
     @Column(nullable = false)
     private String value;
 
-    public ProductAttributeValue() {}
+    public ProductAttributeValue() {
+    }
 
     public ProductAttributeValue(ProductVariant productVariant, ProductAttribute productAttribute, String value) {
         this.productVariant = productVariant;
@@ -46,23 +47,44 @@ public class ProductAttributeValue {
         this.value = value;
     }
 
-    public Long getId() { return id; }
+    public Long getId() {
+        return id;
+    }
 
-    public ProductVariant getProductVariant() { return productVariant; }
-    public void setProductVariant(ProductVariant productVariant) { this.productVariant = productVariant; }
+    public ProductVariant getProductVariant() {
+        return productVariant;
+    }
 
-    public ProductAttribute getProductAttribute() { return productAttribute; }
-    public void setProductAttribute(ProductAttribute productAttribute) { this.productAttribute = productAttribute; }
+    public void setProductVariant(ProductVariant productVariant) {
+        this.productVariant = productVariant;
+    }
 
-    public String getValue() { return value; }
-    public void setValue(String value) { this.value = value; }
+    public ProductAttribute getProductAttribute() {
+        return productAttribute;
+    }
+
+    public void setProductAttribute(ProductAttribute productAttribute) {
+        this.productAttribute = productAttribute;
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
+    }
 
     // --- equals / hashCode ----------------------------------------------
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof ProductAttributeValue that)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof ProductAttributeValue that)) {
+            return false;
+        }
         return id != null && Objects.equals(id, that.id);
     }
 

@@ -1,8 +1,5 @@
 package ch.portami.inventorybackend.product.entity;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -11,6 +8,9 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Table(name = "category")
@@ -29,18 +29,28 @@ public class Category {
     @OneToMany(mappedBy = "category", fetch = FetchType.LAZY)
     private final List<Product> products = new ArrayList<>();
 
-    public Category() {}
+    public Category() {
+    }
 
     public Category(String name) {
         this.name = name;
     }
 
-    public Long getId() { return id; }
+    public Long getId() {
+        return id;
+    }
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public String getName() {
+        return name;
+    }
 
-    public List<Product> getProducts() { return products; }
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public List<Product> getProducts() {
+        return products;
+    }
 
     // --- Sync helpers ---------------------------------------------------
 
@@ -58,8 +68,12 @@ public class Category {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Category that)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Category that)) {
+            return false;
+        }
         return id != null && Objects.equals(id, that.id);
     }
 

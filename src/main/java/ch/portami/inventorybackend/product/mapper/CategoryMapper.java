@@ -1,5 +1,8 @@
-package ch.portami.inventorybackend.product.dto.category;
+package ch.portami.inventorybackend.product.mapper;
 
+import ch.portami.inventorybackend.product.dto.category.CategoryDto;
+import ch.portami.inventorybackend.product.dto.category.CreateCategoryDto;
+import ch.portami.inventorybackend.product.dto.category.UpdateCategoryDto;
 import ch.portami.inventorybackend.product.entity.Category;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
