@@ -9,6 +9,7 @@ public record StocktakeItemDto(
         FeltStocktakeItemType type,
         Long itemId,
         Long expectedStorageId,
+        String expectedStorageName,
         StocktakeItemStatus status,
         Boolean needsResolution,
         @Nullable FeltStocktakeResolutionDto resolution,
