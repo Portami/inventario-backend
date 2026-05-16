@@ -2,6 +2,7 @@ package ch.portami.inventorybackend.stocktake.felt.api;
 
 import ch.portami.inventorybackend.stocktake.felt.dto.item.ResolveFeltStocktakeProblemDto;
 import ch.portami.inventorybackend.stocktake.felt.dto.item.StocktakeItemDto;
+import jakarta.annotation.Nullable;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
@@ -19,32 +20,19 @@ public class FeltStocktakeItemController {
 
     @GetMapping
     public ResponseEntity<List<StocktakeItemDto>> getStocktakeItems(@PathVariable Long stocktakeId,
-            @RequestParam(required = false) Long storageId) {
+            @RequestParam(required = false) @Nullable Long storageId) {
         throw new RuntimeException("Not implemented yet");
     }
 
-    @GetMapping("/roll/{rollId}")
+    @GetMapping("/{itemId}")
     public ResponseEntity<StocktakeItemDto> getStocktakeRollById(@PathVariable Long stocktakeId,
-            @PathVariable Long rollId) {
+            @PathVariable Long itemId) {
         throw new RuntimeException("Not implemented yet");
     }
 
-    @GetMapping("/scrap/{scrapId}")
-    public ResponseEntity<StocktakeItemDto> getStocktakeScrapById(@PathVariable Long stocktakeId,
-            @PathVariable Long scrapId) {
-        throw new RuntimeException("Not implemented yet");
-    }
-
-    @PostMapping("/roll/{rollId}/resolve")
+    @PostMapping("/{itemId}/resolve")
     public ResponseEntity<StocktakeItemDto> resolveStocktakeRollProblem(@PathVariable Long stocktakeId,
-            @PathVariable Long rollId,
-            @RequestBody @Valid ResolveFeltStocktakeProblemDto resolveFeltStocktakeProblemDto) {
-        throw new RuntimeException("Not implemented yet");
-    }
-
-    @PostMapping("/scrap/{scrapId}/resolve")
-    public ResponseEntity<StocktakeItemDto> resolveStocktakeScrapProblem(@PathVariable Long stocktakeId,
-            @PathVariable Long scrapId,
+            @PathVariable Long itemId,
             @RequestBody @Valid ResolveFeltStocktakeProblemDto resolveFeltStocktakeProblemDto) {
         throw new RuntimeException("Not implemented yet");
     }
