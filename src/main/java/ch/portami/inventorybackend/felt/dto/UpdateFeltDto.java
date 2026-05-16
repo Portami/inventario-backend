@@ -32,7 +32,13 @@ public record UpdateFeltDto(
     Long supplierId,
 
     @Schema(description = "ID of the felt type. A 404 is returned if the felt type does not exist.")
-    Long feltTypeId
+    Long feltTypeId,
+
+    @Schema(description = "Whether this felt is flagged as low on supply.")
+    Boolean lowOnSupply,
+
+    @Schema(description = "Whether a reorder is already in process.")
+    Boolean reordered
 ) {
 
 }

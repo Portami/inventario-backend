@@ -50,6 +50,12 @@ public class Felt {
     @Column(nullable = false)
     private String supplierColor;
 
+    @Column(name = "is_low_on_supply", nullable = false, columnDefinition = "boolean default false")
+    private boolean isLowOnSupply;
+
+    @Column(name = "is_reordered", nullable = false, columnDefinition = "boolean default false")
+    private boolean hasBeenReordered;
+
     @OneToMany(mappedBy = "felt", fetch = FetchType.LAZY)
     private final List<ScrapPiece> scrapPieces = new ArrayList<>();
 
@@ -142,6 +148,22 @@ public class Felt {
 
     public void setSupplierColor(String supplierColor) {
         this.supplierColor = supplierColor;
+    }
+
+    public boolean isLowOnSupply() {
+        return isLowOnSupply;
+    }
+
+    public void setLowOnSupply(boolean lowOnSupply) {
+        isLowOnSupply = lowOnSupply;
+    }
+
+    public boolean isHasBeenReordered() {
+        return hasBeenReordered;
+    }
+
+    public void setHasBeenReordered(boolean hasBeenReordered) {
+        this.hasBeenReordered = hasBeenReordered;
     }
 
     public List<ScrapPiece> getScrapPieces() {

@@ -271,7 +271,7 @@ class FeltControllerIntegrationTest {
 
             restTestClient.patch().uri("/api/felts/{id}", created.id())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .body(new UpdateFeltDto("Purple", null, null, null, null, null, null, null))
+                    .body(new UpdateFeltDto("Purple", null, null, null, null, null, null, null, null, null))
                     .exchange()
                     .expectStatus().isOk()
                     .expectBody(FeltDto.class)
@@ -288,7 +288,7 @@ class FeltControllerIntegrationTest {
 
             restTestClient.patch().uri("/api/felts/{id}", created.id())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .body(new UpdateFeltDto(null, null, null, null, null, null, supplierId2, null))
+                    .body(new UpdateFeltDto(null, null, null, null, null, null, supplierId2, null, null, null))
                     .exchange()
                     .expectStatus().isOk()
                     .expectBody(FeltDto.class)
@@ -302,7 +302,7 @@ class FeltControllerIntegrationTest {
 
             restTestClient.patch().uri("/api/felts/{id}", created.id())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .body(new UpdateFeltDto(null, null, null, null, null, null, null, feltTypeId2))
+                    .body(new UpdateFeltDto(null, null, null, null, null, null, null, feltTypeId2, null, null))
                     .exchange()
                     .expectStatus().isOk()
                     .expectBody(FeltDto.class)
@@ -316,7 +316,7 @@ class FeltControllerIntegrationTest {
 
             restTestClient.patch().uri("/api/felts/{id}", created.id())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .body(new UpdateFeltDto(null, null, 5.0, null, new BigDecimal("99.00"), null, null, null))
+                    .body(new UpdateFeltDto(null, null, 5.0, null, new BigDecimal("99.00"), null, null, null, null, null))
                     .exchange()
                     .expectStatus().isOk()
                     .expectBody(FeltDto.class)
@@ -338,7 +338,7 @@ class FeltControllerIntegrationTest {
 
             restTestClient.patch().uri("/api/felts/{id}", first.id())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .body(new UpdateFeltDto("Purple", null, 9.0, null, null, null, null, feltTypeId2))
+                    .body(new UpdateFeltDto("Purple", null, 9.0, null, null, null, null, feltTypeId2, null, null))
                     .exchange()
                     .expectStatus().isOk();
 
@@ -358,7 +358,7 @@ class FeltControllerIntegrationTest {
         void returns404ForUnknownFelt() {
             restTestClient.patch().uri("/api/felts/{id}", 99999)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .body(new UpdateFeltDto(null, null, null, null, null, null, null, null))
+                    .body(new UpdateFeltDto(null, null, null, null, null, null, null, null, null, null))
                     .exchange()
                     .expectStatus().isNotFound()
                     .expectBody(ProblemDetail.class)
@@ -372,7 +372,7 @@ class FeltControllerIntegrationTest {
 
             restTestClient.patch().uri("/api/felts/{id}", created.id())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .body(new UpdateFeltDto(null, null, null, null, null, null, null, 99999L))
+                    .body(new UpdateFeltDto(null, null, null, null, null, null, null, 99999L, null, null))
                     .exchange()
                     .expectStatus().isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT)
                     .expectBody(ProblemDetail.class)
@@ -386,7 +386,7 @@ class FeltControllerIntegrationTest {
 
             restTestClient.patch().uri("/api/felts/{id}", created.id())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .body(new UpdateFeltDto(null, null, null, null, null, null, 99999L, null))
+                    .body(new UpdateFeltDto(null, null, null, null, null, null, 99999L, null, null, null))
                     .exchange()
                     .expectStatus().isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT)
                     .expectBody(ProblemDetail.class)
@@ -400,7 +400,7 @@ class FeltControllerIntegrationTest {
 
             restTestClient.patch().uri("/api/felts/{id}", created.id())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .body(new UpdateFeltDto(null, null, -1.0, null, null, null, null, null))
+                    .body(new UpdateFeltDto(null, null, -1.0, null, null, null, null, null, null, null))
                     .exchange()
                     .expectStatus().isBadRequest()
                     .expectBody(ProblemDetail.class)

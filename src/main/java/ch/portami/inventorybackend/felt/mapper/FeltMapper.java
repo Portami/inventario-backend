@@ -2,7 +2,6 @@ package ch.portami.inventorybackend.felt.mapper;
 
 import ch.portami.inventorybackend.felt.dto.FeltDto;
 import ch.portami.inventorybackend.felt.entity.Felt;
-import ch.portami.inventorybackend.felt.supply.entity.Supply;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -20,7 +19,7 @@ public interface FeltMapper {
     @Mapping(source = "felt.supplier.name", target = "supplierName")
     @Mapping(source = "felt.feltType.id", target = "feltTypeId")
     @Mapping(source = "felt.feltType.name", target = "feltTypeName")
-    @Mapping(source = "supply.lowOnSupply", target = "lowOnSupply")
-    @Mapping(source = "supply.hasBeenReordered", target = "reordered")
-    FeltDto toDto(Felt felt, Supply supply);
+    @Mapping(source = "felt.lowOnSupply", target = "lowOnSupply")
+    @Mapping(source = "felt.hasBeenReordered", target = "reordered")
+    FeltDto toDto(Felt felt);
 }
