@@ -31,7 +31,7 @@ class SimpleCuttingOptimizerTest {
     @Test
     void optimizer_assigns_when_stock_matches() {
         RequiredPiece req = new RequiredPiece(10L, "blue", 100.0, 50.0, 1);
-        CuttableStock s = new CuttableStock(StockType.ROLL, 10L, 100L, "blue", 200.0, 100.0);
+        CuttableStock s = new CuttableStock(StockType.ROLL, 10L, "blue", 200.0, 100.0);
 
         Mockito.when(cuttingStockLoaderMock.loadAll()).thenReturn(List.of(s));
 
@@ -56,4 +56,3 @@ class SimpleCuttingOptimizerTest {
         assertFalse(result.feasible());
     }
 }
-

@@ -1,8 +1,6 @@
 package ch.portami.inventorybackend.api;
 
-import ch.portami.inventorybackend.core.storage.entity.Storage;
-import org.springframework.http.ProblemDetail;
-import ch.portami.inventorybackend.core.storage.repository.StorageRepository;
+import ch.portami.inventorybackend.BaseIntegrationTest;
 import ch.portami.inventorybackend.felt.dto.CreateFeltDto;
 import ch.portami.inventorybackend.felt.dto.CreateFeltRollDto;
 import ch.portami.inventorybackend.felt.dto.FeltDto;
@@ -15,6 +13,8 @@ import ch.portami.inventorybackend.felt.repository.BatchRepository;
 import ch.portami.inventorybackend.felt.repository.FeltRollRepository;
 import ch.portami.inventorybackend.felt.repository.FeltTypeRepository;
 import ch.portami.inventorybackend.felt.repository.SupplierRepository;
+import ch.portami.inventorybackend.storage.entity.Storage;
+import ch.portami.inventorybackend.storage.repository.StorageRepository;
 import java.math.BigDecimal;
 import java.util.List;
 import org.junit.jupiter.api.BeforeAll;
@@ -24,33 +24,16 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.http.ProblemDetail;
 import org.springframework.test.web.servlet.client.RestTestClient;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.mariadb.MariaDBContainer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@Testcontainers
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureRestTestClient
-@ActiveProfiles("test")
-class FeltRollControllerIntegrationTest {
-
-    @Container
-    @ServiceConnection
-    static MariaDBContainer mariadb = new MariaDBContainer("mariadb:11.4")
-            .withDatabaseName("inventory_test")
-            .withUsername("test")
-            .withPassword("test");
+class FeltRollControllerIntegrationTest extends BaseIntegrationTest {
 
     private static final ParameterizedTypeReference<List<FeltRollDto>> ROLL_LIST =
             new ParameterizedTypeReference<>() {};
@@ -97,7 +80,7 @@ class FeltRollControllerIntegrationTest {
     }
 
     private CreateFeltRollDto validRequest() {
-        return new CreateFeltRollDto(feltId, 10.0, 1.5, null, null);
+        return new CreateFeltRollDto(feltId, 10.0, 1.5, null, storageId);
     }
 
     private FeltRollDto postRoll(CreateFeltRollDto dto) {
@@ -133,7 +116,7 @@ class FeltRollControllerIntegrationTest {
         @DisplayName("returns all rolls belonging to the felt")
         void returnsAllRolls() {
             postRoll(validRequest());
-            postRoll(new CreateFeltRollDto(feltId, 20.0, 2.0, null, null));
+            postRoll(new CreateFeltRollDto(feltId, 20.0, 2.0, null, storageId));
 
             restTestClient.get().uri("/api/felts/{feltId}/rolls", feltId)
                     .exchange()
@@ -160,8 +143,8 @@ class FeltRollControllerIntegrationTest {
     class CreateRoll {
 
         @Test
-        @DisplayName("creates roll without batch or storage and returns 201 with Location")
-        void createsRollWithoutBatchAndStorage() {
+        @DisplayName("creates roll without batch and returns 201 with Location")
+        void createsRollWithoutBatch() {
             var response = restTestClient.post().uri("/api/rolls")
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(validRequest())
@@ -173,9 +156,9 @@ class FeltRollControllerIntegrationTest {
                         assertThat(roll.id()).isNotNull();
                         assertThat(roll.length()).isEqualTo(10.0);
                         assertThat(roll.width()).isEqualTo(1.5);
-                        assertThat(roll.feltColorVariantId()).isEqualTo(feltId);
-                        assertThat(roll.batchId()).isNull();
-                        assertThat(roll.storageId()).isNull();
+                        assertThat(roll.feltId()).isEqualTo(feltId);
+                        assertThat(roll.batchId()).isNotNull();
+                        assertThat(roll.storageId()).isNotNull();
                     });
 
             var location = response.returnResult(FeltRollDto.class).getResponseHeaders().getLocation();
@@ -280,11 +263,11 @@ class FeltRollControllerIntegrationTest {
                         assertThat(roll.id()).isEqualTo(created.id());
                         assertThat(roll.length()).isEqualTo(10.0);
                         assertThat(roll.width()).isEqualTo(1.5);
-                        assertThat(roll.feltColorVariantId()).isEqualTo(feltId);
+                        assertThat(roll.feltId()).isEqualTo(feltId);
                         assertThat(roll.color()).isEqualTo("Red");
                         assertThat(roll.articleNumber()).isEqualTo("ART-001");
-                        assertThat(roll.batchId()).isNull();
-                        assertThat(roll.storageId()).isNull();
+                        assertThat(roll.batchId()).isNotNull();
+                        assertThat(roll.storageId()).isNotNull();
                     });
         }
 
@@ -342,7 +325,7 @@ class FeltRollControllerIntegrationTest {
         }
 
         @Test
-        @DisplayName("null batchId in PATCH body leaves existing batch unchanged")
+        @DisplayName("null id in PATCH body leaves existing batch unchanged")
         void nullBatchIdPreservesExistingBatch() {
             FeltRollDto created = postRoll(new CreateFeltRollDto(feltId, 10.0, 1.5, batchId, storageId));
             assertThat(created.batchId()).isEqualTo(batchId);

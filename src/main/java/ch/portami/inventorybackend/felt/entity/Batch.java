@@ -84,6 +84,6 @@ public class Batch {
 
     @Override
     public String toString() {
-        return "Batch{id=" + id + ", batchName='" + name + "'}";
+        return "Batch{id=" + id + ", name='" + name + "'}";
     }
 }

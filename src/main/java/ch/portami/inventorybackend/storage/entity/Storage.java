@@ -1,5 +1,8 @@
-package ch.portami.inventorybackend.core.storage.entity;
+package ch.portami.inventorybackend.storage.entity;
 
+import ch.portami.inventorybackend.felt.entity.FeltRoll;
+import ch.portami.inventorybackend.felt.entity.ScrapPiece;
+import ch.portami.inventorybackend.product.entity.ProductInventory;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -11,9 +14,6 @@ import jakarta.persistence.Table;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import ch.portami.inventorybackend.felt.entity.FeltRoll;
-import ch.portami.inventorybackend.felt.entity.ScrapPiece;
-import ch.portami.inventorybackend.product.entity.ProductInventory;
 
 @Entity
 @Table(name = "storage")

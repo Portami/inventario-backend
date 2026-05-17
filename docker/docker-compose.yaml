@@ -1,7 +1,9 @@
 services:
   mariadb:
     image: mariadb:11.8
-    container_name: inventory-mariadb
+    container_name: inventario-mariadb
+    env_file:
+      - .env
     environment:
       MARIADB_DATABASE: ${MARIADB_DATABASE}
       MARIADB_USER: ${MARIADB_USER}

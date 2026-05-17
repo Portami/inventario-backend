@@ -1,8 +1,5 @@
 package ch.portami.inventorybackend.product.service;
 
-import ch.portami.inventorybackend.core.storage.entity.Storage;
-import ch.portami.inventorybackend.core.storage.exception.InvalidStorageReferenceException;
-import ch.portami.inventorybackend.core.storage.repository.StorageRepository;
 import ch.portami.inventorybackend.product.dto.productinventory.ProductInventoryDto;
 import ch.portami.inventorybackend.product.dto.productinventory.UpdateProductInventoryDto;
 import ch.portami.inventorybackend.product.entity.ProductInventory;
@@ -12,6 +9,9 @@ import ch.portami.inventorybackend.product.exception.NotEnoughInventoryException
 import ch.portami.inventorybackend.product.mapper.ProductInventoryMapper;
 import ch.portami.inventorybackend.product.repository.ProductInventoryRepository;
 import ch.portami.inventorybackend.product.repository.ProductVariantRepository;
+import ch.portami.inventorybackend.storage.entity.Storage;
+import ch.portami.inventorybackend.storage.exception.InvalidStorageReferenceException;
+import ch.portami.inventorybackend.storage.repository.StorageRepository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
