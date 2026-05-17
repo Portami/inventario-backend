@@ -9,6 +9,7 @@ import ch.portami.inventorybackend.felt.dto.FeltDto;
 import ch.portami.inventorybackend.felt.dto.FeltRollDto;
 import ch.portami.inventorybackend.felt.dto.FeltTypeDto;
 import ch.portami.inventorybackend.felt.dto.ScrapPieceDto;
+import ch.portami.inventorybackend.felt.dto.SupplierDto;
 import ch.portami.inventorybackend.felt.dto.UpdateFeltDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -94,9 +95,15 @@ public class FeltController {
     @Operation(summary = "List all felt types")
     @ApiResponse(responseCode = "200", description = "List of all felt types")
     @GetMapping("/types")
-    public List<FeltTypeDto> getAllFeltTypes()
-    {
+    public List<FeltTypeDto> getAllFeltTypes() {
         return feltService.findAllFeltTypes();
+    }
+
+    @Operation(summary = "List all suppliers")
+    @ApiResponse(responseCode = "200", description = "List of all suppliers")
+    @GetMapping("/suppliers")
+    public List<SupplierDto> getAllSuppliers() {
+        return feltService.findAllSuppliers();
     }
 
     @Operation(summary = "List rolls for a felt")

@@ -3,6 +3,7 @@ package ch.portami.inventorybackend.felt;
 import ch.portami.inventorybackend.felt.dto.CreateFeltDto;
 import ch.portami.inventorybackend.felt.dto.FeltDto;
 import ch.portami.inventorybackend.felt.dto.FeltTypeDto;
+import ch.portami.inventorybackend.felt.dto.SupplierDto;
 import ch.portami.inventorybackend.felt.dto.UpdateFeltDto;
 import ch.portami.inventorybackend.felt.entity.Felt;
 import ch.portami.inventorybackend.felt.entity.FeltType;
@@ -12,6 +13,7 @@ import ch.portami.inventorybackend.felt.exception.InvalidFeltTypeReferenceExcept
 import ch.portami.inventorybackend.felt.exception.InvalidSupplierReferenceException;
 import ch.portami.inventorybackend.felt.mapper.FeltMapper;
 import ch.portami.inventorybackend.felt.mapper.FeltTypeMapper;
+import ch.portami.inventorybackend.felt.mapper.SupplierMapper;
 import ch.portami.inventorybackend.felt.repository.FeltRepository;
 import ch.portami.inventorybackend.felt.repository.FeltTypeRepository;
 import ch.portami.inventorybackend.felt.repository.SupplierRepository;
@@ -30,18 +32,21 @@ public class FeltService {
     private final SupplierRepository supplierRepo;
     private final FeltMapper feltMapper;
     private final FeltTypeMapper feltTypeMapper;
+    private final SupplierMapper supplierMapper;
 
     public FeltService(
             FeltTypeRepository feltTypeRepo,
             FeltRepository feltRepo,
             SupplierRepository supplierRepo,
-            FeltMapper feltMapper, FeltTypeMapper feltTypeMapper
+            FeltMapper feltMapper, FeltTypeMapper feltTypeMapper,
+            SupplierMapper supplierMapper
     ) {
         this.feltTypeRepo = feltTypeRepo;
         this.feltRepo = feltRepo;
         this.supplierRepo = supplierRepo;
         this.feltMapper = feltMapper;
         this.feltTypeMapper = feltTypeMapper;
+        this.supplierMapper = supplierMapper;
     }
 
     public List<FeltDto> findAll() {
@@ -61,6 +66,13 @@ public class FeltService {
         return feltTypeRepo.findAll()
                            .stream()
                            .map(feltTypeMapper::toDto)
+                           .toList();
+    }
+
+    public List<SupplierDto> findAllSuppliers() {
+        return supplierRepo.findAll()
+                           .stream()
+                           .map(supplierMapper::toDto)
                            .toList();
     }
 
