@@ -22,6 +22,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import static ch.portami.inventorybackend.core.util.NullSafeMapper.applyIfPresent;
+
 @Service
 @Transactional(readOnly = true)
 public class ScrapPieceService {
@@ -33,14 +35,9 @@ public class ScrapPieceService {
     private final ApplicationEventPublisher eventPublisher;
     private final ScrapPieceMapper scrapPieceMapper;
 
-    public ScrapPieceService(
-            FeltRepository feltRepo,
-            ScrapPieceRepository scrapPieceRepo,
-            BatchRepository batchRepo,
-            StorageRepository storageRepo,
-            ApplicationEventPublisher eventPublisher,
-            ScrapPieceMapper scrapPieceMapper
-    ) {
+    public ScrapPieceService(FeltRepository feltRepo, ScrapPieceRepository scrapPieceRepo, BatchRepository batchRepo,
+            StorageRepository storageRepo, ApplicationEventPublisher eventPublisher,
+            ScrapPieceMapper scrapPieceMapper) {
         this.feltRepo = feltRepo;
         this.scrapPieceRepo = scrapPieceRepo;
         this.batchRepo = batchRepo;
@@ -75,7 +72,7 @@ public class ScrapPieceService {
     @Transactional
     public ScrapPieceDto create(CreateScrapPieceDto dto) {
         Felt felt = feltRepo.findById(dto.feltId())
-                .orElseThrow(() -> new FeltNotFoundException(dto.feltId()));
+                            .orElseThrow(() -> new FeltNotFoundException(dto.feltId()));
 
         Batch batch = resolveOptionalBatch(dto.batchId());
         Storage storage = resolveOptionalStorage(dto.storageId());
@@ -93,18 +90,15 @@ public class ScrapPieceService {
         ScrapPiece scrapPiece = scrapPieceRepo.findById(id)
                                               .orElseThrow(() -> new ScrapPieceNotFoundException(id));
 
-        if (dto.length() != null) {
-            scrapPiece.setLength(dto.length());
-        }
-        if (dto.width() != null) {
-            scrapPiece.setWidth(dto.width());
-        }
-        if (dto.batchId() != null) {
-            scrapPiece.setBatch(resolveOptionalBatch(dto.batchId()));
-        }
-        if (dto.storageId() != null) {
-            scrapPiece.setStorage(resolveOptionalStorage(dto.storageId()));
-        }
+        applyIfPresent(dto::length, scrapPiece::setLength);
+        applyIfPresent(dto::width, scrapPiece::setWidth);
+        applyIfPresent(dto::batchId, batchId -> batchRepo.findById(batchId)
+                                                         .orElseThrow(
+                                                                 () -> new InvalidBatchReferenceException(batchId)),
+                scrapPiece::setBatch);
+        applyIfPresent(dto::storageId, storageId -> storageRepo.findById(storageId)
+                                                               .orElseThrow(() -> new InvalidStorageReferenceException(
+                                                                       storageId)), scrapPiece::setStorage);
 
         return scrapPieceMapper.toDto(scrapPiece);
     }

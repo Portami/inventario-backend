@@ -5,6 +5,7 @@ import ch.portami.inventorybackend.core.exceptions.ResourceIdentifier;
 import ch.portami.inventorybackend.core.storage.entity.Storage;
 import ch.portami.inventorybackend.core.storage.exception.InvalidStorageReferenceException;
 import ch.portami.inventorybackend.core.storage.repository.StorageRepository;
+import ch.portami.inventorybackend.felt.dto.BatchDto;
 import ch.portami.inventorybackend.felt.dto.CreateFeltRollDto;
 import ch.portami.inventorybackend.felt.dto.FeltRollDto;
 import ch.portami.inventorybackend.felt.dto.SplitFeltRollDto;
@@ -16,6 +17,7 @@ import ch.portami.inventorybackend.felt.event.FeltRollCreatedEvent;
 import ch.portami.inventorybackend.felt.exception.FeltNotFoundException;
 import ch.portami.inventorybackend.felt.exception.FeltRollNotFoundException;
 import ch.portami.inventorybackend.felt.exception.InvalidBatchReferenceException;
+import ch.portami.inventorybackend.felt.mapper.BatchMapper;
 import ch.portami.inventorybackend.felt.mapper.FeltRollMapper;
 import ch.portami.inventorybackend.felt.repository.BatchRepository;
 import ch.portami.inventorybackend.felt.repository.FeltRepository;
@@ -38,15 +40,18 @@ public class FeltRollService {
     private final StorageRepository storageRepo;
     private final ApplicationEventPublisher eventPublisher;
     private final FeltRollMapper feltRollMapper;
+    private final BatchMapper batchMapper;
 
     public FeltRollService(FeltRepository feltRepo, FeltRollRepository feltRollRepo, BatchRepository batchRepo,
-            StorageRepository storageRepo, ApplicationEventPublisher eventPublisher, FeltRollMapper feltRollMapper) {
+            StorageRepository storageRepo, ApplicationEventPublisher eventPublisher, FeltRollMapper feltRollMapper,
+            BatchMapper batchMapper) {
         this.feltRepo = feltRepo;
         this.feltRollRepo = feltRollRepo;
         this.batchRepo = batchRepo;
         this.storageRepo = storageRepo;
         this.eventPublisher = eventPublisher;
         this.feltRollMapper = feltRollMapper;
+        this.batchMapper = batchMapper;
     }
 
     public List<FeltRollDto> findAll() {
@@ -63,6 +68,15 @@ public class FeltRollService {
         return feltRollRepo.findByFeltId(feltId)
                            .stream()
                            .map(feltRollMapper::toDto)
+                           .toList();
+    }
+
+    public List<BatchDto> findAllBatchesByFelt(Long feltId) {
+        return feltRollRepo.findByFeltId(feltId)
+                           .stream()
+                           .map(FeltRoll::getBatch)
+                           .distinct()
+                           .map(batchMapper::toBatchDto)
                            .toList();
     }
 

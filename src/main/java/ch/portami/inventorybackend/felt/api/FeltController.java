@@ -3,6 +3,7 @@ package ch.portami.inventorybackend.felt.api;
 import ch.portami.inventorybackend.felt.FeltRollService;
 import ch.portami.inventorybackend.felt.FeltService;
 import ch.portami.inventorybackend.felt.ScrapPieceService;
+import ch.portami.inventorybackend.felt.dto.BatchDto;
 import ch.portami.inventorybackend.felt.dto.CreateFeltDto;
 import ch.portami.inventorybackend.felt.dto.FeltDto;
 import ch.portami.inventorybackend.felt.dto.FeltRollDto;
@@ -34,7 +35,8 @@ public class FeltController {
     private final FeltRollService feltRollService;
     private final ScrapPieceService scrapPieceService;
 
-    public FeltController(FeltService feltService, FeltRollService feltRollService, ScrapPieceService scrapPieceService) {
+    public FeltController(FeltService feltService, FeltRollService feltRollService,
+            ScrapPieceService scrapPieceService) {
         this.feltService = feltService;
         this.feltRollService = feltRollService;
         this.scrapPieceService = scrapPieceService;
@@ -92,8 +94,7 @@ public class FeltController {
     @ApiResponse(responseCode = "200", description = "List of rolls (may be empty)")
     @ApiResponse(responseCode = "404", description = "No felt exists with the given ID")
     @GetMapping("/{feltId}/rolls")
-    public ResponseEntity<List<FeltRollDto>> getAll(
-            @Parameter(description = "Felt ID") @PathVariable Long feltId) {
+    public ResponseEntity<List<FeltRollDto>> getAll(@Parameter(description = "Felt ID") @PathVariable Long feltId) {
         return ResponseEntity.ok(feltRollService.findAllByFelt(feltId));
     }
 
@@ -104,5 +105,12 @@ public class FeltController {
     public ResponseEntity<List<ScrapPieceDto>> getScraps(
             @Parameter(description = "Felt ID") @PathVariable Long feltId) {
         return ResponseEntity.ok(scrapPieceService.findAllByFelt(feltId));
+    }
+
+    @Operation(summary = "List batches for a felt")
+    @ApiResponse(responseCode = "200", description = "List of batches")
+    @GetMapping("/{feltId}/batches")
+    public List<BatchDto> getBatches(@Parameter(description = "Felt ID") @PathVariable Long feltId) {
+        return feltRollService.findAllBatchesByFelt(feltId);
     }
 }
