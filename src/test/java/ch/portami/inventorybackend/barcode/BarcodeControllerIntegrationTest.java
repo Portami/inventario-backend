@@ -17,6 +17,8 @@ import ch.portami.inventorybackend.felt.repository.FeltRollRepository;
 import ch.portami.inventorybackend.felt.repository.FeltTypeRepository;
 import ch.portami.inventorybackend.felt.repository.ScrapPieceRepository;
 import ch.portami.inventorybackend.felt.repository.SupplierRepository;
+import ch.portami.inventorybackend.storage.entity.Storage;
+import ch.portami.inventorybackend.storage.repository.StorageRepository;
 import java.math.BigDecimal;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.assertj.core.api.ObjectAssert;
@@ -53,11 +55,15 @@ class BarcodeControllerIntegrationTest extends BaseIntegrationTest {
     private FeltTypeRepository feltTypeRepository;
     @Autowired
     private SupplierRepository supplierRepository;
+    @Autowired
+    private StorageRepository storageRepository;
 
     private Long feltId;
+    private Long storageId;
 
     @BeforeAll
     void setup() {
+        Storage storage = storageRepository.save(new Storage("Test Storage"));
         Supplier supplier = supplierRepository.save(new Supplier("Test Supplier"));
         FeltType feltType = feltTypeRepository.save(new FeltType("Wool"));
 
@@ -78,6 +84,7 @@ class BarcodeControllerIntegrationTest extends BaseIntegrationTest {
 
         assertThat(felt).isNotNull();
         feltId = felt.id();
+        storageId = storage.getId();
     }
 
     @BeforeEach
@@ -93,7 +100,7 @@ class BarcodeControllerIntegrationTest extends BaseIntegrationTest {
         FeltRollDto roll = restTestClient.post()
                                          .uri("/api/rolls")
                                          .contentType(MediaType.APPLICATION_JSON)
-                                         .body(new CreateFeltRollDto(feltId, 10.0, 1.5, null, null))
+                                         .body(new CreateFeltRollDto(feltId, 10.0, 1.5, null, storageId))
                                          .exchange()
                                          .expectStatus()
                                          .isCreated()

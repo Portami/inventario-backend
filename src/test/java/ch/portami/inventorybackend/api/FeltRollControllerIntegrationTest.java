@@ -80,7 +80,7 @@ class FeltRollControllerIntegrationTest extends BaseIntegrationTest {
     }
 
     private CreateFeltRollDto validRequest() {
-        return new CreateFeltRollDto(feltId, 10.0, 1.5, null, null);
+        return new CreateFeltRollDto(feltId, 10.0, 1.5, null, storageId);
     }
 
     private FeltRollDto postRoll(CreateFeltRollDto dto) {
@@ -116,7 +116,7 @@ class FeltRollControllerIntegrationTest extends BaseIntegrationTest {
         @DisplayName("returns all rolls belonging to the felt")
         void returnsAllRolls() {
             postRoll(validRequest());
-            postRoll(new CreateFeltRollDto(feltId, 20.0, 2.0, null, null));
+            postRoll(new CreateFeltRollDto(feltId, 20.0, 2.0, null, storageId));
 
             restTestClient.get().uri("/api/felts/{feltId}/rolls", feltId)
                     .exchange()
@@ -143,8 +143,8 @@ class FeltRollControllerIntegrationTest extends BaseIntegrationTest {
     class CreateRoll {
 
         @Test
-        @DisplayName("creates roll without batch or storage and returns 201 with Location")
-        void createsRollWithoutBatchAndStorage() {
+        @DisplayName("creates roll without batch and returns 201 with Location")
+        void createsRollWithoutBatch() {
             var response = restTestClient.post().uri("/api/rolls")
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(validRequest())
@@ -157,8 +157,8 @@ class FeltRollControllerIntegrationTest extends BaseIntegrationTest {
                         assertThat(roll.length()).isEqualTo(10.0);
                         assertThat(roll.width()).isEqualTo(1.5);
                         assertThat(roll.feltId()).isEqualTo(feltId);
-                        assertThat(roll.batchId()).isNull();
-                        assertThat(roll.storageId()).isNull();
+                        assertThat(roll.batchId()).isNotNull();
+                        assertThat(roll.storageId()).isNotNull();
                     });
 
             var location = response.returnResult(FeltRollDto.class).getResponseHeaders().getLocation();
@@ -266,8 +266,8 @@ class FeltRollControllerIntegrationTest extends BaseIntegrationTest {
                         assertThat(roll.feltId()).isEqualTo(feltId);
                         assertThat(roll.color()).isEqualTo("Red");
                         assertThat(roll.articleNumber()).isEqualTo("ART-001");
-                        assertThat(roll.batchId()).isNull();
-                        assertThat(roll.storageId()).isNull();
+                        assertThat(roll.batchId()).isNotNull();
+                        assertThat(roll.storageId()).isNotNull();
                     });
         }
 
