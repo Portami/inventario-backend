@@ -1,8 +1,6 @@
 package ch.portami.inventorybackend.product;
 
 import ch.portami.inventorybackend.BaseIntegrationTest;
-import ch.portami.inventorybackend.core.storage.entity.Storage;
-import ch.portami.inventorybackend.core.storage.repository.StorageRepository;
 import ch.portami.inventorybackend.product.dto.productattributevalue.CreateProductAttributeValueDto;
 import ch.portami.inventorybackend.product.dto.productattributevalue.ProductAttributeValueChangeDto;
 import ch.portami.inventorybackend.product.dto.productattributevalue.ProductAttributeValueDto;
@@ -20,6 +18,8 @@ import ch.portami.inventorybackend.product.repository.CategoryRepository;
 import ch.portami.inventorybackend.product.repository.ProductInventoryRepository;
 import ch.portami.inventorybackend.product.repository.ProductRepository;
 import ch.portami.inventorybackend.product.repository.ProductVariantRepository;
+import ch.portami.inventorybackend.storage.entity.Storage;
+import ch.portami.inventorybackend.storage.repository.StorageRepository;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;

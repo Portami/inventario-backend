@@ -1,9 +1,6 @@
 package ch.portami.inventorybackend.api;
 
 import ch.portami.inventorybackend.BaseIntegrationTest;
-import ch.portami.inventorybackend.core.storage.entity.Storage;
-import org.springframework.http.ProblemDetail;
-import ch.portami.inventorybackend.core.storage.repository.StorageRepository;
 import ch.portami.inventorybackend.felt.dto.CreateFeltDto;
 import ch.portami.inventorybackend.felt.dto.CreateFeltRollDto;
 import ch.portami.inventorybackend.felt.dto.FeltDto;
@@ -16,6 +13,8 @@ import ch.portami.inventorybackend.felt.repository.BatchRepository;
 import ch.portami.inventorybackend.felt.repository.FeltRollRepository;
 import ch.portami.inventorybackend.felt.repository.FeltTypeRepository;
 import ch.portami.inventorybackend.felt.repository.SupplierRepository;
+import ch.portami.inventorybackend.storage.entity.Storage;
+import ch.portami.inventorybackend.storage.repository.StorageRepository;
 import java.math.BigDecimal;
 import java.util.List;
 import org.junit.jupiter.api.BeforeAll;
@@ -28,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ProblemDetail;
 import org.springframework.test.web.servlet.client.RestTestClient;
 
 import static org.assertj.core.api.Assertions.assertThat;

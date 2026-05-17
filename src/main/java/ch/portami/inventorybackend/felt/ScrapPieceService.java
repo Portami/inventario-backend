@@ -1,8 +1,5 @@
 package ch.portami.inventorybackend.felt;
 
-import ch.portami.inventorybackend.core.storage.entity.Storage;
-import ch.portami.inventorybackend.core.storage.exception.InvalidStorageReferenceException;
-import ch.portami.inventorybackend.core.storage.repository.StorageRepository;
 import ch.portami.inventorybackend.felt.dto.CreateScrapPieceDto;
 import ch.portami.inventorybackend.felt.dto.ScrapPieceDto;
 import ch.portami.inventorybackend.felt.dto.UpdateScrapPieceDto;
@@ -17,6 +14,9 @@ import ch.portami.inventorybackend.felt.mapper.ScrapPieceMapper;
 import ch.portami.inventorybackend.felt.repository.BatchRepository;
 import ch.portami.inventorybackend.felt.repository.FeltRepository;
 import ch.portami.inventorybackend.felt.repository.ScrapPieceRepository;
+import ch.portami.inventorybackend.storage.entity.Storage;
+import ch.portami.inventorybackend.storage.exception.InvalidStorageReferenceException;
+import ch.portami.inventorybackend.storage.repository.StorageRepository;
 import java.util.List;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
