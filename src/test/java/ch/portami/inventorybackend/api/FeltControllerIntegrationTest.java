@@ -4,12 +4,11 @@ import org.springframework.http.ProblemDetail;
 import ch.portami.inventorybackend.felt.dto.CreateFeltDto;
 import ch.portami.inventorybackend.felt.dto.FeltDto;
 import ch.portami.inventorybackend.felt.dto.UpdateFeltDto;
+import ch.portami.inventorybackend.BaseIntegrationTest;
 import ch.portami.inventorybackend.felt.entity.FeltType;
 import ch.portami.inventorybackend.felt.entity.Supplier;
-import ch.portami.inventorybackend.felt.repository.FeltColorVariantRepository;
 import ch.portami.inventorybackend.felt.repository.FeltRepository;
 import ch.portami.inventorybackend.felt.repository.FeltTypeRepository;
-import ch.portami.inventorybackend.felt.repository.FeltVariantRepository;
 import ch.portami.inventorybackend.felt.repository.SupplierRepository;
 import java.math.BigDecimal;
 import java.util.List;
@@ -20,40 +19,20 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.client.RestTestClient;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.mariadb.MariaDBContainer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@Testcontainers
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureRestTestClient
-@ActiveProfiles("test")
-class FeltControllerIntegrationTest {
-
-    @Container
-    @ServiceConnection
-    static MariaDBContainer mariadb = new MariaDBContainer("mariadb:11.4")
-            .withDatabaseName("inventory_test")
-            .withUsername("test")
-            .withPassword("test");
+class FeltControllerIntegrationTest extends BaseIntegrationTest {
 
     private static final ParameterizedTypeReference<List<FeltDto>> FELT_LIST =
             new ParameterizedTypeReference<>() {};
 
     @Autowired private RestTestClient restTestClient;
-    @Autowired private FeltColorVariantRepository feltColorVariantRepository;
-    @Autowired private FeltVariantRepository feltVariantRepository;
     @Autowired private FeltRepository feltRepository;
     @Autowired private FeltTypeRepository feltTypeRepository;
     @Autowired private SupplierRepository supplierRepository;
@@ -73,8 +52,6 @@ class FeltControllerIntegrationTest {
 
     @BeforeEach
     void resetFelts() {
-        feltColorVariantRepository.deleteAll();
-        feltVariantRepository.deleteAll();
         feltRepository.deleteAll();
     }
 
@@ -182,6 +159,7 @@ class FeltControllerIntegrationTest {
                     .exchange();
 
             response.expectStatus().isCreated()
+                    .expectHeader().valueMatches("Location", "/api/felts/\\d+")
                     .expectBody(FeltDto.class)
                     .value(felt -> {
                         assertThat(felt.id()).isNotNull();
@@ -201,63 +179,12 @@ class FeltControllerIntegrationTest {
         }
 
         @Test
-        @DisplayName("reuses existing FeltType when feltTypeId matches")
-        void reusesExistingFeltType() {
+        @DisplayName("creates separate felts even with identical fields")
+        void createsSeparateFelts() {
             FeltDto first = postFelt(validCreate());
-            FeltDto second = postFelt(new CreateFeltDto(
-                    "Blue", "Supplier Blue",
-                    3.0, 400.0, new BigDecimal("15.00"),
-                    "ART-002", supplierId, feltTypeId   // same feltTypeId
-            ));
+            FeltDto second = postFelt(validCreate());
 
-            assertThat(first.feltTypeId()).isEqualTo(second.feltTypeId());
-        }
-
-        @Test
-        @DisplayName("reuses existing Felt and FeltVariant when (type, supplier, articleNumber, specs) match")
-        void reusesExistingFeltAndVariant() {
-            FeltDto first  = postFelt(validCreate());
-            FeltDto second = postFelt(new CreateFeltDto(
-                    "Blue", "Supplier Blue",
-                    2.0, 300.0, new BigDecimal("12.50"),
-                    "ART-001", supplierId, feltTypeId
-            ));
-            FeltDto third  = postFelt(new CreateFeltDto(
-                    "Green", "Supplier Green",
-                    2.0, 300.0, new BigDecimal("12.50"),
-                    "ART-001", supplierId, feltTypeId
-            ));
-
-            assertThat(first.feltId()).isEqualTo(second.feltId()).isEqualTo(third.feltId());
-            assertThat(first.feltVariantId()).isEqualTo(second.feltVariantId()).isEqualTo(third.feltVariantId());
-        }
-
-        @Test
-        @DisplayName("reuses Felt but creates separate FeltVariant when specs differ")
-        void reusesExistingFeltButCreatesNewVariantForDifferentSpecs() {
-            FeltDto first = postFelt(validCreate()); // thickness=2.0
-            FeltDto second = postFelt(new CreateFeltDto(
-                    "Blue", "Supplier Blue",
-                    5.0, 300.0, new BigDecimal("12.50"), // different thickness
-                    "ART-001", supplierId, feltTypeId    // same Felt identity
-            ));
-
-            assertThat(first.feltId()).isEqualTo(second.feltId());
-            assertThat(first.feltVariantId()).isNotEqualTo(second.feltVariantId());
-        }
-
-        @Test
-        @DisplayName("creates separate Felt when same articleNumber belongs to a different supplier")
-        void doesNotReuseFeltAcrossSuppliers() {
-            FeltDto first  = postFelt(validCreate()); // supplierId, ART-001
-            FeltDto second = postFelt(new CreateFeltDto(
-                    "Blue", "Supplier Blue",
-                    2.0, 300.0, new BigDecimal("12.50"),
-                    "ART-001", supplierId2, feltTypeId  // supplierId2, same articleNumber
-            ));
-
-            assertThat(first.feltId()).isNotEqualTo(second.feltId());
-            assertThat(first.supplierId()).isNotEqualTo(second.supplierId());
+            assertThat(first.id()).isNotEqualTo(second.id());
         }
 
         @Test
@@ -322,171 +249,91 @@ class FeltControllerIntegrationTest {
     class UpdateFelt {
 
         @Test
-        @DisplayName("updates color only — no cascade to variant or felt")
+        @DisplayName("updates color only")
         void updatesColorOnly() {
             FeltDto created = postFelt(validCreate());
 
             restTestClient.patch().uri("/api/felts/{id}", created.id())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .body(new UpdateFeltDto("Purple", null, null, null, null, null, null, null))
+                    .body(new UpdateFeltDto("Purple", null, null, null, null, null, null, null, null, null))
                     .exchange()
                     .expectStatus().isOk()
                     .expectBody(FeltDto.class)
                     .value(felt -> {
                         assertThat(felt.color()).isEqualTo("Purple");
-                        assertThat(felt.feltVariantId()).isEqualTo(created.feltVariantId());
-                        assertThat(felt.feltId()).isEqualTo(created.feltId());
+                        assertThat(felt.thickness()).isEqualTo(2.0);
                     });
         }
 
         @Test
-        @DisplayName("updates supplier — mutates Felt in-place when no collision (same feltId)")
+        @DisplayName("updates supplier")
         void updatesSupplier() {
-            FeltDto created = postFelt(validCreate()); // supplierId
-
-            restTestClient.patch().uri("/api/felts/{id}", created.id())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(new UpdateFeltDto(null, null, null, null, null, null, supplierId2, null))
-                    .exchange()
-                    .expectStatus().isOk()
-                    .expectBody(FeltDto.class)
-                    .value(felt -> {
-                        assertThat(felt.supplierId()).isEqualTo(supplierId2);
-                        // No pre-existing Felt(Wool, supplier2, ART-001) → in-place mutation, same row
-                        assertThat(felt.feltId()).isEqualTo(created.feltId());
-                    });
-        }
-
-        @Test
-        @DisplayName("mutates Felt in-place when both Felt and Variant are exclusive (no new feltId)")
-        void mutatesFeltInPlaceWhenExclusive() {
-            FeltDto created = postFelt(validCreate()); // exclusive chain
-
-            restTestClient.patch().uri("/api/felts/{id}", created.id())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(new UpdateFeltDto(null, null, null, null, null, null, null, feltTypeId2))
-                    .exchange()
-                    .expectStatus().isOk()
-                    .expectBody(FeltDto.class)
-                    .value(felt -> {
-                        assertThat(felt.feltTypeName()).isEqualTo("Polyester");
-                        // Felt was mutated in-place — the feltId must not change
-                        assertThat(felt.feltId()).isEqualTo(created.feltId());
-                    });
-        }
-
-        @Test
-        @DisplayName("re-points to a new FeltVariant when thickness changes and variant is shared")
-        void rePointsVariantWhenShared() {
-            FeltDto first = postFelt(validCreate());
-            FeltDto second = postFelt(new CreateFeltDto(
-                    "Blue", "Supplier Blue",
-                    2.0, 300.0, new BigDecimal("12.50"),
-                    "ART-001", supplierId, feltTypeId
-            ));
-            assertThat(first.feltVariantId()).isEqualTo(second.feltVariantId());
-
-            restTestClient.patch().uri("/api/felts/{id}", first.id())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(new UpdateFeltDto(null, null, 5.0, null, null, null, null, null))
-                    .exchange()
-                    .expectStatus().isOk()
-                    .expectBody(FeltDto.class)
-                    .value(felt -> {
-                        assertThat(felt.thickness()).isEqualTo(5.0);
-                        assertThat(felt.feltVariantId()).isNotEqualTo(second.feltVariantId());
-                    });
-
-            // second must still point to its original variant
-            restTestClient.get().uri("/api/felts/{id}", second.id())
-                    .exchange()
-                    .expectStatus().isOk()
-                    .expectBody(FeltDto.class)
-                    .value(felt -> assertThat(felt.feltVariantId()).isEqualTo(second.feltVariantId()));
-        }
-
-        @Test
-        @DisplayName("re-points variant when Felt changes and variant is shared")
-        void rePointsVariantWhenFeltChangesAndShared() {
-            FeltDto first = postFelt(validCreate());
-            FeltDto second = postFelt(new CreateFeltDto(
-                    "Blue", "Supplier Blue",
-                    2.0, 300.0, new BigDecimal("12.50"),
-                    "ART-001", supplierId, feltTypeId
-            ));
-            assertThat(first.feltVariantId()).isEqualTo(second.feltVariantId());
-
-            // Change only the felt type on first — variant is shared, so it gets re-pointed
-            restTestClient.patch().uri("/api/felts/{id}", first.id())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(new UpdateFeltDto(null, null, null, null, null, null, null, feltTypeId2))
-                    .exchange()
-                    .expectStatus().isOk()
-                    .expectBody(FeltDto.class)
-                    .value(felt -> {
-                        assertThat(felt.feltTypeName()).isEqualTo("Polyester");
-                        assertThat(felt.feltVariantId()).isNotEqualTo(second.feltVariantId());
-                    });
-
-            // second must still have the original type and variant
-            restTestClient.get().uri("/api/felts/{id}", second.id())
-                    .exchange()
-                    .expectStatus().isOk()
-                    .expectBody(FeltDto.class)
-                    .value(felt -> {
-                        assertThat(felt.feltTypeName()).isEqualTo("Wool");
-                        assertThat(felt.feltVariantId()).isEqualTo(second.feltVariantId());
-                    });
-        }
-
-        @Test
-        @DisplayName("re-points variant when Felt is shared by a sibling FeltVariant")
-        void rePointsWhenFeltIsSharedByAnotherVariant() {
-            // Two color variants share the same Felt but have different specs (→ different FeltVariants)
-            FeltDto first = postFelt(validCreate()); // specs: 2.0/300.0/12.50
-            FeltDto second = postFelt(new CreateFeltDto(
-                    "Blue", "Supplier Blue",
-                    5.0, 400.0, new BigDecimal("20.00"), // different specs → different FeltVariant
-                    "ART-001", supplierId, feltTypeId    // same Felt
-            ));
-            assertThat(first.feltId()).isEqualTo(second.feltId()); // confirm shared Felt
-            assertThat(first.feltVariantId()).isNotEqualTo(second.feltVariantId());
-
-            // Change the type on first — Felt is shared, so must find/create a new Felt (not mutate in-place)
-            restTestClient.patch().uri("/api/felts/{id}", first.id())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(new UpdateFeltDto(null, null, null, null, null, null, null, feltTypeId2))
-                    .exchange()
-                    .expectStatus().isOk()
-                    .expectBody(FeltDto.class)
-                    .value(felt -> {
-                        assertThat(felt.feltTypeName()).isEqualTo("Polyester");
-                        assertThat(felt.feltId()).isNotEqualTo(first.feltId()); // different Felt now
-                    });
-
-            // second must still have the original type
-            restTestClient.get().uri("/api/felts/{id}", second.id())
-                    .exchange()
-                    .expectStatus().isOk()
-                    .expectBody(FeltDto.class)
-                    .value(felt -> assertThat(felt.feltTypeName()).isEqualTo("Wool"));
-        }
-
-        @Test
-        @DisplayName("mutates FeltVariant in-place when it is not shared")
-        void mutatesVariantInPlaceWhenExclusive() {
             FeltDto created = postFelt(validCreate());
 
             restTestClient.patch().uri("/api/felts/{id}", created.id())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .body(new UpdateFeltDto(null, null, 5.0, null, new BigDecimal("99.00"), null, null, null))
+                    .body(new UpdateFeltDto(null, null, null, null, null, null, supplierId2, null, null, null))
+                    .exchange()
+                    .expectStatus().isOk()
+                    .expectBody(FeltDto.class)
+                    .value(felt -> assertThat(felt.supplierId()).isEqualTo(supplierId2));
+        }
+
+        @Test
+        @DisplayName("updates felt type")
+        void updatesFeltType() {
+            FeltDto created = postFelt(validCreate());
+
+            restTestClient.patch().uri("/api/felts/{id}", created.id())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(new UpdateFeltDto(null, null, null, null, null, null, null, feltTypeId2, null, null))
+                    .exchange()
+                    .expectStatus().isOk()
+                    .expectBody(FeltDto.class)
+                    .value(felt -> assertThat(felt.feltTypeName()).isEqualTo("Polyester"));
+        }
+
+        @Test
+        @DisplayName("updates thickness and price")
+        void updatesThicknessAndPrice() {
+            FeltDto created = postFelt(validCreate());
+
+            restTestClient.patch().uri("/api/felts/{id}", created.id())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(new UpdateFeltDto(null, null, 5.0, null, new BigDecimal("99.00"), null, null, null, null, null))
                     .exchange()
                     .expectStatus().isOk()
                     .expectBody(FeltDto.class)
                     .value(felt -> {
-                        assertThat(felt.feltVariantId()).isEqualTo(created.feltVariantId());
                         assertThat(felt.thickness()).isEqualTo(5.0);
                         assertThat(felt.price()).isEqualByComparingTo(new BigDecimal("99.00"));
+                    });
+        }
+
+        @Test
+        @DisplayName("does not affect other felts")
+        void doesNotAffectOtherFelts() {
+            FeltDto first = postFelt(validCreate());
+            FeltDto second = postFelt(new CreateFeltDto(
+                    "Blue", "Supplier Blue",
+                    3.0, 400.0, new BigDecimal("15.00"),
+                    "ART-002", supplierId, feltTypeId
+            ));
+
+            restTestClient.patch().uri("/api/felts/{id}", first.id())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(new UpdateFeltDto("Purple", null, 9.0, null, null, null, null, feltTypeId2, null, null))
+                    .exchange()
+                    .expectStatus().isOk();
+
+            restTestClient.get().uri("/api/felts/{id}", second.id())
+                    .exchange()
+                    .expectStatus().isOk()
+                    .expectBody(FeltDto.class)
+                    .value(felt -> {
+                        assertThat(felt.color()).isEqualTo("Blue");
+                        assertThat(felt.thickness()).isEqualTo(3.0);
+                        assertThat(felt.feltTypeName()).isEqualTo("Wool");
                     });
         }
 
@@ -495,7 +342,7 @@ class FeltControllerIntegrationTest {
         void returns404ForUnknownFelt() {
             restTestClient.patch().uri("/api/felts/{id}", 99999)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .body(new UpdateFeltDto(null, null, null, null, null, null, null, null))
+                    .body(new UpdateFeltDto(null, null, null, null, null, null, null, null, null, null))
                     .exchange()
                     .expectStatus().isNotFound()
                     .expectBody(ProblemDetail.class)
@@ -509,7 +356,7 @@ class FeltControllerIntegrationTest {
 
             restTestClient.patch().uri("/api/felts/{id}", created.id())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .body(new UpdateFeltDto(null, null, null, null, null, null, null, 99999L))
+                    .body(new UpdateFeltDto(null, null, null, null, null, null, null, 99999L, null, null))
                     .exchange()
                     .expectStatus().isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT)
                     .expectBody(ProblemDetail.class)
@@ -523,128 +370,11 @@ class FeltControllerIntegrationTest {
 
             restTestClient.patch().uri("/api/felts/{id}", created.id())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .body(new UpdateFeltDto(null, null, null, null, null, null, 99999L, null))
+                    .body(new UpdateFeltDto(null, null, null, null, null, null, 99999L, null, null, null))
                     .exchange()
                     .expectStatus().isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT)
                     .expectBody(ProblemDetail.class)
                     .value(err -> assertThat(err.getStatus()).isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT.value()));
-        }
-
-        @Test
-        @DisplayName("re-points to new Felt and new Variant when both change and variant is shared (matrix row 4)")
-        void rePointsFeltAndVariantWhenBothChangeAndVariantIsShared() {
-            // Two ColorVariants sharing the same Variant
-            FeltDto first = postFelt(validCreate());
-            FeltDto second = postFelt(new CreateFeltDto(
-                    "Blue", "Supplier Blue",
-                    2.0, 300.0, new BigDecimal("12.50"),
-                    "ART-001", supplierId, feltTypeId
-            ));
-            assertThat(first.feltVariantId()).isEqualTo(second.feltVariantId()); // shared
-
-            // PATCH first: change both feltType AND thickness — shared variant branch fires
-            restTestClient.patch().uri("/api/felts/{id}", first.id())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(new UpdateFeltDto(null, null, 7.0, null, null, null, null, feltTypeId2))
-                    .exchange()
-                    .expectStatus().isOk()
-                    .expectBody(FeltDto.class)
-                    .value(felt -> {
-                        assertThat(felt.feltTypeName()).isEqualTo("Polyester");
-                        assertThat(felt.thickness()).isEqualTo(7.0);
-                        assertThat(felt.feltVariantId()).isNotEqualTo(second.feltVariantId());
-                        assertThat(felt.feltId()).isNotEqualTo(second.feltId());
-                    });
-
-            // second must still point to the original Felt and Variant
-            restTestClient.get().uri("/api/felts/{id}", second.id())
-                    .exchange()
-                    .expectStatus().isOk()
-                    .expectBody(FeltDto.class)
-                    .value(felt -> {
-                        assertThat(felt.feltTypeName()).isEqualTo("Wool");
-                        assertThat(felt.feltVariantId()).isEqualTo(second.feltVariantId());
-                    });
-        }
-
-        @Test
-        @DisplayName("finds-or-creates Felt and mutates Variant in-place when Felt is shared but Variant is exclusive (matrix row 7)")
-        void resolvesFeltAndMutatesVariantInPlaceWhenFeltShared() {
-            // Two ColorVariants: same Felt, different specs (different exclusive Variants)
-            FeltDto first = postFelt(validCreate()); // specs: 2.0/300.0/12.50
-            FeltDto second = postFelt(new CreateFeltDto(
-                    "Blue", "Supplier Blue",
-                    5.0, 400.0, new BigDecimal("20.00"), // different specs → exclusive Variant
-                    "ART-001", supplierId, feltTypeId    // same Felt
-            ));
-            assertThat(first.feltId()).isEqualTo(second.feltId());
-            assertThat(first.feltVariantId()).isNotEqualTo(second.feltVariantId());
-
-            // PATCH first: change feltType (feltChanged) AND thickness (variantChanged)
-            // feltIsShared=true → find-or-create new Felt; Variant mutated in-place
-            restTestClient.patch().uri("/api/felts/{id}", first.id())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(new UpdateFeltDto(null, null, 9.0, null, null, null, null, feltTypeId2))
-                    .exchange()
-                    .expectStatus().isOk()
-                    .expectBody(FeltDto.class)
-                    .value(felt -> {
-                        assertThat(felt.feltTypeName()).isEqualTo("Polyester");
-                        assertThat(felt.thickness()).isEqualTo(9.0);
-                        assertThat(felt.feltId()).isNotEqualTo(first.feltId());          // new Felt (shared → find-or-create)
-                        assertThat(felt.feltVariantId()).isEqualTo(first.feltVariantId()); // Variant mutated in-place
-                    });
-
-            // second must still have the original type and Felt
-            restTestClient.get().uri("/api/felts/{id}", second.id())
-                    .exchange()
-                    .expectStatus().isOk()
-                    .expectBody(FeltDto.class)
-                    .value(felt -> assertThat(felt.feltTypeName()).isEqualTo("Wool"));
-        }
-
-        @Test
-        @DisplayName("re-points exclusive Felt to existing Felt and cleans up the orphan (matrix row 9)")
-        void reUsesExistingFeltAndCleansUpOrphanOnExclusiveCollision() {
-            FeltDto felt1 = postFelt(validCreate()); // (Wool, supplier1, ART-001)
-            FeltDto felt2 = postFelt(new CreateFeltDto(
-                    "Blue", "Supplier Blue",
-                    2.0, 300.0, new BigDecimal("12.50"),
-                    "ART-002", supplierId, feltTypeId // different article → separate exclusive Felt
-            ));
-            assertThat(felt1.feltId()).isNotEqualTo(felt2.feltId());
-            Long orphanFeltId = felt2.feltId();
-
-            // PATCH felt2's articleNumber to match felt1's Felt identity — collision path
-            restTestClient.patch().uri("/api/felts/{id}", felt2.id())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(new UpdateFeltDto(null, null, null, null, null, "ART-001", null, null))
-                    .exchange()
-                    .expectStatus().isOk()
-                    .expectBody(FeltDto.class)
-                    .value(felt -> assertThat(felt.feltId()).isEqualTo(felt1.feltId()));
-
-            // Orphaned Felt must have been deleted
-            assertThat(feltRepository.existsById(orphanFeltId)).isFalse();
-        }
-
-        @Test
-        @DisplayName("mutates both Felt and Variant in-place when the exclusive chain has no siblings (matrix row 10)")
-        void mutatesBothFeltAndVariantInPlaceOnExclusiveChain() {
-            FeltDto created = postFelt(validCreate());
-
-            restTestClient.patch().uri("/api/felts/{id}", created.id())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(new UpdateFeltDto(null, null, 5.0, null, null, null, null, feltTypeId2))
-                    .exchange()
-                    .expectStatus().isOk()
-                    .expectBody(FeltDto.class)
-                    .value(felt -> {
-                        assertThat(felt.feltTypeName()).isEqualTo("Polyester");
-                        assertThat(felt.thickness()).isEqualTo(5.0);
-                        assertThat(felt.feltId()).isEqualTo(created.feltId());           // Felt mutated in-place
-                        assertThat(felt.feltVariantId()).isEqualTo(created.feltVariantId()); // Variant mutated in-place
-                    });
         }
 
         @Test
@@ -654,7 +384,7 @@ class FeltControllerIntegrationTest {
 
             restTestClient.patch().uri("/api/felts/{id}", created.id())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .body(new UpdateFeltDto(null, null, -1.0, null, null, null, null, null))
+                    .body(new UpdateFeltDto(null, null, -1.0, null, null, null, null, null, null, null))
                     .exchange()
                     .expectStatus().isBadRequest()
                     .expectBody(ProblemDetail.class)
@@ -683,15 +413,14 @@ class FeltControllerIntegrationTest {
         }
 
         @Test
-        @DisplayName("does not cascade to shared FeltVariant")
-        void doesNotCascadeToSharedVariant() {
+        @DisplayName("does not affect other felts when one is deleted")
+        void doesNotAffectOtherFelts() {
             FeltDto first = postFelt(validCreate());
             FeltDto second = postFelt(new CreateFeltDto(
                     "Blue", "Supplier Blue",
                     2.0, 300.0, new BigDecimal("12.50"),
                     "ART-001", supplierId, feltTypeId
             ));
-            assertThat(first.feltVariantId()).isEqualTo(second.feltVariantId());
 
             restTestClient.delete().uri("/api/felts/{id}", first.id())
                     .exchange()
@@ -701,22 +430,7 @@ class FeltControllerIntegrationTest {
                     .exchange()
                     .expectStatus().isOk()
                     .expectBody(FeltDto.class)
-                    .value(felt -> assertThat(felt.feltVariantId()).isEqualTo(second.feltVariantId()));
-        }
-
-        @Test
-        @DisplayName("orphanRemoval cascades up: deleting last ColorVariant also removes Variant and Felt")
-        void deletingLastColorVariantCleansUpOrphanedVariantAndFelt() {
-            FeltDto created = postFelt(validCreate());
-            Long variantId = created.feltVariantId();
-            Long feltDbId  = created.feltId();
-
-            restTestClient.delete().uri("/api/felts/{id}", created.id())
-                    .exchange()
-                    .expectStatus().isNoContent();
-
-            assertThat(feltVariantRepository.existsById(variantId)).isFalse();
-            assertThat(feltRepository.existsById(feltDbId)).isFalse();
+                    .value(felt -> assertThat(felt.color()).isEqualTo("Blue"));
         }
 
         @Test

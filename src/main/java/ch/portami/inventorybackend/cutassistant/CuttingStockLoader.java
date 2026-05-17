@@ -2,7 +2,7 @@ package ch.portami.inventorybackend.cutassistant;
 
 import ch.portami.inventorybackend.cutassistant.domain.CuttableStock;
 import ch.portami.inventorybackend.cutassistant.domain.StockType;
-import ch.portami.inventorybackend.felt.entity.FeltColorVariant;
+import ch.portami.inventorybackend.felt.entity.Felt;
 import ch.portami.inventorybackend.felt.entity.FeltRoll;
 import ch.portami.inventorybackend.felt.entity.ScrapPiece;
 import ch.portami.inventorybackend.felt.repository.FeltRollRepository;
@@ -28,34 +28,32 @@ public class CuttingStockLoader {
         List<CuttableStock> result = new ArrayList<>();
 
         for (FeltRoll r : feltRollRepository.findAll()) {
-            FeltColorVariant feltColorVariant = r.getFeltColorVariant();
+            Felt felt = r.getFelt();
 
-            if (feltColorVariant == null) {
+            if (felt == null) {
                 continue;
             }
 
             result.add(new CuttableStock(
                     StockType.ROLL,
-                    feltColorVariant.getFeltVariant().getId(),
-                    feltColorVariant.getId(),
-                    feltColorVariant.getColor(),
+                    felt.getId(),
+                    felt.getColor(),
                     r.getLength(),
                     r.getWidth())
             );
         }
 
         for (ScrapPiece s : scrapPieceRepository.findAll()) {
-            FeltColorVariant feltColorVariant = s.getFeltColorVariant();
+            Felt felt = s.getFelt();
 
-            if (feltColorVariant == null) {
+            if (felt == null) {
                 continue;
             }
 
             result.add(new CuttableStock(
                     StockType.SCRAP,
-                    feltColorVariant.getFeltVariant().getId(),
-                    feltColorVariant.getId(),
-                    feltColorVariant.getColor(),
+                    felt.getId(),
+                    felt.getColor(),
                     s.getLength(),
                     s.getWidth())
             );
@@ -64,5 +62,3 @@ public class CuttingStockLoader {
         return result;
     }
 }
-
-

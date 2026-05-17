@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 
 /**
  * A trivial first-fit implementation: assigns each required piece to the first matching stock item (matching
- * feltVariantId and color and dimensions large enough). Each stock item is used at most once.
+ * feltId and color and dimensions large enough). Each stock item is used at most once.
  */
 @Service
 public class SimpleCuttingOptimizer implements CuttingOptimizer {
@@ -38,15 +38,15 @@ public class SimpleCuttingOptimizer implements CuttingOptimizer {
             for (int q = 0; q < req.quantity(); q++) {
                 for (CuttableStock s : stocks) {
                     // PORTAMI-57 check validation requirements (especially with usedStock)
-                    if (usedStock.contains(s.feltColorVariantId())
-                            || !matchesVariantAndColor(s, req)
+                    if (usedStock.contains(s.feltId())
+                            || !matchesFeltAndColor(s, req)
                             || s.length() < req.length()
                             || s.width() < req.width()) {
                         continue;
                     }
 
                     AssignedPiece ap = new AssignedPiece(
-                            req.feltVariantId(),
+                            req.feltId(),
                             req.color(),
                             req.length(),
                             req.width()
@@ -61,7 +61,7 @@ public class SimpleCuttingOptimizer implements CuttingOptimizer {
 
                     assignments.add(new CuttingAssignment(s, list, waste));
                     // PORTAMI-57 check for when a stock is properly 'used'
-                    usedStock.add(s.feltColorVariantId());
+                    usedStock.add(s.feltId());
 
                     return new CutResult(assignments, totalWaste, true);
                 }
@@ -71,8 +71,8 @@ public class SimpleCuttingOptimizer implements CuttingOptimizer {
         return new CutResult(assignments, totalWaste, false);
     }
 
-    private boolean matchesVariantAndColor(CuttableStock s, RequiredPiece req) {
-        if (!s.feltVariantId().equals(req.feltVariantId())) {
+    private boolean matchesFeltAndColor(CuttableStock s, RequiredPiece req) {
+        if (!s.feltId().equals(req.feltId())) {
             return false;
         }
 
@@ -83,4 +83,3 @@ public class SimpleCuttingOptimizer implements CuttingOptimizer {
         return req.color().equalsIgnoreCase(s.color());
     }
 }
-

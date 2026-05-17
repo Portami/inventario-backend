@@ -1,7 +1,6 @@
 package ch.portami.inventorybackend.product;
 
-import ch.portami.inventorybackend.core.storage.entity.Storage;
-import ch.portami.inventorybackend.core.storage.repository.StorageRepository;
+import ch.portami.inventorybackend.BaseIntegrationTest;
 import ch.portami.inventorybackend.product.dto.productattributevalue.CreateProductAttributeValueDto;
 import ch.portami.inventorybackend.product.dto.productattributevalue.ProductAttributeValueChangeDto;
 import ch.portami.inventorybackend.product.dto.productattributevalue.ProductAttributeValueDto;
@@ -19,6 +18,8 @@ import ch.portami.inventorybackend.product.repository.CategoryRepository;
 import ch.portami.inventorybackend.product.repository.ProductInventoryRepository;
 import ch.portami.inventorybackend.product.repository.ProductRepository;
 import ch.portami.inventorybackend.product.repository.ProductVariantRepository;
+import ch.portami.inventorybackend.storage.entity.Storage;
+import ch.portami.inventorybackend.storage.repository.StorageRepository;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,33 +30,15 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.client.RestTestClient;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.mariadb.MariaDBContainer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Testcontainers
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureRestTestClient
-@ActiveProfiles("test")
-class ProductVariantControllerIntegrationTest {
-
-    @Container
-    @ServiceConnection
-    static MariaDBContainer mariadb = new MariaDBContainer("mariadb:11.4")
-            .withDatabaseName("inventory_test")
-            .withUsername("test")
-            .withPassword("test");
+class ProductVariantControllerIntegrationTest extends BaseIntegrationTest {
 
     private static final String VARIANTS_URL_TEMPLATE = "/api/products/{productId}/variants";
     private static Long testProductId;

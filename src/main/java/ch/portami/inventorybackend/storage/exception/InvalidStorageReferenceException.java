@@ -1,4 +1,4 @@
-package ch.portami.inventorybackend.core.storage.exception;
+package ch.portami.inventorybackend.storage.exception;
 
 import ch.portami.inventorybackend.core.exceptions.InvalidResourceReferenceException;
 import ch.portami.inventorybackend.core.exceptions.ResourceIdentifier;

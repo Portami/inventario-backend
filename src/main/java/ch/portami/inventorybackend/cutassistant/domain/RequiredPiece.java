@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
 public record RequiredPiece(
-		@NotNull(message = "feltVariantId must not be null") Long feltVariantId,
+		@NotNull(message = "feltId must not be null") Long feltId,
 		@NotBlank(message = "color must not be blank") String color,
 		@NotNull(message = "length must not be null") @Positive(message = "length must be positive") Double length,
 		@NotNull(message = "width must not be null") @Positive(message = "width must be positive") Double width,
@@ -13,4 +13,3 @@ public record RequiredPiece(
 ) {
 
 }
-
