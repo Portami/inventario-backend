@@ -2,6 +2,7 @@ package ch.portami.inventorybackend.felt;
 
 import ch.portami.inventorybackend.felt.dto.CreateFeltDto;
 import ch.portami.inventorybackend.felt.dto.FeltDto;
+import ch.portami.inventorybackend.felt.dto.FeltTypeDto;
 import ch.portami.inventorybackend.felt.dto.UpdateFeltDto;
 import ch.portami.inventorybackend.felt.entity.Felt;
 import ch.portami.inventorybackend.felt.entity.FeltType;
@@ -10,6 +11,7 @@ import ch.portami.inventorybackend.felt.exception.FeltNotFoundException;
 import ch.portami.inventorybackend.felt.exception.InvalidFeltTypeReferenceException;
 import ch.portami.inventorybackend.felt.exception.InvalidSupplierReferenceException;
 import ch.portami.inventorybackend.felt.mapper.FeltMapper;
+import ch.portami.inventorybackend.felt.mapper.FeltTypeMapper;
 import ch.portami.inventorybackend.felt.repository.FeltRepository;
 import ch.portami.inventorybackend.felt.repository.FeltTypeRepository;
 import ch.portami.inventorybackend.felt.repository.SupplierRepository;
@@ -27,17 +29,19 @@ public class FeltService {
     private final FeltRepository feltRepo;
     private final SupplierRepository supplierRepo;
     private final FeltMapper feltMapper;
+    private final FeltTypeMapper feltTypeMapper;
 
     public FeltService(
             FeltTypeRepository feltTypeRepo,
             FeltRepository feltRepo,
             SupplierRepository supplierRepo,
-            FeltMapper feltMapper
+            FeltMapper feltMapper, FeltTypeMapper feltTypeMapper
     ) {
         this.feltTypeRepo = feltTypeRepo;
         this.feltRepo = feltRepo;
         this.supplierRepo = supplierRepo;
         this.feltMapper = feltMapper;
+        this.feltTypeMapper = feltTypeMapper;
     }
 
     public List<FeltDto> findAll() {
@@ -51,6 +55,13 @@ public class FeltService {
         return feltRepo.findById(id)
                        .map(feltMapper::toDto)
                        .orElseThrow(() -> new FeltNotFoundException(id));
+    }
+
+    public List<FeltTypeDto> findAllFeltTypes() {
+        return feltTypeRepo.findAll()
+                           .stream()
+                           .map(feltTypeMapper::toDto)
+                           .toList();
     }
 
     @Transactional
@@ -85,10 +96,14 @@ public class FeltService {
         applyIfPresent(dto::hasBeenReordered, felt::setHasBeenReordered);
 
         applyIfPresent(dto::feltTypeId, feltTypeId -> feltTypeRepo.findById(feltTypeId)
-                                                          .orElseThrow(() -> new InvalidFeltTypeReferenceException(id)), felt::setFeltType);
+                                                                  .orElseThrow(
+                                                                          () -> new InvalidFeltTypeReferenceException(
+                                                                                  id)), felt::setFeltType);
 
         applyIfPresent(dto::supplierId, supplierId -> supplierRepo.findById(supplierId)
-                                                          .orElseThrow(() -> new InvalidSupplierReferenceException(id)), felt::setSupplier);
+                                                                  .orElseThrow(
+                                                                          () -> new InvalidSupplierReferenceException(
+                                                                                  id)), felt::setSupplier);
 
         return feltMapper.toDto(felt);
     }

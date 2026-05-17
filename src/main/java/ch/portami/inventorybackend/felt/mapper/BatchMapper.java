@@ -8,7 +8,7 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface BatchMapper {
 
-    @Mapping(source = "id", target = "batchId")
-    @Mapping(source = "name", target = "batchName")
-    BatchDto toBatchDto(Batch batch);
+    @Mapping(source = "id", target = "id")
+    @Mapping(source = "name", target = "name")
+    BatchDto toDto(Batch batch);
 }

@@ -76,7 +76,7 @@ public class FeltRollService {
                            .stream()
                            .map(FeltRoll::getBatch)
                            .distinct()
-                           .map(batchMapper::toBatchDto)
+                           .map(batchMapper::toDto)
                            .toList();
     }
 

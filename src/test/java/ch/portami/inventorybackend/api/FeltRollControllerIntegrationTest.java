@@ -325,7 +325,7 @@ class FeltRollControllerIntegrationTest extends BaseIntegrationTest {
         }
 
         @Test
-        @DisplayName("null batchId in PATCH body leaves existing batch unchanged")
+        @DisplayName("null id in PATCH body leaves existing batch unchanged")
         void nullBatchIdPreservesExistingBatch() {
             FeltRollDto created = postRoll(new CreateFeltRollDto(feltId, 10.0, 1.5, batchId, storageId));
             assertThat(created.batchId()).isEqualTo(batchId);
