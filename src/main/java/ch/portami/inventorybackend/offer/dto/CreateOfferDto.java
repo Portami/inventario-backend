@@ -2,7 +2,6 @@ package ch.portami.inventorybackend.offer.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import java.util.List;
 
 @Schema(description = "Request body for creating a new felt offer.")
@@ -12,7 +11,7 @@ public record CreateOfferDto (
     @NotBlank String customerName,
 
     @Schema(description = "List of line items for the offer")
-    @NotEmpty List<CreateOfferItemDto> items
+    List<CreateOfferItemDto> items
 
 ) {
 

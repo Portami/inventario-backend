@@ -23,8 +23,14 @@ public record OfferDto(
     @Schema(description = "The date and time of the last update on this record.")
     ZonedDateTime updatedAt,
 
+    @Schema(description = "The due date of the offer (payment deadline).")
+    ZonedDateTime dueAt,
+
     @Schema(description = "List of line items included in the offer.")
-    List<OfferItemDto> items
+    List<OfferItemDto> items,
+
+    @Schema(description = "Whether this offer document has been sent to the customer. Resets to false on state change.")
+    boolean offerSent
 
 ) {
 
