@@ -57,8 +57,8 @@ class GuillotineCuttingOptimizerTest {
     @Test
     void givenRollAndScrap_whenOptimize_thenPrioritizesScrapsOverRolls() {
         RequiredPiece req = new RequiredPiece(10L, "blue", 50.0, 50.0, 1); // Customer gets: 53 x 53
-        CuttableStock roll = new CuttableStock(StockType.ROLL, 10L, 100L, "blue", 200.0, 100.0);
-        CuttableStock scrap = new CuttableStock(StockType.SCRAP, 10L, 101L, "blue", 60.0, 60.0);
+        CuttableStock roll = new CuttableStock(StockType.ROLL, 10L, "blue", 200.0, 100.0);
+        CuttableStock scrap = new CuttableStock(StockType.SCRAP, 10L, "blue", 60.0, 60.0);
 
         Mockito.when(cuttingStockLoaderMock.loadAll()).thenReturn(new ArrayList<>(Arrays.asList(roll, scrap)));
 
@@ -75,7 +75,7 @@ class GuillotineCuttingOptimizerTest {
 
         // Stock is 100x100.
         // They form a 2x2 grid taking 86x86 space, which easily fits inside 100x100.
-        CuttableStock roll = new CuttableStock(StockType.ROLL, 10L, 100L, "blue", 100.0, 100.0);
+        CuttableStock roll = new CuttableStock(StockType.ROLL, 10L, "blue", 100.0, 100.0);
 
         Mockito.when(cuttingStockLoaderMock.loadAll()).thenReturn(List.of(roll));
 
@@ -96,7 +96,7 @@ class GuillotineCuttingOptimizerTest {
 
         // Stock is 100x100.
         // With margins, 51+51 = 102. They cannot fit side-by-side (102 > 100) or end-to-end.
-        CuttableStock roll = new CuttableStock(StockType.ROLL, 10L, 100L, "blue", 100.0, 100.0);
+        CuttableStock roll = new CuttableStock(StockType.ROLL, 10L, "blue", 100.0, 100.0);
 
         Mockito.when(cuttingStockLoaderMock.loadAll()).thenReturn(List.of(roll));
 
@@ -111,9 +111,9 @@ class GuillotineCuttingOptimizerTest {
         RequiredPiece req = new RequiredPiece(10L, "blue", 50.0, 50.0, 3);
 
         // Scraps are 60x60, so each can only hold ONE piece.
-        CuttableStock scrap1 = new CuttableStock(StockType.SCRAP, 10L, 100L, "blue", 60.0, 60.0);
-        CuttableStock scrap2 = new CuttableStock(StockType.SCRAP, 10L, 101L, "blue", 60.0, 60.0);
-        CuttableStock scrap3 = new CuttableStock(StockType.SCRAP, 10L, 102L, "blue", 60.0, 60.0);
+        CuttableStock scrap1 = new CuttableStock(StockType.SCRAP, 10L, "blue", 60.0, 60.0);
+        CuttableStock scrap2 = new CuttableStock(StockType.SCRAP, 10L, "blue", 61.0, 60.0);
+        CuttableStock scrap3 = new CuttableStock(StockType.SCRAP, 10L, "blue", 62.0, 60.0);
 
         Mockito.when(cuttingStockLoaderMock.loadAll()).thenReturn(new ArrayList<>(Arrays.asList(scrap1, scrap2, scrap3)));
 
@@ -127,8 +127,8 @@ class GuillotineCuttingOptimizerTest {
     @Test
     void givenLargeAndSmallScrap_whenOptimize_thenMinimizesWasteBySelectingSmallerScrap() {
         RequiredPiece req = new RequiredPiece(10L, "blue", 50.0, 50.0, 1); // Customer gets 53 x 53
-        CuttableStock largeScrap = new CuttableStock(StockType.SCRAP, 10L, 100L, "blue", 150.0, 150.0);
-        CuttableStock smallScrap = new CuttableStock(StockType.SCRAP, 10L, 101L, "blue", 60.0, 60.0);
+        CuttableStock largeScrap = new CuttableStock(StockType.SCRAP, 10L, "blue", 150.0, 150.0);
+        CuttableStock smallScrap = new CuttableStock(StockType.SCRAP, 10L, "blue", 60.0, 60.0);
 
         Mockito.when(cuttingStockLoaderMock.loadAll()).thenReturn(new ArrayList<>(Arrays.asList(largeScrap, smallScrap)));
 
@@ -136,7 +136,9 @@ class GuillotineCuttingOptimizerTest {
 
         assertTrue(result.feasible());
         assertEquals(1, result.assignments().size());
-        assertEquals(smallScrap.feltColorVariantId(), result.assignments().getFirst().stockItem().feltColorVariantId());
+        // Since we are checking which one was picked, we verify the dimensions to distinguish them.
+        assertEquals(60.0, result.assignments().getFirst().stockItem().length());
+        assertEquals(60.0, result.assignments().getFirst().stockItem().width());
     }
 
     @Test
@@ -155,7 +157,7 @@ class GuillotineCuttingOptimizerTest {
     @Test
     void givenStockTooSmall_whenOptimize_thenReportsInfeasible() {
         RequiredPiece req = new RequiredPiece(10L, "blue", 150.0, 50.0, 1);
-        CuttableStock roll = new CuttableStock(StockType.ROLL, 10L, 100L, "blue", 100.0, 100.0);
+        CuttableStock roll = new CuttableStock(StockType.ROLL, 10L, "blue", 100.0, 100.0);
 
         Mockito.when(cuttingStockLoaderMock.loadAll()).thenReturn(List.of(roll));
 
@@ -170,7 +172,7 @@ class GuillotineCuttingOptimizerTest {
         // Without margin, this 100x100 piece would fit perfectly into the 100x100 stock.
         // With the 1.5 cm margin on all sides, it becomes 103x103 and should be rejected.
         RequiredPiece req = new RequiredPiece(10L, "blue", 100.0, 100.0, 1);
-        CuttableStock roll = new CuttableStock(StockType.ROLL, 10L, 100L, "blue", 100.0, 100.0);
+        CuttableStock roll = new CuttableStock(StockType.ROLL, 10L, "blue", 100.0, 100.0);
 
         Mockito.when(cuttingStockLoaderMock.loadAll()).thenReturn(List.of(roll));
 
@@ -184,7 +186,7 @@ class GuillotineCuttingOptimizerTest {
     @Test
     void givenWrongColorStock_whenOptimize_thenReportsInfeasible() {
         RequiredPiece req = new RequiredPiece(10L, "red", 50.0, 50.0, 1);
-        CuttableStock roll = new CuttableStock(StockType.ROLL, 10L, 100L, "blue", 100.0, 100.0);
+        CuttableStock roll = new CuttableStock(StockType.ROLL, 10L, "blue", 100.0, 100.0);
 
         Mockito.when(cuttingStockLoaderMock.loadAll()).thenReturn(List.of(roll));
 

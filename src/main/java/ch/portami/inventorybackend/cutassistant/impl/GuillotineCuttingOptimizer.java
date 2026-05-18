@@ -124,7 +124,7 @@ public class GuillotineCuttingOptimizer implements CuttingOptimizer {
         List<RequiredPiece> flatList = new ArrayList<>();
         for (RequiredPiece piece : requiredPieces) {
             for (int i = 0; i < piece.quantity(); i++) {
-                flatList.add(new RequiredPiece(piece.feltVariantId(), piece.color(), piece.length(), piece.width(), 1));
+                flatList.add(new RequiredPiece(piece.feltId(), piece.color(), piece.length(), piece.width(), 1));
             }
         }
         flatList.sort(Comparator.comparingDouble((RequiredPiece p) -> p.length() * p.width()).reversed());
@@ -238,7 +238,7 @@ public class GuillotineCuttingOptimizer implements CuttingOptimizer {
             // The customer receives the piece WITH the margin included for edge-wrapping/fixing
             List<AssignedPiece> assignedPieces = pieces.stream()
                                                        .map(p -> new AssignedPiece(
-                                                               p.feltVariantId(),
+                                                               p.feltId(),
                                                                p.color(),
                                                                p.length() + (MARGIN * 2),
                                                                p.width() + (MARGIN * 2)))
@@ -282,7 +282,7 @@ public class GuillotineCuttingOptimizer implements CuttingOptimizer {
      * @return true if the variant and color match perfectly, false otherwise
      */
     private boolean matchesVariantAndColor(CuttableStock stock, RequiredPiece piece) {
-        if (!stock.feltVariantId().equals(piece.feltVariantId())) return false;
+        if (!stock.feltId().equals(piece.feltId())) return false;
         if (piece.color() == null) return true;
         return piece.color().equalsIgnoreCase(stock.color());
     }
@@ -303,7 +303,7 @@ public class GuillotineCuttingOptimizer implements CuttingOptimizer {
 
         if (!hasMatchingVariantAndColor) {
             return String.format("Request for unavailable felt type (ID: %d) or color (%s)",
-                    piece.feltVariantId(), piece.color());
+                    piece.feltId(), piece.color());
         }
 
         return String.format("Request exceeding available space for piece %.1f x %.1f (requires %.1f x %.1f with margins)",
