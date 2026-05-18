@@ -5,12 +5,14 @@ import ch.portami.inventorybackend.stocktake.felt.dto.scan.FeltStocktakeScanDto;
 import jakarta.annotation.Nullable;
 import java.util.List;
 
-public record StocktakeItemDto(
+public record FeltStocktakeItemDto(
         FeltStocktakeItemType type,
         Long itemId,
+        @Nullable FeltStocktakeRollOrScrapDto rollOrScrapDto,
+        @Nullable String barcode,
         Long expectedStorageId,
         String expectedStorageName,
-        StocktakeItemStatus status,
+        FeltStocktakeItemStatus status,
         Boolean needsResolution,
         @Nullable FeltStocktakeResolutionDto resolution,
         List<FeltStocktakeScanDto> scans
