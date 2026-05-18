@@ -4,6 +4,8 @@ import jakarta.annotation.Nullable;
 
 public record FeltStocktakeResolutionDto(
         FeltStocktakeResolutionType resolution,
+        Boolean mutationOutsideStocktake,
+        Boolean mutationApplied,
         @Nullable Long newStorageId,
         @Nullable String newStorageName,
         @Nullable String comment

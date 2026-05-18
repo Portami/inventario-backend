@@ -5,8 +5,9 @@ public enum StocktakeItemStatus {
     OK,
     MISSING,
     WRONG_STORAGE,
+    RESCAN_REQUIRED,
     DUPLICATE_SCAN,
-    ALREADY_REMOVED,
+    NOT_IN_STOCKTAKE,
     UNKNOWN
 }
 

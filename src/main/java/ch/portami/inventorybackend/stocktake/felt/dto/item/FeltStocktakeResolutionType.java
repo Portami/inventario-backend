@@ -5,7 +5,6 @@ public enum FeltStocktakeResolutionType {
     MOVE_PHYSICALLY,
     IGNORE_MISSING,
     REMOVE_MISSING,
-    RESTORE,
-    IGNORE_UNKNOWN
+    ACKNOWLEDGE,
 }
 
