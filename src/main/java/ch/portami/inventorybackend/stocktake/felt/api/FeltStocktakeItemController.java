@@ -37,5 +37,11 @@ public class FeltStocktakeItemController {
         throw new RuntimeException("Not implemented yet");
     }
 
+    @PostMapping("/{itemId}/unresolve")
+    public ResponseEntity<StocktakeItemDto> unresolveStocktakeRollProblem(@PathVariable Long stocktakeId,
+            @PathVariable Long itemId) {
+        throw new RuntimeException("Not implemented yet");
+    }
+
 }
 
