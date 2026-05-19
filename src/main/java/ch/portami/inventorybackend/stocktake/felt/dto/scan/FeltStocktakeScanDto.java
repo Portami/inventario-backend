@@ -11,6 +11,7 @@ public record FeltStocktakeScanDto(
         String barcode,
         Long scannedStorageId,
         Boolean isVoided,
+        Boolean isCorrected,
         Instant scannedAt
 ) {
 
