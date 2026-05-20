@@ -52,6 +52,7 @@ INSERT IGNORE INTO batch (id, name) VALUES (34, 'V9WR1MHI');
 INSERT IGNORE INTO batch (id, name) VALUES (35, 'B3LN8YAF');
 INSERT IGNORE INTO batch (id, name) VALUES (36, 'X5CT2QEK');
 INSERT IGNORE INTO batch (id, name) VALUES (37, 'F7DA4SJP');
+INSERT IGNORE INTO batch (id, name) VALUES (38, 'X3DA9PJP');
 
 -- Felt (all felt_type_id=1 Wollfilz, supplier_id=2 Birki, price=0)
 INSERT IGNORE INTO felt (id, felt_type_id, supplier_id, article_number, thickness, density, price, color, supplier_color) VALUES (1, 1, 2, '1015/00', 1.2, 25, 0, 'zitronengelb', 'zitronengelb');
@@ -87,7 +88,8 @@ INSERT IGNORE INTO felt (id, felt_type_id, supplier_id, article_number, thicknes
 INSERT IGNORE INTO felt (id, felt_type_id, supplier_id, article_number, thickness, density, price, color, supplier_color) VALUES (31, 1, 2, 'G1AH', 1.2, 25, 0, 'camel-meliert / Streifen', 'camel-meliert / Streifen');
 INSERT IGNORE INTO felt (id, felt_type_id, supplier_id, article_number, thickness, density, price, color, supplier_color) VALUES (32, 1, 2, '10G20/06', 1.2, 25, 0, 'rost meliert', 'rost - meliert');
 INSERT IGNORE INTO felt (id, felt_type_id, supplier_id, article_number, thickness, density, price, color, supplier_color) VALUES (33, 1, 2, '10G16/07', 1.2, 25, 0, 'gelb-meliert', 'gelb-meliert');
-INSERT IGNORE INTO felt (id, felt_type_id, supplier_id, article_number, thickness, density, price, color, supplier_color) VALUES (34, 1, 2, 'MF 25', 2, 29, 0, 'pistazie', 'pistazie');
+INSERT IGNORE INTO felt (id, felt_type_id, supplier_id, article_number, thickness, density, price, color, supplier_color) VALUES (34, 1, 2, 'MF 25', 2, 25, 0, 'pistazie', 'pistazie');
+INSERT IGNORE INTO felt (id, felt_type_id, supplier_id, article_number, thickness, density, price, color, supplier_color) VALUES (35, 2, 5, '2046', 2, 25, 0, 'billard grün', 'billard grün');
 
 -- Felt Rolls (width=180 + length varied, or length=180 + width 95-105)
 -- Felt 1 (zitronengelb) - batch 1
@@ -203,9 +205,13 @@ INSERT IGNORE INTO felt_roll (id, length, width, batch_id, felt_id, storage_id) 
 -- Felt 34 (MF 25 pistazie) - batch 36
 INSERT IGNORE INTO felt_roll (id, length, width, batch_id, felt_id, storage_id) VALUES (78, 1100, 180, 36, 34, 2);
 INSERT IGNORE INTO felt_roll (id, length, width, batch_id, felt_id, storage_id) VALUES (79, 180, 104, 36, 34, 2);
+-- Felt 35
+INSERT IGNORE INTO felt_roll (id, length, width, batch_id, felt_id, storage_id) VALUES (80, 1300, 180, 38, 35, 1);
+INSERT IGNORE INTO felt_roll (id, length, width, batch_id, felt_id, storage_id) VALUES (81, 180, 100, 38, 35, 1);
 
 -- Scrap Piece (sample pieces for testing)
 INSERT IGNORE INTO scrap_piece (id, felt_id, batch_id, storage_id, length, width) VALUES (1, 1, 2, 1, 57.3, 58.7);
+INSERT IGNORE INTO scrap_piece (id, felt_id, batch_id, storage_id, length, width) VALUES (2, 35, 38, 1, 60.3, 46);
 
 -- Barcode
 INSERT IGNORE INTO barcode (id, type, felt_roll_id, scrap_piece_id) VALUES (1, 'ROLL', 1, NULL);
@@ -287,8 +293,10 @@ INSERT IGNORE INTO barcode (id, type, felt_roll_id, scrap_piece_id) VALUES (76, 
 INSERT IGNORE INTO barcode (id, type, felt_roll_id, scrap_piece_id) VALUES (77, 'ROLL', 77, NULL);
 INSERT IGNORE INTO barcode (id, type, felt_roll_id, scrap_piece_id) VALUES (78, 'ROLL', 78, NULL);
 INSERT IGNORE INTO barcode (id, type, felt_roll_id, scrap_piece_id) VALUES (79, 'ROLL', 79, NULL);
+INSERT IGNORE INTO barcode (id, type, felt_roll_id, scrap_piece_id) VALUES (80, 'ROLL', 80, NULL);
+INSERT IGNORE INTO barcode (id, type, felt_roll_id, scrap_piece_id) VALUES (81, 'ROLL', 81, NULL);
 
-INSERT IGNORE INTO barcode (id, type, felt_roll_id, scrap_piece_id) VALUES (80, 'SCRAP', NULL, 1);
+INSERT IGNORE INTO barcode (id, type, felt_roll_id, scrap_piece_id) VALUES (82, 'SCRAP', NULL, 1);
 
 
 INSERT INTO inventario.category (id, name) VALUES (1, 'Taschen');
