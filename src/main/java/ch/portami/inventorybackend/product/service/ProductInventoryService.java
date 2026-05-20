@@ -9,6 +9,7 @@ import ch.portami.inventorybackend.product.exception.NotEnoughInventoryException
 import ch.portami.inventorybackend.product.mapper.ProductInventoryMapper;
 import ch.portami.inventorybackend.product.repository.ProductInventoryRepository;
 import ch.portami.inventorybackend.product.repository.ProductVariantRepository;
+import ch.portami.inventorybackend.storage.StorageService;
 import ch.portami.inventorybackend.storage.entity.Storage;
 import ch.portami.inventorybackend.storage.exception.InvalidStorageReferenceException;
 import ch.portami.inventorybackend.storage.repository.StorageRepository;
@@ -24,9 +25,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class ProductInventoryService {
 
+    private final StorageService storageService;
     private final ProductInventoryRepository productInventoryRepository;
     private final ProductVariantRepository productVariantRepository;
-    private final StorageRepository storageRepository;
     private final ProductInventoryMapper productInventoryMapper;
 
     /**
@@ -39,12 +40,12 @@ public class ProductInventoryService {
      *                                   references
      * @param productInventoryMapper     the mapper for converting between ProductInventory entities and DTOs
      */
-    public ProductInventoryService(ProductInventoryRepository productInventoryRepository,
+    public ProductInventoryService(StorageService storageService, ProductInventoryRepository productInventoryRepository,
             ProductVariantRepository productVariantRepository, StorageRepository storageRepository,
             ProductInventoryMapper productInventoryMapper) {
+        this.storageService = storageService;
         this.productInventoryRepository = productInventoryRepository;
         this.productVariantRepository = productVariantRepository;
-        this.storageRepository = storageRepository;
         this.productInventoryMapper = productInventoryMapper;
     }
 
@@ -116,8 +117,7 @@ public class ProductInventoryService {
         ProductInventoryDto updatedInventoryDto;
         ProductInventory inventoryEntry;
 
-        Storage storage = storageRepository.findById(change.storageId())
-                                           .orElseThrow(() -> new InvalidStorageReferenceException(change.storageId()));
+        Storage storage = storageService.getExistingById(change.storageId());
 
         ProductVariant variant = productVariantRepository.findById(change.productVariantId())
                                                          .orElseThrow(() -> new InvalidProductVariantReferenceException(

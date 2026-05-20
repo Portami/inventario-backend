@@ -20,9 +20,8 @@ import ch.portami.inventorybackend.felt.repository.BatchRepository;
 import ch.portami.inventorybackend.felt.repository.FeltRepository;
 import ch.portami.inventorybackend.felt.repository.FeltRollRepository;
 import ch.portami.inventorybackend.felt.util.BatchIdentifierGenerator;
+import ch.portami.inventorybackend.storage.StorageService;
 import ch.portami.inventorybackend.storage.entity.Storage;
-import ch.portami.inventorybackend.storage.exception.InvalidStorageReferenceException;
-import ch.portami.inventorybackend.storage.repository.StorageRepository;
 import java.util.List;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -34,21 +33,21 @@ import static ch.portami.inventorybackend.core.util.NullSafeMapper.applyIfPresen
 @Transactional(readOnly = true)
 public class FeltRollService {
 
+    private final StorageService storageService;
     private final FeltRepository feltRepo;
     private final FeltRollRepository feltRollRepo;
     private final BatchRepository batchRepo;
-    private final StorageRepository storageRepo;
     private final ApplicationEventPublisher eventPublisher;
     private final FeltRollMapper feltRollMapper;
     private final BatchMapper batchMapper;
 
-    public FeltRollService(FeltRepository feltRepo, FeltRollRepository feltRollRepo, BatchRepository batchRepo,
-            StorageRepository storageRepo, ApplicationEventPublisher eventPublisher, FeltRollMapper feltRollMapper,
+    public FeltRollService(StorageService storageService, FeltRepository feltRepo, FeltRollRepository feltRollRepo, BatchRepository batchRepo,
+            ApplicationEventPublisher eventPublisher, FeltRollMapper feltRollMapper,
             BatchMapper batchMapper) {
+        this.storageService = storageService;
         this.feltRepo = feltRepo;
         this.feltRollRepo = feltRollRepo;
         this.batchRepo = batchRepo;
-        this.storageRepo = storageRepo;
         this.eventPublisher = eventPublisher;
         this.feltRollMapper = feltRollMapper;
         this.batchMapper = batchMapper;
@@ -92,8 +91,7 @@ public class FeltRollService {
                             .orElseThrow(() -> new FeltNotFoundException(dto.feltId()));
 
         Batch batch = resolveOptionalBatch(dto.batchId());
-        Storage storage = storageRepo.findById(dto.storageId())
-                                     .orElseThrow(() -> new InvalidStorageReferenceException(dto.storageId()));
+        Storage storage = storageService.getExistingById(dto.storageId());
 
         FeltRoll roll = new FeltRoll(felt, batch, storage, dto.length(), dto.width());
         roll = feltRollRepo.save(roll);
@@ -118,9 +116,7 @@ public class FeltRollService {
         applyIfPresent(dto::length, roll::setLength);
         applyIfPresent(dto::width, roll::setWidth);
 
-        applyIfPresent(dto::storageId, storageId -> storageRepo.findById(storageId)
-                                                               .orElseThrow(() -> new InvalidStorageReferenceException(
-                                                                       storageId)), roll::setStorage);
+        applyIfPresent(dto::storageId, storageService::getExistingById, roll::setStorage);
 
         applyIfPresent(dto::batchId, batchId -> batchRepo.findById(batchId)
                                                          .orElseThrow(

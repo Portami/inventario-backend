@@ -1,7 +1,7 @@
 package ch.portami.inventorybackend.storage.api;
 
 import ch.portami.inventorybackend.storage.dto.StorageDto;
-import ch.portami.inventorybackend.storage.service.StorageService;
+import ch.portami.inventorybackend.storage.StorageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;

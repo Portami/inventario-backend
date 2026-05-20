@@ -14,9 +14,8 @@ import ch.portami.inventorybackend.felt.mapper.ScrapPieceMapper;
 import ch.portami.inventorybackend.felt.repository.BatchRepository;
 import ch.portami.inventorybackend.felt.repository.FeltRepository;
 import ch.portami.inventorybackend.felt.repository.ScrapPieceRepository;
+import ch.portami.inventorybackend.storage.StorageService;
 import ch.portami.inventorybackend.storage.entity.Storage;
-import ch.portami.inventorybackend.storage.exception.InvalidStorageReferenceException;
-import ch.portami.inventorybackend.storage.repository.StorageRepository;
 import java.util.List;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -28,20 +27,20 @@ import static ch.portami.inventorybackend.core.util.NullSafeMapper.applyIfPresen
 @Transactional(readOnly = true)
 public class ScrapPieceService {
 
+    private final StorageService storageService;
     private final FeltRepository feltRepo;
     private final ScrapPieceRepository scrapPieceRepo;
     private final BatchRepository batchRepo;
-    private final StorageRepository storageRepo;
     private final ApplicationEventPublisher eventPublisher;
     private final ScrapPieceMapper scrapPieceMapper;
 
-    public ScrapPieceService(FeltRepository feltRepo, ScrapPieceRepository scrapPieceRepo, BatchRepository batchRepo,
-            StorageRepository storageRepo, ApplicationEventPublisher eventPublisher,
+    public ScrapPieceService(StorageService storageService, FeltRepository feltRepo, ScrapPieceRepository scrapPieceRepo, BatchRepository batchRepo,
+            ApplicationEventPublisher eventPublisher,
             ScrapPieceMapper scrapPieceMapper) {
+        this.storageService = storageService;
         this.feltRepo = feltRepo;
         this.scrapPieceRepo = scrapPieceRepo;
         this.batchRepo = batchRepo;
-        this.storageRepo = storageRepo;
         this.eventPublisher = eventPublisher;
         this.scrapPieceMapper = scrapPieceMapper;
     }
@@ -96,9 +95,7 @@ public class ScrapPieceService {
                                                          .orElseThrow(
                                                                  () -> new InvalidBatchReferenceException(batchId)),
                 scrapPiece::setBatch);
-        applyIfPresent(dto::storageId, storageId -> storageRepo.findById(storageId)
-                                                               .orElseThrow(() -> new InvalidStorageReferenceException(
-                                                                       storageId)), scrapPiece::setStorage);
+        applyIfPresent(dto::storageId, storageService::getExistingById, scrapPiece::setStorage);
 
         return scrapPieceMapper.toDto(scrapPiece);
     }
@@ -123,7 +120,7 @@ public class ScrapPieceService {
         if (storageId == null) {
             return null;
         }
-        return storageRepo.findById(storageId)
-                          .orElseThrow(() -> new InvalidStorageReferenceException(storageId));
+
+        return storageService.getExistingById(storageId);
     }
 }
