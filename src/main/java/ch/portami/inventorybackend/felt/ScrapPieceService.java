@@ -34,7 +34,8 @@ public class ScrapPieceService {
     private final ApplicationEventPublisher eventPublisher;
     private final ScrapPieceMapper scrapPieceMapper;
 
-    public ScrapPieceService(StorageService storageService, FeltRepository feltRepo, ScrapPieceRepository scrapPieceRepo, BatchRepository batchRepo,
+    public ScrapPieceService(StorageService storageService, FeltRepository feltRepo,
+            ScrapPieceRepository scrapPieceRepo, BatchRepository batchRepo,
             ApplicationEventPublisher eventPublisher,
             ScrapPieceMapper scrapPieceMapper) {
         this.storageService = storageService;

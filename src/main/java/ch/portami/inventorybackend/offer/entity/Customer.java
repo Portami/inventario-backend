@@ -52,7 +52,8 @@ public class Customer {
         this.name = name;
     }
 
-    public Customer(String name, String contactPerson, String email, String phone, String street, String zip, String city, String country, String vatNumber) {
+    public Customer(String name, String contactPerson, String email, String phone, String street, String zip,
+            String city, String country, String vatNumber) {
         this.name = name;
         this.contactPerson = contactPerson;
         this.email = email;
@@ -150,8 +151,12 @@ public class Customer {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         Customer customer = (Customer) o;
         return Objects.equals(id, customer.id);
     }

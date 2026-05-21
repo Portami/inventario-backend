@@ -13,7 +13,8 @@ public class BarcodeCodeValidator implements ConstraintValidator<ValidBarcodeCod
             return false;
         }
 
-        if (barcodeCode.value().isBlank()) {
+        if (barcodeCode.value()
+                       .isBlank()) {
             addViolation(context, "Barcode must not be blank");
             return false;
         }

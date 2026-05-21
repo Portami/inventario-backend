@@ -7,7 +7,8 @@ import java.text.MessageFormat;
 public class InvalidBatchReferenceException extends InvalidResourceReferenceException {
 
     public InvalidBatchReferenceException(long batchId) {
-        super(MessageFormat.format("The request is referencing a batch with id {0} that does not exist", batchId), new ResourceIdentifier("batchId", batchId));
+        super(MessageFormat.format("The request is referencing a batch with id {0} that does not exist", batchId),
+                new ResourceIdentifier("batchId", batchId));
     }
 
 }

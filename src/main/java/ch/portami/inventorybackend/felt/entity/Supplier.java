@@ -28,18 +28,28 @@ public class Supplier {
     @OneToMany(mappedBy = "supplier", fetch = FetchType.LAZY)
     private final List<Felt> felts = new ArrayList<>();
 
-    public Supplier() {}
+    public Supplier() {
+    }
 
     public Supplier(String name) {
         this.name = name;
     }
 
-    public Long getId() { return id; }
+    public Long getId() {
+        return id;
+    }
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public String getName() {
+        return name;
+    }
 
-    public List<Felt> getFelts() { return felts; }
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public List<Felt> getFelts() {
+        return felts;
+    }
 
     // --- Sync helpers ---------------------------------------------------
 
@@ -57,8 +67,12 @@ public class Supplier {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Supplier that)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Supplier that)) {
+            return false;
+        }
         return id != null && Objects.equals(id, that.id);
     }
 

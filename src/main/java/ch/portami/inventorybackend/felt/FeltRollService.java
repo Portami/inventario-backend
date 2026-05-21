@@ -41,7 +41,8 @@ public class FeltRollService {
     private final FeltRollMapper feltRollMapper;
     private final BatchMapper batchMapper;
 
-    public FeltRollService(StorageService storageService, FeltRepository feltRepo, FeltRollRepository feltRollRepo, BatchRepository batchRepo,
+    public FeltRollService(StorageService storageService, FeltRepository feltRepo, FeltRollRepository feltRollRepo,
+            BatchRepository batchRepo,
             ApplicationEventPublisher eventPublisher, FeltRollMapper feltRollMapper,
             BatchMapper batchMapper) {
         this.storageService = storageService;

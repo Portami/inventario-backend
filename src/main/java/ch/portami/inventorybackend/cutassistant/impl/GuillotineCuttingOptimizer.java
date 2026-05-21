@@ -62,12 +62,13 @@ public class GuillotineCuttingOptimizer implements CuttingOptimizer {
      * Executes the 2D cutting optimization process to assign requested pieces to available inventory stock.
      *
      * @param input the requested pieces to be cut
-     * @return a {@link CutResult} containing the assignments, calculated waste, and feasibility status.
-     *         If infeasible, the result includes a detailed reason.
+     * @return a {@link CutResult} containing the assignments, calculated waste, and feasibility status. If infeasible,
+     * the result includes a detailed reason.
      */
     @Override
     public CutResult optimize(CutInput input) {
-        if (input.requiredPieces().isEmpty()) {
+        if (input.requiredPieces()
+                 .isEmpty()) {
             return new CutResult(Collections.emptyList(), 0.0, true, null);
         }
 
@@ -88,7 +89,8 @@ public class GuillotineCuttingOptimizer implements CuttingOptimizer {
                 return new CutResult(Collections.emptyList(), 0.0, false, reason);
             }
 
-            assignments.computeIfAbsent(bestPlacement.stock, k -> new ArrayList<>()).add(piece);
+            assignments.computeIfAbsent(bestPlacement.stock, k -> new ArrayList<>())
+                       .add(piece);
 
             splitFreeSpace(bestPlacement.stock, bestPlacement.space, paddedLength, paddedWidth, stockSpaces);
         }
@@ -99,8 +101,8 @@ public class GuillotineCuttingOptimizer implements CuttingOptimizer {
     /**
      * Loads and sorts available stock items based on business priority and fit heuristics.
      * <p>
-     * Scraps are strictly prioritized over rolls to clear out existing inventory. Within a category,
-     * items are sorted by area ascending so that the algorithm attempts to use the smallest viable stock first.
+     * Scraps are strictly prioritized over rolls to clear out existing inventory. Within a category, items are sorted
+     * by area ascending so that the algorithm attempts to use the smallest viable stock first.
      *
      * @return a sorted list of available {@link CuttableStock}
      */
@@ -114,8 +116,8 @@ public class GuillotineCuttingOptimizer implements CuttingOptimizer {
     /**
      * Flattens piece requests that have quantities > 1 into distinct individual pieces and sorts them.
      * <p>
-     * The list is sorted by area descending. This supports the First-Fit Decreasing (FFD) 2D packing
-     * heuristic, ensuring that large, difficult-to-place pieces are accommodated before smaller pieces fill up the gaps.
+     * The list is sorted by area descending. This supports the First-Fit Decreasing (FFD) 2D packing heuristic,
+     * ensuring that large, difficult-to-place pieces are accommodated before smaller pieces fill up the gaps.
      *
      * @param requiredPieces the raw input list containing piece types and requested quantities
      * @return a flattened, sorted list of individual {@link RequiredPiece}s
@@ -127,15 +129,16 @@ public class GuillotineCuttingOptimizer implements CuttingOptimizer {
                 flatList.add(new RequiredPiece(piece.feltId(), piece.color(), piece.length(), piece.width(), 1));
             }
         }
-        flatList.sort(Comparator.comparingDouble((RequiredPiece p) -> p.length() * p.width()).reversed());
+        flatList.sort(Comparator.comparingDouble((RequiredPiece p) -> p.length() * p.width())
+                                .reversed());
         return flatList;
     }
 
     /**
      * Initializes the 2D spatial tracking for each stock item.
      * <p>
-     * Every stock item begins its lifecycle as a single, contiguous rectangular {@link FreeSpace}
-     * matching its exact total length and width.
+     * Every stock item begins its lifecycle as a single, contiguous rectangular {@link FreeSpace} matching its exact
+     * total length and width.
      *
      * @param availableStocks the list of available stocks to track
      * @return a map linking each stock item to its list of currently available free spaces
@@ -153,15 +156,15 @@ public class GuillotineCuttingOptimizer implements CuttingOptimizer {
     /**
      * Finds the optimal {@link FreeSpace} across all compatible stock items for a given piece.
      * <p>
-     * Uses the "Best Area Fit" heuristic: it evaluates all spaces where the piece physically fits,
-     * calculates the area of the void that would remain if the piece were placed there, and selects
-     * the space that leaves the smallest remaining void. This minimizes loose, unusable gaps.
+     * Uses the "Best Area Fit" heuristic: it evaluates all spaces where the piece physically fits, calculates the area
+     * of the void that would remain if the piece were placed there, and selects the space that leaves the smallest
+     * remaining void. This minimizes loose, unusable gaps.
      *
-     * @param piece the required piece to place
+     * @param piece        the required piece to place
      * @param paddedLength the piece's required length, including cutting margins
-     * @param paddedWidth the piece's required width, including cutting margins
-     * @param stocks the prioritized list of available stocks
-     * @param stockSpaces the current map of available free spaces
+     * @param paddedWidth  the piece's required width, including cutting margins
+     * @param stocks       the prioritized list of available stocks
+     * @param stockSpaces  the current map of available free spaces
      * @return a {@link Placement} object containing the chosen stock and space, or {@code null} if no fit exists
      */
     private Placement findBestPlacement(RequiredPiece piece, Double paddedLength, Double paddedWidth,
@@ -171,7 +174,9 @@ public class GuillotineCuttingOptimizer implements CuttingOptimizer {
         Double bestAreaFit = Double.MAX_VALUE;
 
         for (CuttableStock stock : stocks) {
-            if (!matchesVariantAndColor(stock, piece)) continue;
+            if (!matchesVariantAndColor(stock, piece)) {
+                continue;
+            }
 
             List<FreeSpace> spaces = stockSpaces.get(stock);
             for (FreeSpace space : spaces) {
@@ -192,15 +197,15 @@ public class GuillotineCuttingOptimizer implements CuttingOptimizer {
     /**
      * Executes a Guillotine cut to update the available free spaces after a piece is placed.
      * <p>
-     * When a piece is cut from the corner of a rectangular space, it leaves an L-shaped remainder.
-     * This method splits that L-shape into two perfectly rectangular new {@link FreeSpace}s.
-     * It uses a "Shorter Axis Split" heuristic, extending the cut line along the shorter remaining
-     * dimension to preserve the largest, most contiguous rectangular block for future pieces.
+     * When a piece is cut from the corner of a rectangular space, it leaves an L-shaped remainder. This method splits
+     * that L-shape into two perfectly rectangular new {@link FreeSpace}s. It uses a "Shorter Axis Split" heuristic,
+     * extending the cut line along the shorter remaining dimension to preserve the largest, most contiguous rectangular
+     * block for future pieces.
      *
-     * @param stock the stock item being modified
-     * @param usedSpace the original space that the piece was placed into
-     * @param pieceLen the padded length of the piece being removed
-     * @param pieceWid the padded width of the piece being removed
+     * @param stock       the stock item being modified
+     * @param usedSpace   the original space that the piece was placed into
+     * @param pieceLen    the padded length of the piece being removed
+     * @param pieceWid    the padded width of the piece being removed
      * @param stockSpaces the tracking map to be updated with the newly generated free spaces
      */
     private void splitFreeSpace(CuttableStock stock, FreeSpace usedSpace, Double pieceLen, Double pieceWid,
@@ -213,11 +218,19 @@ public class GuillotineCuttingOptimizer implements CuttingOptimizer {
         Double topWidth = usedSpace.width - pieceWid;
 
         if (rightLength > topWidth) {
-            if (rightLength > 0) spaces.add(new FreeSpace(rightLength, usedSpace.width));
-            if (topWidth > 0) spaces.add(new FreeSpace(pieceLen, topWidth));
+            if (rightLength > 0) {
+                spaces.add(new FreeSpace(rightLength, usedSpace.width));
+            }
+            if (topWidth > 0) {
+                spaces.add(new FreeSpace(pieceLen, topWidth));
+            }
         } else {
-            if (topWidth > 0) spaces.add(new FreeSpace(usedSpace.length, topWidth));
-            if (rightLength > 0) spaces.add(new FreeSpace(rightLength, pieceWid));
+            if (topWidth > 0) {
+                spaces.add(new FreeSpace(usedSpace.length, topWidth));
+            }
+            if (rightLength > 0) {
+                spaces.add(new FreeSpace(rightLength, pieceWid));
+            }
         }
     }
 
@@ -256,12 +269,11 @@ public class GuillotineCuttingOptimizer implements CuttingOptimizer {
     /**
      * Calculates the raw waste generated on a specific stock item.
      * <p>
-     * Waste is strictly defined as the total area of the original stock item minus the
-     * total area of the pieces cut from it (including their requested margins).
-     * The upstream consuming system is responsible for deciding if this remaining area
-     * is large enough to be re-categorized as a usable SCRAP, or if it is true trash.
+     * Waste is strictly defined as the total area of the original stock item minus the total area of the pieces cut
+     * from it (including their requested margins). The upstream consuming system is responsible for deciding if this
+     * remaining area is large enough to be re-categorized as a usable SCRAP, or if it is true trash.
      *
-     * @param stock the original inventory stock item
+     * @param stock  the original inventory stock item
      * @param pieces the list of pieces assigned to this stock item
      * @return the calculated remaining area (waste) in square units
      */
@@ -282,22 +294,29 @@ public class GuillotineCuttingOptimizer implements CuttingOptimizer {
      * @return true if the variant and color match perfectly, false otherwise
      */
     private boolean matchesVariantAndColor(CuttableStock stock, RequiredPiece piece) {
-        if (!stock.feltId().equals(piece.feltId())) return false;
-        if (piece.color() == null) return true;
-        return piece.color().equalsIgnoreCase(stock.color());
+        if (!stock.feltId()
+                  .equals(piece.feltId())) {
+            return false;
+        }
+        if (piece.color() == null) {
+            return true;
+        }
+        return piece.color()
+                    .equalsIgnoreCase(stock.color());
     }
 
     /**
-     * Determines the specific reason a piece could not be placed, prioritizing stock mismatch
-     * over dimension constraints for clearer user feedback.
+     * Determines the specific reason a piece could not be placed, prioritizing stock mismatch over dimension
+     * constraints for clearer user feedback.
      *
-     * @param piece the piece that failed to place
+     * @param piece        the piece that failed to place
      * @param paddedLength the piece's required length with margins
-     * @param paddedWidth the piece's required width with margins
-     * @param stocks the full list of available stock items
+     * @param paddedWidth  the piece's required width with margins
+     * @param stocks       the full list of available stock items
      * @return a human-readable string explaining the failure reason
      */
-    private String determineInfeasibleReason(RequiredPiece piece, Double paddedLength, Double paddedWidth, List<CuttableStock> stocks) {
+    private String determineInfeasibleReason(RequiredPiece piece, Double paddedLength, Double paddedWidth,
+            List<CuttableStock> stocks) {
         boolean hasMatchingVariantAndColor = stocks.stream()
                                                    .anyMatch(stock -> matchesVariantAndColor(stock, piece));
 
@@ -306,17 +325,19 @@ public class GuillotineCuttingOptimizer implements CuttingOptimizer {
                     piece.feltId(), piece.color());
         }
 
-        return String.format("Request exceeding available space for piece %.1f x %.1f (requires %.1f x %.1f with margins)",
+        return String.format(
+                "Request exceeding available space for piece %.1f x %.1f (requires %.1f x %.1f with margins)",
                 piece.length(), piece.width(), paddedLength, paddedWidth);
     }
 
     // --- Helper Domain Classes for 2D Geometry ---
 
     /**
-     * Represents a continuous, unassigned rectangular area on a specific stock item.
-     * Used by the 2D Guillotine algorithm to track available space.
+     * Represents a continuous, unassigned rectangular area on a specific stock item. Used by the 2D Guillotine
+     * algorithm to track available space.
      */
     private static class FreeSpace {
+
         final Double length;
         final Double width;
 
@@ -324,7 +345,7 @@ public class GuillotineCuttingOptimizer implements CuttingOptimizer {
          * Creates a new FreeSpace instance.
          *
          * @param length the length of the available rectangle
-         * @param width the width of the available rectangle
+         * @param width  the width of the available rectangle
          */
         FreeSpace(Double length, Double width) {
             this.length = length;
@@ -336,6 +357,7 @@ public class GuillotineCuttingOptimizer implements CuttingOptimizer {
      * Represents a successful match between a required piece and an available location.
      */
     private static class Placement {
+
         final CuttableStock stock;
         final FreeSpace space;
 

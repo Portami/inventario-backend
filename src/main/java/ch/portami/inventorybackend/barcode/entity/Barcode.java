@@ -40,7 +40,8 @@ public class Barcode {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private ScrapPiece scrapPiece;
 
-    public Barcode() {}
+    public Barcode() {
+    }
 
     private Barcode(BarcodeType type, FeltRoll feltRoll, ScrapPiece scrapPiece) {
         this.type = type;
@@ -56,18 +57,30 @@ public class Barcode {
         return new Barcode(BarcodeType.SCRAP, null, scrapPiece);
     }
 
-    public Long getId() { return id; }
+    public Long getId() {
+        return id;
+    }
 
-    public BarcodeType getType() { return type; }
+    public BarcodeType getType() {
+        return type;
+    }
 
-    public FeltRoll getFeltRoll() { return feltRoll; }
+    public FeltRoll getFeltRoll() {
+        return feltRoll;
+    }
 
-    public ScrapPiece getScrapPiece() { return scrapPiece; }
+    public ScrapPiece getScrapPiece() {
+        return scrapPiece;
+    }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Barcode that)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Barcode that)) {
+            return false;
+        }
         return id != null && Objects.equals(id, that.id);
     }
 

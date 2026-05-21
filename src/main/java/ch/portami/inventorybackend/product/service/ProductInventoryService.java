@@ -12,7 +12,6 @@ import ch.portami.inventorybackend.product.repository.ProductVariantRepository;
 import ch.portami.inventorybackend.storage.StorageService;
 import ch.portami.inventorybackend.storage.entity.Storage;
 import ch.portami.inventorybackend.storage.exception.InvalidStorageReferenceException;
-import ch.portami.inventorybackend.storage.repository.StorageRepository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;

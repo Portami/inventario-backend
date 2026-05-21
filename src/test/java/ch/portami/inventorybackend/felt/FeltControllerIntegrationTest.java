@@ -1,10 +1,9 @@
 package ch.portami.inventorybackend.felt;
 
-import org.springframework.http.ProblemDetail;
+import ch.portami.inventorybackend.BaseIntegrationTest;
 import ch.portami.inventorybackend.felt.dto.CreateFeltDto;
 import ch.portami.inventorybackend.felt.dto.FeltDto;
 import ch.portami.inventorybackend.felt.dto.UpdateFeltDto;
-import ch.portami.inventorybackend.BaseIntegrationTest;
 import ch.portami.inventorybackend.felt.entity.FeltType;
 import ch.portami.inventorybackend.felt.entity.Supplier;
 import ch.portami.inventorybackend.felt.repository.FeltRepository;
@@ -22,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ProblemDetail;
 import org.springframework.test.web.servlet.client.RestTestClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -30,12 +30,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 class FeltControllerIntegrationTest extends BaseIntegrationTest {
 
     private static final ParameterizedTypeReference<List<FeltDto>> FELT_LIST =
-            new ParameterizedTypeReference<>() {};
+            new ParameterizedTypeReference<>() {
+            };
 
-    @Autowired private RestTestClient restTestClient;
-    @Autowired private FeltRepository feltRepository;
-    @Autowired private FeltTypeRepository feltTypeRepository;
-    @Autowired private SupplierRepository supplierRepository;
+    @Autowired
+    private RestTestClient restTestClient;
+    @Autowired
+    private FeltRepository feltRepository;
+    @Autowired
+    private FeltTypeRepository feltTypeRepository;
+    @Autowired
+    private SupplierRepository supplierRepository;
 
     private Long supplierId;
     private Long supplierId2;
@@ -44,10 +49,14 @@ class FeltControllerIntegrationTest extends BaseIntegrationTest {
 
     @BeforeAll
     void setupFixtures() {
-        supplierId  = supplierRepository.save(new Supplier("Test Supplier")).getId();
-        supplierId2 = supplierRepository.save(new Supplier("Test Supplier 2")).getId();
-        feltTypeId  = feltTypeRepository.save(new FeltType("Wool")).getId();
-        feltTypeId2 = feltTypeRepository.save(new FeltType("Polyester")).getId();
+        supplierId = supplierRepository.save(new Supplier("Test Supplier"))
+                                       .getId();
+        supplierId2 = supplierRepository.save(new Supplier("Test Supplier 2"))
+                                        .getId();
+        feltTypeId = feltTypeRepository.save(new FeltType("Wool"))
+                                       .getId();
+        feltTypeId2 = feltTypeRepository.save(new FeltType("Polyester"))
+                                        .getId();
     }
 
     @BeforeEach
@@ -64,14 +73,16 @@ class FeltControllerIntegrationTest extends BaseIntegrationTest {
     }
 
     private FeltDto postFelt(CreateFeltDto dto) {
-        FeltDto body = restTestClient.post().uri("/api/felts")
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(dto)
-                .exchange()
-                .expectStatus().isCreated()
-                .expectBody(FeltDto.class)
-                .returnResult()
-                .getResponseBody();
+        FeltDto body = restTestClient.post()
+                                     .uri("/api/felts")
+                                     .contentType(MediaType.APPLICATION_JSON)
+                                     .body(dto)
+                                     .exchange()
+                                     .expectStatus()
+                                     .isCreated()
+                                     .expectBody(FeltDto.class)
+                                     .returnResult()
+                                     .getResponseBody();
         assertThat(body).isNotNull();
         return body;
     }
@@ -85,11 +96,13 @@ class FeltControllerIntegrationTest extends BaseIntegrationTest {
         @Test
         @DisplayName("returns empty list when no felts exist")
         void returnsEmptyList() {
-            restTestClient.get().uri("/api/felts")
-                    .exchange()
-                    .expectStatus().isOk()
-                    .expectBody(FELT_LIST)
-                    .value(felts -> assertThat(felts).isEmpty());
+            restTestClient.get()
+                          .uri("/api/felts")
+                          .exchange()
+                          .expectStatus()
+                          .isOk()
+                          .expectBody(FELT_LIST)
+                          .value(felts -> assertThat(felts).isEmpty());
         }
 
         @Test
@@ -102,11 +115,13 @@ class FeltControllerIntegrationTest extends BaseIntegrationTest {
                     "ART-002", supplierId, feltTypeId2
             ));
 
-            restTestClient.get().uri("/api/felts")
-                    .exchange()
-                    .expectStatus().isOk()
-                    .expectBody(FELT_LIST)
-                    .value(felts -> assertThat(felts).hasSize(2));
+            restTestClient.get()
+                          .uri("/api/felts")
+                          .exchange()
+                          .expectStatus()
+                          .isOk()
+                          .expectBody(FELT_LIST)
+                          .value(felts -> assertThat(felts).hasSize(2));
         }
     }
 
@@ -121,26 +136,30 @@ class FeltControllerIntegrationTest extends BaseIntegrationTest {
         void returnsExistingFelt() {
             FeltDto created = postFelt(validCreate());
 
-            restTestClient.get().uri("/api/felts/{id}", created.id())
-                    .exchange()
-                    .expectStatus().isOk()
-                    .expectBody(FeltDto.class)
-                    .value(felt -> {
-                        assertThat(felt.id()).isEqualTo(created.id());
-                        assertThat(felt.color()).isEqualTo("Red");
-                        assertThat(felt.feltTypeName()).isEqualTo("Wool");
-                        assertThat(felt.supplierId()).isEqualTo(supplierId);
-                    });
+            restTestClient.get()
+                          .uri("/api/felts/{id}", created.id())
+                          .exchange()
+                          .expectStatus()
+                          .isOk()
+                          .expectBody(FeltDto.class)
+                          .value(felt -> {
+                              assertThat(felt.id()).isEqualTo(created.id());
+                              assertThat(felt.color()).isEqualTo("Red");
+                              assertThat(felt.feltTypeName()).isEqualTo("Wool");
+                              assertThat(felt.supplierId()).isEqualTo(supplierId);
+                          });
         }
 
         @Test
         @DisplayName("returns 404 when felt does not exist")
         void returns404ForUnknownFelt() {
-            restTestClient.get().uri("/api/felts/{id}", 99999)
-                    .exchange()
-                    .expectStatus().isNotFound()
-                    .expectBody(ProblemDetail.class)
-                    .value(err -> assertThat(err.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value()));
+            restTestClient.get()
+                          .uri("/api/felts/{id}", 99999)
+                          .exchange()
+                          .expectStatus()
+                          .isNotFound()
+                          .expectBody(ProblemDetail.class)
+                          .value(err -> assertThat(err.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value()));
         }
     }
 
@@ -153,13 +172,16 @@ class FeltControllerIntegrationTest extends BaseIntegrationTest {
         @Test
         @DisplayName("creates felt and returns 201 with full body and Location header")
         void createsFelt() {
-            var response = restTestClient.post().uri("/api/felts")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(validCreate())
-                    .exchange();
+            var response = restTestClient.post()
+                                         .uri("/api/felts")
+                                         .contentType(MediaType.APPLICATION_JSON)
+                                         .body(validCreate())
+                                         .exchange();
 
-            response.expectStatus().isCreated()
-                    .expectHeader().valueMatches("Location", "/api/felts/\\d+")
+            response.expectStatus()
+                    .isCreated()
+                    .expectHeader()
+                    .valueMatches("Location", "/api/felts/\\d+")
                     .expectBody(FeltDto.class)
                     .value(felt -> {
                         assertThat(felt.id()).isNotNull();
@@ -173,7 +195,9 @@ class FeltControllerIntegrationTest extends BaseIntegrationTest {
                         assertThat(felt.feltTypeName()).isEqualTo("Wool");
                     });
 
-            var location = response.returnResult(FeltDto.class).getResponseHeaders().getLocation();
+            var location = response.returnResult(FeltDto.class)
+                                   .getResponseHeaders()
+                                   .getLocation();
             assertThat(location).isNotNull();
             assertThat(location.toString()).contains("/api/felts/");
         }
@@ -196,13 +220,15 @@ class FeltControllerIntegrationTest extends BaseIntegrationTest {
                     "ART-001", supplierId, feltTypeId
             );
 
-            restTestClient.post().uri("/api/felts")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(invalid)
-                    .exchange()
-                    .expectStatus().isBadRequest()
-                    .expectBody(ProblemDetail.class)
-                    .value(err -> assertThat(err.getDetail()).contains("color"));
+            restTestClient.post()
+                          .uri("/api/felts")
+                          .contentType(MediaType.APPLICATION_JSON)
+                          .body(invalid)
+                          .exchange()
+                          .expectStatus()
+                          .isBadRequest()
+                          .expectBody(ProblemDetail.class)
+                          .value(err -> assertThat(err.getDetail()).contains("color"));
         }
 
         @Test
@@ -214,13 +240,16 @@ class FeltControllerIntegrationTest extends BaseIntegrationTest {
                     "ART-001", supplierId, 99999L
             );
 
-            restTestClient.post().uri("/api/felts")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(dto)
-                    .exchange()
-                    .expectStatus().isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT)
-                    .expectBody(ProblemDetail.class)
-                    .value(err -> assertThat(err.getStatus()).isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT.value()));
+            restTestClient.post()
+                          .uri("/api/felts")
+                          .contentType(MediaType.APPLICATION_JSON)
+                          .body(dto)
+                          .exchange()
+                          .expectStatus()
+                          .isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT)
+                          .expectBody(ProblemDetail.class)
+                          .value(err -> assertThat(err.getStatus()).isEqualTo(
+                                  HttpStatus.UNPROCESSABLE_CONTENT.value()));
         }
 
         @Test
@@ -232,13 +261,16 @@ class FeltControllerIntegrationTest extends BaseIntegrationTest {
                     "ART-001", 99999L, feltTypeId
             );
 
-            restTestClient.post().uri("/api/felts")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(dto)
-                    .exchange()
-                    .expectStatus().isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT)
-                    .expectBody(ProblemDetail.class)
-                    .value(err -> assertThat(err.getStatus()).isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT.value()));
+            restTestClient.post()
+                          .uri("/api/felts")
+                          .contentType(MediaType.APPLICATION_JSON)
+                          .body(dto)
+                          .exchange()
+                          .expectStatus()
+                          .isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT)
+                          .expectBody(ProblemDetail.class)
+                          .value(err -> assertThat(err.getStatus()).isEqualTo(
+                                  HttpStatus.UNPROCESSABLE_CONTENT.value()));
         }
     }
 
@@ -253,16 +285,18 @@ class FeltControllerIntegrationTest extends BaseIntegrationTest {
         void updatesColorOnly() {
             FeltDto created = postFelt(validCreate());
 
-            restTestClient.patch().uri("/api/felts/{id}", created.id())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(new UpdateFeltDto("Purple", null, null, null, null, null, null, null, null, null))
-                    .exchange()
-                    .expectStatus().isOk()
-                    .expectBody(FeltDto.class)
-                    .value(felt -> {
-                        assertThat(felt.color()).isEqualTo("Purple");
-                        assertThat(felt.thickness()).isEqualTo(2.0);
-                    });
+            restTestClient.patch()
+                          .uri("/api/felts/{id}", created.id())
+                          .contentType(MediaType.APPLICATION_JSON)
+                          .body(new UpdateFeltDto("Purple", null, null, null, null, null, null, null, null, null))
+                          .exchange()
+                          .expectStatus()
+                          .isOk()
+                          .expectBody(FeltDto.class)
+                          .value(felt -> {
+                              assertThat(felt.color()).isEqualTo("Purple");
+                              assertThat(felt.thickness()).isEqualTo(2.0);
+                          });
         }
 
         @Test
@@ -270,13 +304,15 @@ class FeltControllerIntegrationTest extends BaseIntegrationTest {
         void updatesSupplier() {
             FeltDto created = postFelt(validCreate());
 
-            restTestClient.patch().uri("/api/felts/{id}", created.id())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(new UpdateFeltDto(null, null, null, null, null, null, supplierId2, null, null, null))
-                    .exchange()
-                    .expectStatus().isOk()
-                    .expectBody(FeltDto.class)
-                    .value(felt -> assertThat(felt.supplierId()).isEqualTo(supplierId2));
+            restTestClient.patch()
+                          .uri("/api/felts/{id}", created.id())
+                          .contentType(MediaType.APPLICATION_JSON)
+                          .body(new UpdateFeltDto(null, null, null, null, null, null, supplierId2, null, null, null))
+                          .exchange()
+                          .expectStatus()
+                          .isOk()
+                          .expectBody(FeltDto.class)
+                          .value(felt -> assertThat(felt.supplierId()).isEqualTo(supplierId2));
         }
 
         @Test
@@ -284,13 +320,15 @@ class FeltControllerIntegrationTest extends BaseIntegrationTest {
         void updatesFeltType() {
             FeltDto created = postFelt(validCreate());
 
-            restTestClient.patch().uri("/api/felts/{id}", created.id())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(new UpdateFeltDto(null, null, null, null, null, null, null, feltTypeId2, null, null))
-                    .exchange()
-                    .expectStatus().isOk()
-                    .expectBody(FeltDto.class)
-                    .value(felt -> assertThat(felt.feltTypeName()).isEqualTo("Polyester"));
+            restTestClient.patch()
+                          .uri("/api/felts/{id}", created.id())
+                          .contentType(MediaType.APPLICATION_JSON)
+                          .body(new UpdateFeltDto(null, null, null, null, null, null, null, feltTypeId2, null, null))
+                          .exchange()
+                          .expectStatus()
+                          .isOk()
+                          .expectBody(FeltDto.class)
+                          .value(felt -> assertThat(felt.feltTypeName()).isEqualTo("Polyester"));
         }
 
         @Test
@@ -298,16 +336,19 @@ class FeltControllerIntegrationTest extends BaseIntegrationTest {
         void updatesThicknessAndPrice() {
             FeltDto created = postFelt(validCreate());
 
-            restTestClient.patch().uri("/api/felts/{id}", created.id())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(new UpdateFeltDto(null, null, 5.0, null, new BigDecimal("99.00"), null, null, null, null, null))
-                    .exchange()
-                    .expectStatus().isOk()
-                    .expectBody(FeltDto.class)
-                    .value(felt -> {
-                        assertThat(felt.thickness()).isEqualTo(5.0);
-                        assertThat(felt.price()).isEqualByComparingTo(new BigDecimal("99.00"));
-                    });
+            restTestClient.patch()
+                          .uri("/api/felts/{id}", created.id())
+                          .contentType(MediaType.APPLICATION_JSON)
+                          .body(new UpdateFeltDto(null, null, 5.0, null, new BigDecimal("99.00"), null, null, null,
+                                  null, null))
+                          .exchange()
+                          .expectStatus()
+                          .isOk()
+                          .expectBody(FeltDto.class)
+                          .value(felt -> {
+                              assertThat(felt.thickness()).isEqualTo(5.0);
+                              assertThat(felt.price()).isEqualByComparingTo(new BigDecimal("99.00"));
+                          });
         }
 
         @Test
@@ -320,33 +361,39 @@ class FeltControllerIntegrationTest extends BaseIntegrationTest {
                     "ART-002", supplierId, feltTypeId
             ));
 
-            restTestClient.patch().uri("/api/felts/{id}", first.id())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(new UpdateFeltDto("Purple", null, 9.0, null, null, null, null, feltTypeId2, null, null))
-                    .exchange()
-                    .expectStatus().isOk();
+            restTestClient.patch()
+                          .uri("/api/felts/{id}", first.id())
+                          .contentType(MediaType.APPLICATION_JSON)
+                          .body(new UpdateFeltDto("Purple", null, 9.0, null, null, null, null, feltTypeId2, null, null))
+                          .exchange()
+                          .expectStatus()
+                          .isOk();
 
-            restTestClient.get().uri("/api/felts/{id}", second.id())
-                    .exchange()
-                    .expectStatus().isOk()
-                    .expectBody(FeltDto.class)
-                    .value(felt -> {
-                        assertThat(felt.color()).isEqualTo("Blue");
-                        assertThat(felt.thickness()).isEqualTo(3.0);
-                        assertThat(felt.feltTypeName()).isEqualTo("Wool");
-                    });
+            restTestClient.get()
+                          .uri("/api/felts/{id}", second.id())
+                          .exchange()
+                          .expectStatus()
+                          .isOk()
+                          .expectBody(FeltDto.class)
+                          .value(felt -> {
+                              assertThat(felt.color()).isEqualTo("Blue");
+                              assertThat(felt.thickness()).isEqualTo(3.0);
+                              assertThat(felt.feltTypeName()).isEqualTo("Wool");
+                          });
         }
 
         @Test
         @DisplayName("returns 404 when felt does not exist")
         void returns404ForUnknownFelt() {
-            restTestClient.patch().uri("/api/felts/{id}", 99999)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(new UpdateFeltDto(null, null, null, null, null, null, null, null, null, null))
-                    .exchange()
-                    .expectStatus().isNotFound()
-                    .expectBody(ProblemDetail.class)
-                    .value(err -> assertThat(err.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value()));
+            restTestClient.patch()
+                          .uri("/api/felts/{id}", 99999)
+                          .contentType(MediaType.APPLICATION_JSON)
+                          .body(new UpdateFeltDto(null, null, null, null, null, null, null, null, null, null))
+                          .exchange()
+                          .expectStatus()
+                          .isNotFound()
+                          .expectBody(ProblemDetail.class)
+                          .value(err -> assertThat(err.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value()));
         }
 
         @Test
@@ -354,13 +401,16 @@ class FeltControllerIntegrationTest extends BaseIntegrationTest {
         void returns422ForUnknownFeltType() {
             FeltDto created = postFelt(validCreate());
 
-            restTestClient.patch().uri("/api/felts/{id}", created.id())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(new UpdateFeltDto(null, null, null, null, null, null, null, 99999L, null, null))
-                    .exchange()
-                    .expectStatus().isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT)
-                    .expectBody(ProblemDetail.class)
-                    .value(err -> assertThat(err.getStatus()).isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT.value()));
+            restTestClient.patch()
+                          .uri("/api/felts/{id}", created.id())
+                          .contentType(MediaType.APPLICATION_JSON)
+                          .body(new UpdateFeltDto(null, null, null, null, null, null, null, 99999L, null, null))
+                          .exchange()
+                          .expectStatus()
+                          .isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT)
+                          .expectBody(ProblemDetail.class)
+                          .value(err -> assertThat(err.getStatus()).isEqualTo(
+                                  HttpStatus.UNPROCESSABLE_CONTENT.value()));
         }
 
         @Test
@@ -368,13 +418,16 @@ class FeltControllerIntegrationTest extends BaseIntegrationTest {
         void returns422ForUnknownSupplier() {
             FeltDto created = postFelt(validCreate());
 
-            restTestClient.patch().uri("/api/felts/{id}", created.id())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(new UpdateFeltDto(null, null, null, null, null, null, 99999L, null, null, null))
-                    .exchange()
-                    .expectStatus().isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT)
-                    .expectBody(ProblemDetail.class)
-                    .value(err -> assertThat(err.getStatus()).isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT.value()));
+            restTestClient.patch()
+                          .uri("/api/felts/{id}", created.id())
+                          .contentType(MediaType.APPLICATION_JSON)
+                          .body(new UpdateFeltDto(null, null, null, null, null, null, 99999L, null, null, null))
+                          .exchange()
+                          .expectStatus()
+                          .isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT)
+                          .expectBody(ProblemDetail.class)
+                          .value(err -> assertThat(err.getStatus()).isEqualTo(
+                                  HttpStatus.UNPROCESSABLE_CONTENT.value()));
         }
 
         @Test
@@ -382,13 +435,15 @@ class FeltControllerIntegrationTest extends BaseIntegrationTest {
         void validationRejectsNonPositiveThicknessOnPatch() {
             FeltDto created = postFelt(validCreate());
 
-            restTestClient.patch().uri("/api/felts/{id}", created.id())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(new UpdateFeltDto(null, null, -1.0, null, null, null, null, null, null, null))
-                    .exchange()
-                    .expectStatus().isBadRequest()
-                    .expectBody(ProblemDetail.class)
-                    .value(err -> assertThat(err.getDetail()).contains("thickness"));
+            restTestClient.patch()
+                          .uri("/api/felts/{id}", created.id())
+                          .contentType(MediaType.APPLICATION_JSON)
+                          .body(new UpdateFeltDto(null, null, -1.0, null, null, null, null, null, null, null))
+                          .exchange()
+                          .expectStatus()
+                          .isBadRequest()
+                          .expectBody(ProblemDetail.class)
+                          .value(err -> assertThat(err.getDetail()).contains("thickness"));
         }
     }
 
@@ -403,13 +458,17 @@ class FeltControllerIntegrationTest extends BaseIntegrationTest {
         void deletesExistingFelt() {
             FeltDto created = postFelt(validCreate());
 
-            restTestClient.delete().uri("/api/felts/{id}", created.id())
-                    .exchange()
-                    .expectStatus().isNoContent();
+            restTestClient.delete()
+                          .uri("/api/felts/{id}", created.id())
+                          .exchange()
+                          .expectStatus()
+                          .isNoContent();
 
-            restTestClient.get().uri("/api/felts/{id}", created.id())
-                    .exchange()
-                    .expectStatus().isNotFound();
+            restTestClient.get()
+                          .uri("/api/felts/{id}", created.id())
+                          .exchange()
+                          .expectStatus()
+                          .isNotFound();
         }
 
         @Test
@@ -422,25 +481,31 @@ class FeltControllerIntegrationTest extends BaseIntegrationTest {
                     "ART-001", supplierId, feltTypeId
             ));
 
-            restTestClient.delete().uri("/api/felts/{id}", first.id())
-                    .exchange()
-                    .expectStatus().isNoContent();
+            restTestClient.delete()
+                          .uri("/api/felts/{id}", first.id())
+                          .exchange()
+                          .expectStatus()
+                          .isNoContent();
 
-            restTestClient.get().uri("/api/felts/{id}", second.id())
-                    .exchange()
-                    .expectStatus().isOk()
-                    .expectBody(FeltDto.class)
-                    .value(felt -> assertThat(felt.color()).isEqualTo("Blue"));
+            restTestClient.get()
+                          .uri("/api/felts/{id}", second.id())
+                          .exchange()
+                          .expectStatus()
+                          .isOk()
+                          .expectBody(FeltDto.class)
+                          .value(felt -> assertThat(felt.color()).isEqualTo("Blue"));
         }
 
         @Test
         @DisplayName("returns 404 when felt does not exist")
         void returns404ForUnknownFelt() {
-            restTestClient.delete().uri("/api/felts/{id}", 99999)
-                    .exchange()
-                    .expectStatus().isNotFound()
-                    .expectBody(ProblemDetail.class)
-                    .value(err -> assertThat(err.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value()));
+            restTestClient.delete()
+                          .uri("/api/felts/{id}", 99999)
+                          .exchange()
+                          .expectStatus()
+                          .isNotFound()
+                          .expectBody(ProblemDetail.class)
+                          .value(err -> assertThat(err.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value()));
         }
     }
 }

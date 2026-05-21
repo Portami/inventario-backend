@@ -46,7 +46,8 @@ public class OfferItem implements Serializable {
     public OfferItem() {
     }
 
-    public OfferItem(Long offerId, Long productVariantId, String description, Integer quantity, BigDecimal unitPrice, BigDecimal totalPrice) {
+    public OfferItem(Long offerId, Long productVariantId, String description, Integer quantity, BigDecimal unitPrice,
+            BigDecimal totalPrice) {
         this.offerId = offerId;
         this.productVariantId = productVariantId;
         this.description = description;
@@ -129,8 +130,12 @@ public class OfferItem implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         OfferItem offerItem = (OfferItem) o;
         return Objects.equals(id, offerItem.id);
     }
