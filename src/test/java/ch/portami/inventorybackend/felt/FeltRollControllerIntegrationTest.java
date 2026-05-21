@@ -1,4 +1,4 @@
-package ch.portami.inventorybackend.api;
+package ch.portami.inventorybackend.felt;
 
 import ch.portami.inventorybackend.BaseIntegrationTest;
 import ch.portami.inventorybackend.felt.dto.CreateFeltDto;

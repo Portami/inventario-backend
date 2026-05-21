@@ -1,4 +1,4 @@
-package ch.portami.inventorybackend.api;
+package ch.portami.inventorybackend.felt;
 
 import org.springframework.http.ProblemDetail;
 import ch.portami.inventorybackend.felt.dto.CreateFeltDto;

@@ -16,9 +16,10 @@ import org.testcontainers.mariadb.MariaDBContainer;
 @ActiveProfiles("test")
 public abstract class BaseIntegrationTest {
 
+    private static final String DATABASE_NAME = "inventory_test";
     @ServiceConnection
     static MariaDBContainer mariadb = new MariaDBContainer("mariadb:11.4")
-            .withDatabaseName("inventory_test")
+            .withDatabaseName(DATABASE_NAME)
             .withUsername("test")
             .withPassword("test");
 
@@ -33,7 +34,7 @@ public abstract class BaseIntegrationTest {
     void truncateAllTables() {
         jdbcTemplate.execute("SET FOREIGN_KEY_CHECKS = 0");
         var tables = jdbcTemplate.queryForList(
-                "SELECT table_name FROM information_schema.tables WHERE table_schema = 'inventory_test'",
+                "SELECT table_name FROM information_schema.tables WHERE table_schema = '" + DATABASE_NAME + "'",
                 String.class
         );
         for (String table : tables) {
