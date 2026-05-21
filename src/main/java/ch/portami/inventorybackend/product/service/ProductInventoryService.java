@@ -36,12 +36,10 @@ public class ProductInventoryService {
      * @param productInventoryRepository the repository for accessing product inventory data
      * @param productVariantRepository   the repository for accessing product variant data, needed for resolving product
      *                                   variant references
-     * @param storageRepository          the repository for accessing storage data, needed for resolving storage
-     *                                   references
      * @param productInventoryMapper     the mapper for converting between ProductInventory entities and DTOs
      */
     public ProductInventoryService(StorageService storageService, ProductInventoryRepository productInventoryRepository,
-            ProductVariantRepository productVariantRepository, StorageRepository storageRepository,
+            ProductVariantRepository productVariantRepository,
             ProductInventoryMapper productInventoryMapper) {
         this.storageService = storageService;
         this.productInventoryRepository = productInventoryRepository;
