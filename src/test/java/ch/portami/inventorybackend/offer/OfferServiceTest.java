@@ -64,7 +64,8 @@ class OfferServiceTest {
             return it;
         });
 
-        var dto = new ch.portami.inventorybackend.offer.dto.CreateOfferItemOptionalDto(10L, "Desc", 1, new BigDecimal("1.00"));
+        var dto = new ch.portami.inventorybackend.offer.dto.CreateOfferItemOptionalDto(10L, "Desc", 1,
+                new BigDecimal("1.00"));
         var result = offerService.addOfferItem(ID, dto);
 
         assertThat(result).isNotNull();
@@ -236,7 +237,8 @@ class OfferServiceTest {
         given(offerRepository.findById(ID)).willReturn(Optional.of(offer));
         given(offerRepository.save(any(Offer.class))).willAnswer(inv -> inv.getArgument(0));
 
-        OfferDto updatedOffer = offerService.updateOffer(ID, new UpdateOfferDto(null, null, List.of(updatedItem), null, null));
+        OfferDto updatedOffer = offerService.updateOffer(ID,
+                new UpdateOfferDto(null, null, List.of(updatedItem), null, null));
 
         OfferItemDto item = updatedOffer.items()
                                         .stream()

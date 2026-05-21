@@ -22,8 +22,10 @@ class CustomerControllerIntegrationTest extends BaseIntegrationTest {
 
     private static final String CUSTOMERS_URL = "/api/customers";
 
-    @Autowired private RestTestClient restTestClient;
-    @Autowired private CustomerRepository customerRepository;
+    @Autowired
+    private RestTestClient restTestClient;
+    @Autowired
+    private CustomerRepository customerRepository;
 
     @BeforeEach
     void setUp() {
@@ -37,12 +39,12 @@ class CustomerControllerIntegrationTest extends BaseIntegrationTest {
         @Test
         void testListEmpty() {
             List<?> body = restTestClient.get()
-                                       .uri(CUSTOMERS_URL)
-                                       .exchange()
-                                       .expectStatus()
-                                       .isOk()
-                                       .returnResult(List.class)
-                                       .getResponseBody();
+                                         .uri(CUSTOMERS_URL)
+                                         .exchange()
+                                         .expectStatus()
+                                         .isOk()
+                                         .returnResult(List.class)
+                                         .getResponseBody();
 
             assertThat(body).isEmpty();
         }
@@ -54,7 +56,8 @@ class CustomerControllerIntegrationTest extends BaseIntegrationTest {
 
         @Test
         void testCreateCustomer() {
-            CreateCustomerDto dto = new CreateCustomerDto("Acme","John","a@b.c", "+41","Street","8000","Zuerich","CH","VAT123");
+            CreateCustomerDto dto = new CreateCustomerDto("Acme", "John", "a@b.c", "+41", "Street", "8000", "Zuerich",
+                    "CH", "VAT123");
 
             var body = restTestClient.post()
                                      .uri(CUSTOMERS_URL)
@@ -83,14 +86,14 @@ class CustomerControllerIntegrationTest extends BaseIntegrationTest {
             UpdateCustomerDto update = new UpdateCustomerDto(null, null, "new@a.b", null, null, null, null, null, null);
 
             var body = restTestClient.patch()
-                                  .uri(CUSTOMERS_URL + "/{id}", saved.getId())
-                                  .contentType(MediaType.APPLICATION_JSON)
-                                  .body(update)
-                                  .exchange()
-                                  .expectStatus()
-                                  .isOk()
-                                  .returnResult(ch.portami.inventorybackend.offer.dto.CustomerDto.class)
-                                  .getResponseBody();
+                                     .uri(CUSTOMERS_URL + "/{id}", saved.getId())
+                                     .contentType(MediaType.APPLICATION_JSON)
+                                     .body(update)
+                                     .exchange()
+                                     .expectStatus()
+                                     .isOk()
+                                     .returnResult(ch.portami.inventorybackend.offer.dto.CustomerDto.class)
+                                     .getResponseBody();
 
             assertThat(body).isNotNull();
             assertThat(body.email()).isEqualTo("new@a.b");

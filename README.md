@@ -1,4 +1,5 @@
 # Inventory backend
+
 [![Quality Gate Status](https://sonarqube.pm4.init-lab.ch/api/project_badges/measure?project=ch.portami%3Ainventario-backend&metric=alert_status&token=sqb_138eea231f119f9f1b63467ceca81f50cab123ce)](https://sonarqube.pm4.init-lab.ch/dashboard?id=ch.portami%3Ainventario-backend)
 [![Coverage](https://sonarqube.pm4.init-lab.ch/api/project_badges/measure?project=ch.portami%3Ainventario-backend&metric=coverage&token=sqb_138eea231f119f9f1b63467ceca81f50cab123ce)](https://sonarqube.pm4.init-lab.ch/dashboard?id=ch.portami%3Ainventario-backend)
 
@@ -6,14 +7,14 @@ Backend service for the Portami Inventario application, built with Java 25 and S
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Language | Java 25 |
-| Framework | Spring Boot 4.0.3 |
-| Build Tool | Maven (Maven Wrapper) |
+| Layer            | Technology                  |
+|------------------|-----------------------------|
+| Language         | Java 25                     |
+| Framework        | Spring Boot 4.0.3           |
+| Build Tool       | Maven (Maven Wrapper)       |
 | Containerization | Docker (eclipse-temurin:25) |
-| CI/CD | GitHub Actions |
-| Code Quality | SonarQube |
+| CI/CD            | GitHub Actions              |
+| Code Quality     | SonarQube                   |
 
 ## Prerequisites
 
@@ -32,7 +33,8 @@ Before starting the application locally, make sure the required environment file
 
 After that, start the Docker services defined in `docker/docker-compose.yaml`.
 
-We recommend starting the application using the saved run configuration, because the `.env` file is already assigned there.
+We recommend starting the application using the saved run configuration, because the `.env` file is already assigned
+there.
 
 The application starts on **http://localhost:8080**.
 
@@ -58,13 +60,17 @@ docker run -p 8080:8080 portami-inventory-backend
 
 ## Code Style
 
-This project ships with a code style configuration. Please make sure your IDE is set up to use it before writing any code. Do not apply custom formatting settings — consistency across the team depends on everyone using the provided configuration.
+This project ships with a code style configuration. Please make sure your IDE is set up to use it before writing any
+code. Do not apply custom formatting settings — consistency across the team depends on everyone using the provided
+configuration.
 
 ## Code Quality — SonarLint & SonarQube
 
-Install the **SonarLint** plugin in your IDE and connect it to the project's SonarQube server. This gives you real-time feedback that matches the same rules enforced in CI.
+Install the **SonarLint** plugin in your IDE and connect it to the project's SonarQube server. This gives you real-time
+feedback that matches the same rules enforced in CI.
 
-SonarQube Quality Gates are checked automatically on every pull request. **A PR cannot be merged into `main` until all Quality Gates pass.**
+SonarQube Quality Gates are checked automatically on every pull request. **A PR cannot be merged into `main` until all
+Quality Gates pass.**
 
 ## Branching & Deployment Strategy
 

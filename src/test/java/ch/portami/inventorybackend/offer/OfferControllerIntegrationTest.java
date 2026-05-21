@@ -31,9 +31,12 @@ class OfferControllerIntegrationTest extends BaseIntegrationTest {
 
     private static final String OFFERS_URL = "/api/offers";
 
-    @Autowired private RestTestClient restTestClient;
-    @Autowired private OfferRepository offerRepository;
-    @Autowired private CustomerRepository customerRepository;
+    @Autowired
+    private RestTestClient restTestClient;
+    @Autowired
+    private OfferRepository offerRepository;
+    @Autowired
+    private CustomerRepository customerRepository;
 
     @BeforeEach
     void setUp() {
@@ -112,14 +115,14 @@ class OfferControllerIntegrationTest extends BaseIntegrationTest {
         @DisplayName("Should create offer with null items list (no lines)")
         void testCreateOfferNullItems() {
             OfferDto body = restTestClient.post()
-                          .uri(OFFERS_URL)
-                          .contentType(MediaType.APPLICATION_JSON)
-                          .body(new CreateOfferDto("Acme", null))
-                          .exchange()
-                          .expectStatus()
-                          .isCreated()
-                          .returnResult(OfferDto.class)
-                          .getResponseBody();
+                                          .uri(OFFERS_URL)
+                                          .contentType(MediaType.APPLICATION_JSON)
+                                          .body(new CreateOfferDto("Acme", null))
+                                          .exchange()
+                                          .expectStatus()
+                                          .isCreated()
+                                          .returnResult(OfferDto.class)
+                                          .getResponseBody();
 
             assertThat(body).isNotNull();
             assertThat(body.items()).isEmpty();
@@ -229,7 +232,8 @@ class OfferControllerIntegrationTest extends BaseIntegrationTest {
                                           .getResponseBody();
 
             assertThat(body).isNotNull();
-            assertThat(body.customerDto().name()).isEqualTo("NewCo");
+            assertThat(body.customerDto()
+                           .name()).isEqualTo("NewCo");
             assertThat(body.state()).isEqualTo(OfferState.OFFER);
         }
 
@@ -239,7 +243,8 @@ class OfferControllerIntegrationTest extends BaseIntegrationTest {
             OfferDto body = restTestClient.patch()
                                           .uri(OFFERS_URL + "/{id}", offerId)
                                           .contentType(MediaType.APPLICATION_JSON)
-                                          .body(new UpdateOfferDto(null, OfferState.INVOICE, new ArrayList<>(), null, null))
+                                          .body(new UpdateOfferDto(null, OfferState.INVOICE, new ArrayList<>(), null,
+                                                  null))
                                           .exchange()
                                           .expectStatus()
                                           .isOk()
@@ -249,8 +254,10 @@ class OfferControllerIntegrationTest extends BaseIntegrationTest {
             assertThat(body).isNotNull();
             assertThat(body.state()).isEqualTo(OfferState.INVOICE);
             assertThat(body.dueAt()).isNotNull();
-            assertThat(body.dueAt()).isAfter(ZonedDateTime.now().plusDays(9));
-            assertThat(body.dueAt()).isBefore(ZonedDateTime.now().plusDays(11));
+            assertThat(body.dueAt()).isAfter(ZonedDateTime.now()
+                                                          .plusDays(9));
+            assertThat(body.dueAt()).isBefore(ZonedDateTime.now()
+                                                           .plusDays(11));
         }
 
         @Test
@@ -259,7 +266,8 @@ class OfferControllerIntegrationTest extends BaseIntegrationTest {
             OfferDto body = restTestClient.patch()
                                           .uri(OFFERS_URL + "/{id}", offerId)
                                           .contentType(MediaType.APPLICATION_JSON)
-                                          .body(new UpdateOfferDto(null, OfferState.PAYMENT_REMINDER, new ArrayList<>(), null, null))
+                                          .body(new UpdateOfferDto(null, OfferState.PAYMENT_REMINDER, new ArrayList<>(),
+                                                  null, null))
                                           .exchange()
                                           .expectStatus()
                                           .isOk()
@@ -269,8 +277,10 @@ class OfferControllerIntegrationTest extends BaseIntegrationTest {
             assertThat(body).isNotNull();
             assertThat(body.state()).isEqualTo(OfferState.PAYMENT_REMINDER);
             assertThat(body.dueAt()).isNotNull();
-            assertThat(body.dueAt()).isAfter(ZonedDateTime.now().plusDays(4));
-            assertThat(body.dueAt()).isBefore(ZonedDateTime.now().plusDays(6));
+            assertThat(body.dueAt()).isAfter(ZonedDateTime.now()
+                                                          .plusDays(4));
+            assertThat(body.dueAt()).isBefore(ZonedDateTime.now()
+                                                           .plusDays(6));
         }
 
         @Test
@@ -298,12 +308,14 @@ class OfferControllerIntegrationTest extends BaseIntegrationTest {
                           .contentType(MediaType.APPLICATION_JSON)
                           .body(new UpdateOfferDto(null, null, new ArrayList<>(), null, true))
                           .exchange()
-                          .expectStatus().isOk();
+                          .expectStatus()
+                          .isOk();
 
             OfferDto body = restTestClient.patch()
                                           .uri(OFFERS_URL + "/{id}", offerId)
                                           .contentType(MediaType.APPLICATION_JSON)
-                                          .body(new UpdateOfferDto(null, OfferState.INVOICE, new ArrayList<>(), null, null))
+                                          .body(new UpdateOfferDto(null, OfferState.INVOICE, new ArrayList<>(), null,
+                                                  null))
                                           .exchange()
                                           .expectStatus()
                                           .isOk()

@@ -16,8 +16,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.BDDMockito.given;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
 
 @ExtendWith(MockitoExtension.class)
 class CustomerServiceTest {
@@ -48,7 +48,8 @@ class CustomerServiceTest {
 
     @Test
     void createCustomer_persistsAndReturnsDto() {
-        CreateCustomerDto dto = new CreateCustomerDto("Acme", "John", "a@b.c", "+41", "Street", "8000", "Zuerich", "CH", "VAT123");
+        CreateCustomerDto dto = new CreateCustomerDto("Acme", "John", "a@b.c", "+41", "Street", "8000", "Zuerich", "CH",
+                "VAT123");
         given(customerRepository.save(any(Customer.class))).willAnswer(inv -> {
             Customer c = inv.getArgument(0);
             c.setId(2L);

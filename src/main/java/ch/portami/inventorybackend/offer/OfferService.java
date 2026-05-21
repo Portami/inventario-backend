@@ -41,15 +41,18 @@ public class OfferService {
         Offer offer = offerMapper.toOffer(dto);
         offer.setCustomer(resolveCustomer(dto.customerName()));
         offer.setState(OfferState.OFFER);
-        offer.setDueAt(ZonedDateTime.now().plusDays(14));
+        offer.setDueAt(ZonedDateTime.now()
+                                    .plusDays(14));
         Offer savedOffer = offerRepository.save(offer);
 
-        savedOffer.getOfferItems().clear();
+        savedOffer.getOfferItems()
+                  .clear();
         if (dto.items() != null) {
             for (CreateOfferItemDto itemDto : dto.items()) {
                 OfferItem item = offerMapper.toOfferItem(itemDto);
                 item.setOfferId(savedOffer.getId());
-                savedOffer.getOfferItems().add(offerItemRepository.save(item));
+                savedOffer.getOfferItems()
+                          .add(offerItemRepository.save(item));
             }
         }
 
@@ -83,12 +86,16 @@ public class OfferService {
             offer.setCustomer(resolveCustomer(dto.customerName()));
         }
 
-        if (dto.state() != null && !dto.state().equals(offer.getState())) {
+        if (dto.state() != null && !dto.state()
+                                       .equals(offer.getState())) {
             offer.setOfferSent(false);
             switch (dto.state()) {
-                case OFFER -> offer.setDueAt(ZonedDateTime.now().plusDays(14));
-                case INVOICE -> offer.setDueAt(ZonedDateTime.now().plusDays(10));
-                case PAYMENT_REMINDER -> offer.setDueAt(ZonedDateTime.now().plusDays(5));
+                case OFFER -> offer.setDueAt(ZonedDateTime.now()
+                                                          .plusDays(14));
+                case INVOICE -> offer.setDueAt(ZonedDateTime.now()
+                                                            .plusDays(10));
+                case PAYMENT_REMINDER -> offer.setDueAt(ZonedDateTime.now()
+                                                                     .plusDays(5));
                 default -> { /* leave dueAt unchanged */ }
             }
         }
@@ -117,12 +124,13 @@ public class OfferService {
     }
 
     public void deleteOfferItem(Long offerId, Long itemId) {
-        offerItemRepository.findById(itemId).ifPresent(item -> {
-            if (!offerId.equals(item.getOfferId())) {
-                throw new ResourceNotFoundException("Offer item not found: " + itemId);
-            }
-            offerItemRepository.deleteById(itemId);
-        });
+        offerItemRepository.findById(itemId)
+                           .ifPresent(item -> {
+                               if (!offerId.equals(item.getOfferId())) {
+                                   throw new ResourceNotFoundException("Offer item not found: " + itemId);
+                               }
+                               offerItemRepository.deleteById(itemId);
+                           });
     }
 
     private Offer findById(Long id) {

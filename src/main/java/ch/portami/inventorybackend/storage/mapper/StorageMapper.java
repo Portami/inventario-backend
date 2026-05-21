@@ -6,5 +6,6 @@ import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring")
 public interface StorageMapper {
+
     StorageDto toStorageDto(Storage storage);
 }

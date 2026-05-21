@@ -7,6 +7,7 @@ import java.text.MessageFormat;
 public class ScrapPieceNotFoundException extends ResourceNotFoundException {
 
     public ScrapPieceNotFoundException(long scrapPieceId) {
-        super(MessageFormat.format("Scrap piece with id {0} not found", scrapPieceId), new ResourceIdentifier("scrapPieceId", scrapPieceId));
+        super(MessageFormat.format("Scrap piece with id {0} not found", scrapPieceId),
+                new ResourceIdentifier("scrapPieceId", scrapPieceId));
     }
 }

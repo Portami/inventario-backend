@@ -9,29 +9,29 @@ import java.math.BigDecimal;
 
 @Schema(description = "Request body for creating a new felt color variant.")
 public record CreateFeltDto(
-    @Schema(description = "Color name for this color variant (e.g. 'Anthracite').", example = "Anthracite")
-    @NotBlank String color,
+        @Schema(description = "Color name for this color variant (e.g. 'Anthracite').", example = "Anthracite")
+        @NotBlank String color,
 
-    @Schema(description = "Supplier's own color designation. Can differ from the internal color name.", example = "AN-03")
-    @NotBlank String supplierColor,
+        @Schema(description = "Supplier's own color designation. Can differ from the internal color name.", example = "AN-03")
+        @NotBlank String supplierColor,
 
-    @Schema(description = "Thickness of the felt in millimetres. Must be positive.", example = "3.0")
-    @NotNull @Positive Double thickness,
+        @Schema(description = "Thickness of the felt in millimetres. Must be positive.", example = "3.0")
+        @NotNull @Positive Double thickness,
 
-    @Schema(description = "Density of the felt in grams per square metre. Must be positive.", example = "300.0")
-    @NotNull @Positive Double density,
+        @Schema(description = "Density of the felt in grams per square metre. Must be positive.", example = "300.0")
+        @NotNull @Positive Double density,
 
-    @Schema(description = "Purchase price per unit. Must be zero or greater.", example = "12.50")
-    @NotNull @DecimalMin("0.00") BigDecimal price,
+        @Schema(description = "Purchase price per unit. Must be zero or greater.", example = "12.50")
+        @NotNull @DecimalMin("0.00") BigDecimal price,
 
-    @Schema(description = "Supplier's article number that identifies the product line.", example = "ART-001")
-    @NotBlank String articleNumber,
+        @Schema(description = "Supplier's article number that identifies the product line.", example = "ART-001")
+        @NotBlank String articleNumber,
 
-    @Schema(description = "ID of an existing supplier. A 404 is returned if the supplier does not exist.")
-    @NotNull Long supplierId,
+        @Schema(description = "ID of an existing supplier. A 404 is returned if the supplier does not exist.")
+        @NotNull Long supplierId,
 
-    @Schema(description = "ID of an existing felt type. A 404 is returned if the felt type does not exist.")
-    @NotNull Long feltTypeId
+        @Schema(description = "ID of an existing felt type. A 404 is returned if the felt type does not exist.")
+        @NotNull Long feltTypeId
 ) {
 
 }
