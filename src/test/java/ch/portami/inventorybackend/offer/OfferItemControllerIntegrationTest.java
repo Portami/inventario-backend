@@ -28,10 +28,14 @@ class OfferItemControllerIntegrationTest extends BaseIntegrationTest {
 
     private static final String OFFERS_URL = "/api/offers";
 
-    @Autowired private RestTestClient restTestClient;
-    @Autowired private OfferRepository offerRepository;
-    @Autowired private CustomerRepository customerRepository;
-    @Autowired private OfferItemRepository offerItemRepository;
+    @Autowired
+    private RestTestClient restTestClient;
+    @Autowired
+    private OfferRepository offerRepository;
+    @Autowired
+    private CustomerRepository customerRepository;
+    @Autowired
+    private OfferItemRepository offerItemRepository;
 
     @BeforeEach
     void setUp() {
@@ -57,14 +61,14 @@ class OfferItemControllerIntegrationTest extends BaseIntegrationTest {
             CreateOfferItemOptionalDto dto = new CreateOfferItemOptionalDto(5L, "desc", 1, new BigDecimal("1.00"));
 
             OfferItemDto body = restTestClient.post()
-                                            .uri(OFFERS_URL + "/{id}/items", offer.getId())
-                                            .contentType(MediaType.APPLICATION_JSON)
-                                            .body(dto)
-                                            .exchange()
-                                            .expectStatus()
-                                            .isCreated()
-                                            .returnResult(OfferItemDto.class)
-                                            .getResponseBody();
+                                              .uri(OFFERS_URL + "/{id}/items", offer.getId())
+                                              .contentType(MediaType.APPLICATION_JSON)
+                                              .body(dto)
+                                              .exchange()
+                                              .expectStatus()
+                                              .isCreated()
+                                              .returnResult(OfferItemDto.class)
+                                              .getResponseBody();
 
             assertThat(body).isNotNull();
             assertThat(body.id()).isGreaterThan(0);

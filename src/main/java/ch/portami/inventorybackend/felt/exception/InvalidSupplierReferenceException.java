@@ -7,7 +7,8 @@ import java.text.MessageFormat;
 public class InvalidSupplierReferenceException extends InvalidResourceReferenceException {
 
     public InvalidSupplierReferenceException(long supplierId) {
-        super(MessageFormat.format("The request is referencing a supplier with id {0} that does not exist", supplierId), new ResourceIdentifier("supplierId", supplierId));
+        super(MessageFormat.format("The request is referencing a supplier with id {0} that does not exist", supplierId),
+                new ResourceIdentifier("supplierId", supplierId));
     }
 
 }

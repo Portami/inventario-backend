@@ -37,20 +37,36 @@ public class Storage {
     @OneToMany(mappedBy = "storage", fetch = FetchType.LAZY)
     private final List<ProductInventory> productInventories = new ArrayList<>();
 
-    public Storage() {}
+    public Storage() {
+    }
 
     public Storage(String name) {
         this.name = name;
     }
 
-    public Long getId() { return id; }
+    public Long getId() {
+        return id;
+    }
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public String getName() {
+        return name;
+    }
 
-    public List<ScrapPiece> getScrapPieces() { return scrapPieces; }
-    public List<FeltRoll> getFeltRolls() { return feltRolls; }
-    public List<ProductInventory> getProductInventories() { return productInventories; }
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public List<ScrapPiece> getScrapPieces() {
+        return scrapPieces;
+    }
+
+    public List<FeltRoll> getFeltRolls() {
+        return feltRolls;
+    }
+
+    public List<ProductInventory> getProductInventories() {
+        return productInventories;
+    }
 
     // --- Sync helpers ---------------------------------------------------
 
@@ -88,8 +104,12 @@ public class Storage {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Storage that)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Storage that)) {
+            return false;
+        }
         return id != null && Objects.equals(id, that.id);
     }
 

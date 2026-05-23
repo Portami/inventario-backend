@@ -8,18 +8,20 @@ import ch.portami.inventorybackend.cutassistant.domain.CuttingAssignment;
 import ch.portami.inventorybackend.cutassistant.domain.RequiredPiece;
 import ch.portami.inventorybackend.cutassistant.domain.StockType;
 import ch.portami.inventorybackend.cutassistant.impl.GuillotineCuttingOptimizer;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(MockitoExtension.class)
 class GuillotineCuttingOptimizerTest {
@@ -35,19 +37,27 @@ class GuillotineCuttingOptimizerTest {
         RequiredPiece req = new RequiredPiece(10L, "blue", 100.0, 50.0, 1);
         CuttableStock s = new CuttableStock(StockType.ROLL, 10L, "blue", 200.0, 100.0);
 
-        Mockito.when(cuttingStockLoaderMock.loadAll()).thenReturn(List.of(s));
+        Mockito.when(cuttingStockLoaderMock.loadAll())
+               .thenReturn(List.of(s));
 
         CutResult result = testee.optimize(new CutInput(List.of(req)));
 
         assertTrue(result.feasible());
-        assertEquals(1, result.assignments().size());
+        assertEquals(1, result.assignments()
+                              .size());
 
-        CuttingAssignment assignment = result.assignments().getFirst();
-        assertEquals(1, assignment.pieces().size());
+        CuttingAssignment assignment = result.assignments()
+                                             .getFirst();
+        assertEquals(1, assignment.pieces()
+                                  .size());
 
         // Verifies the final result gives the customer the piece WITH the 1.5 cm margins (example: Sitzbank allowance)
-        assertEquals(103.0, assignment.pieces().getFirst().length());
-        assertEquals(53.0, assignment.pieces().getFirst().width());
+        assertEquals(103.0, assignment.pieces()
+                                      .getFirst()
+                                      .length());
+        assertEquals(53.0, assignment.pieces()
+                                     .getFirst()
+                                     .width());
 
         // Waste is based on total roll area (200x100 = 20,000) minus the padded piece area (103x53 = 5,459)
         // 20,000 - 5,459 = 14,541
@@ -60,13 +70,18 @@ class GuillotineCuttingOptimizerTest {
         CuttableStock roll = new CuttableStock(StockType.ROLL, 10L, "blue", 200.0, 100.0);
         CuttableStock scrap = new CuttableStock(StockType.SCRAP, 10L, "blue", 60.0, 60.0);
 
-        Mockito.when(cuttingStockLoaderMock.loadAll()).thenReturn(new ArrayList<>(Arrays.asList(roll, scrap)));
+        Mockito.when(cuttingStockLoaderMock.loadAll())
+               .thenReturn(new ArrayList<>(Arrays.asList(roll, scrap)));
 
         CutResult result = testee.optimize(new CutInput(List.of(req)));
 
         assertTrue(result.feasible());
-        assertEquals(1, result.assignments().size());
-        assertEquals(StockType.SCRAP, result.assignments().getFirst().stockItem().stockType());
+        assertEquals(1, result.assignments()
+                              .size());
+        assertEquals(StockType.SCRAP, result.assignments()
+                                            .getFirst()
+                                            .stockItem()
+                                            .stockType());
     }
 
     @Test
@@ -77,16 +92,23 @@ class GuillotineCuttingOptimizerTest {
         // They form a 2x2 grid taking 86x86 space, which easily fits inside 100x100.
         CuttableStock roll = new CuttableStock(StockType.ROLL, 10L, "blue", 100.0, 100.0);
 
-        Mockito.when(cuttingStockLoaderMock.loadAll()).thenReturn(List.of(roll));
+        Mockito.when(cuttingStockLoaderMock.loadAll())
+               .thenReturn(List.of(roll));
 
         CutResult result = testee.optimize(new CutInput(List.of(req)));
 
         assertTrue(result.feasible(), "Should be feasible due to 2D side-by-side packing");
-        assertEquals(1, result.assignments().size());
-        assertEquals(4, result.assignments().getFirst().pieces().size());
+        assertEquals(1, result.assignments()
+                              .size());
+        assertEquals(4, result.assignments()
+                              .getFirst()
+                              .pieces()
+                              .size());
 
         // Verify waste: 100x100 stock = 10,000. Minus four 43x43 pieces (4 * 1849 = 7396). Waste = 2604.
-        assertEquals(2604.0, result.assignments().getFirst().waste());
+        assertEquals(2604.0, result.assignments()
+                                   .getFirst()
+                                   .waste());
     }
 
     @Test
@@ -98,7 +120,8 @@ class GuillotineCuttingOptimizerTest {
         // With margins, 51+51 = 102. They cannot fit side-by-side (102 > 100) or end-to-end.
         CuttableStock roll = new CuttableStock(StockType.ROLL, 10L, "blue", 100.0, 100.0);
 
-        Mockito.when(cuttingStockLoaderMock.loadAll()).thenReturn(List.of(roll));
+        Mockito.when(cuttingStockLoaderMock.loadAll())
+               .thenReturn(List.of(roll));
 
         CutResult result = testee.optimize(new CutInput(List.of(req)));
 
@@ -115,13 +138,17 @@ class GuillotineCuttingOptimizerTest {
         CuttableStock scrap2 = new CuttableStock(StockType.SCRAP, 10L, "blue", 61.0, 60.0);
         CuttableStock scrap3 = new CuttableStock(StockType.SCRAP, 10L, "blue", 62.0, 60.0);
 
-        Mockito.when(cuttingStockLoaderMock.loadAll()).thenReturn(new ArrayList<>(Arrays.asList(scrap1, scrap2, scrap3)));
+        Mockito.when(cuttingStockLoaderMock.loadAll())
+               .thenReturn(new ArrayList<>(Arrays.asList(scrap1, scrap2, scrap3)));
 
         CutResult result = testee.optimize(new CutInput(List.of(req)));
 
         assertTrue(result.feasible());
-        assertEquals(3, result.assignments().size());
-        result.assignments().forEach(assignment -> assertEquals(1, assignment.pieces().size()));
+        assertEquals(3, result.assignments()
+                              .size());
+        result.assignments()
+              .forEach(assignment -> assertEquals(1, assignment.pieces()
+                                                               .size()));
     }
 
     @Test
@@ -130,28 +157,38 @@ class GuillotineCuttingOptimizerTest {
         CuttableStock largeScrap = new CuttableStock(StockType.SCRAP, 10L, "blue", 150.0, 150.0);
         CuttableStock smallScrap = new CuttableStock(StockType.SCRAP, 10L, "blue", 60.0, 60.0);
 
-        Mockito.when(cuttingStockLoaderMock.loadAll()).thenReturn(new ArrayList<>(Arrays.asList(largeScrap, smallScrap)));
+        Mockito.when(cuttingStockLoaderMock.loadAll())
+               .thenReturn(new ArrayList<>(Arrays.asList(largeScrap, smallScrap)));
 
         CutResult result = testee.optimize(new CutInput(List.of(req)));
 
         assertTrue(result.feasible());
-        assertEquals(1, result.assignments().size());
+        assertEquals(1, result.assignments()
+                              .size());
         // Since we are checking which one was picked, we verify the dimensions to distinguish them.
-        assertEquals(60.0, result.assignments().getFirst().stockItem().length());
-        assertEquals(60.0, result.assignments().getFirst().stockItem().width());
+        assertEquals(60.0, result.assignments()
+                                 .getFirst()
+                                 .stockItem()
+                                 .length());
+        assertEquals(60.0, result.assignments()
+                                 .getFirst()
+                                 .stockItem()
+                                 .width());
     }
 
     @Test
     void givenNoStock_whenOptimize_thenReportsInfeasible() {
         RequiredPiece req = new RequiredPiece(10L, "blue", 100.0, 50.0, 1);
 
-        Mockito.when(cuttingStockLoaderMock.loadAll()).thenReturn(List.of());
+        Mockito.when(cuttingStockLoaderMock.loadAll())
+               .thenReturn(List.of());
 
         CutResult result = testee.optimize(new CutInput(List.of(req)));
 
         assertFalse(result.feasible());
         assertNotNull(result.reason());
-        assertTrue(result.reason().contains("unavailable felt type"));
+        assertTrue(result.reason()
+                         .contains("unavailable felt type"));
     }
 
     @Test
@@ -159,12 +196,14 @@ class GuillotineCuttingOptimizerTest {
         RequiredPiece req = new RequiredPiece(10L, "blue", 150.0, 50.0, 1);
         CuttableStock roll = new CuttableStock(StockType.ROLL, 10L, "blue", 100.0, 100.0);
 
-        Mockito.when(cuttingStockLoaderMock.loadAll()).thenReturn(List.of(roll));
+        Mockito.when(cuttingStockLoaderMock.loadAll())
+               .thenReturn(List.of(roll));
 
         CutResult result = testee.optimize(new CutInput(List.of(req)));
 
         assertFalse(result.feasible());
-        assertTrue(result.reason().contains("exceeding available space"));
+        assertTrue(result.reason()
+                         .contains("exceeding available space"));
     }
 
     @Test
@@ -174,13 +213,16 @@ class GuillotineCuttingOptimizerTest {
         RequiredPiece req = new RequiredPiece(10L, "blue", 100.0, 100.0, 1);
         CuttableStock roll = new CuttableStock(StockType.ROLL, 10L, "blue", 100.0, 100.0);
 
-        Mockito.when(cuttingStockLoaderMock.loadAll()).thenReturn(List.of(roll));
+        Mockito.when(cuttingStockLoaderMock.loadAll())
+               .thenReturn(List.of(roll));
 
         CutResult result = testee.optimize(new CutInput(List.of(req)));
 
         assertFalse(result.feasible());
-        assertTrue(result.reason().contains("exceeding available space"));
-        assertTrue(result.reason().contains("with margins"));
+        assertTrue(result.reason()
+                         .contains("exceeding available space"));
+        assertTrue(result.reason()
+                         .contains("with margins"));
     }
 
     @Test
@@ -188,11 +230,13 @@ class GuillotineCuttingOptimizerTest {
         RequiredPiece req = new RequiredPiece(10L, "red", 50.0, 50.0, 1);
         CuttableStock roll = new CuttableStock(StockType.ROLL, 10L, "blue", 100.0, 100.0);
 
-        Mockito.when(cuttingStockLoaderMock.loadAll()).thenReturn(List.of(roll));
+        Mockito.when(cuttingStockLoaderMock.loadAll())
+               .thenReturn(List.of(roll));
 
         CutResult result = testee.optimize(new CutInput(List.of(req)));
 
         assertFalse(result.feasible());
-        assertTrue(result.reason().contains("unavailable felt type"));
+        assertTrue(result.reason()
+                         .contains("unavailable felt type"));
     }
 }

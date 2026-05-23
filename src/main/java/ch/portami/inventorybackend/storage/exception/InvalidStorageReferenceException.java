@@ -7,6 +7,7 @@ import java.text.MessageFormat;
 public class InvalidStorageReferenceException extends InvalidResourceReferenceException {
 
     public InvalidStorageReferenceException(Long storageId) {
-        super(MessageFormat.format("The request is referencing a storage with id {0} that does not exists", storageId), new ResourceIdentifier("storageId", storageId));
+        super(MessageFormat.format("The request is referencing a storage with id {0} that does not exists", storageId),
+                new ResourceIdentifier("storageId", storageId));
     }
 }

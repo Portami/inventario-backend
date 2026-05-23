@@ -66,8 +66,8 @@ public class Felt {
     }
 
     public Felt(FeltType feltType, Supplier supplier, String articleNumber,
-                Double thickness, Double density, BigDecimal price,
-                String color, String supplierColor) {
+            Double thickness, Double density, BigDecimal price,
+            String color, String supplierColor) {
         this.feltType = feltType;
         this.supplier = supplier;
         this.articleNumber = articleNumber;
