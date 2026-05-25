@@ -123,6 +123,21 @@ public class OfferService {
         return offerMapper.toOfferItemDto(saved);
     }
 
+    /**
+     * Adds a list of new items to an existing offer.
+     *
+     * @param offerId The ID of the offer to modify.
+     * @param itemDtos A list of DTOs representing the items to add.
+     */
+    public void addItemsToOffer(Long offerId, List<CreateOfferItemDto> itemDtos) {
+        Offer offer = findById(offerId);
+        for (CreateOfferItemDto itemDto : itemDtos) {
+            OfferItem item = offerMapper.toOfferItem(itemDto);
+            item.setOfferId(offer.getId());
+            offer.getOfferItems().add(offerItemRepository.save(item));
+        }
+    }
+
     public void deleteOfferItem(Long offerId, Long itemId) {
         offerItemRepository.findById(itemId)
                            .ifPresent(item -> {
