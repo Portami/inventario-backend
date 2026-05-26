@@ -26,9 +26,9 @@ public class CustomerService {
     @Transactional(readOnly = true)
     public List<CustomerDto> listCustomers() {
         return customerRepository.findAll()
-                .stream()
-                .map(offerMapper::toCustomerDto)
-                .toList();
+                                 .stream()
+                                 .map(offerMapper::toCustomerDto)
+                                 .toList();
     }
 
     public CustomerDto createCustomer(CreateCustomerDto dto) {
@@ -39,7 +39,8 @@ public class CustomerService {
 
     public CustomerDto updateCustomer(Long id, UpdateCustomerDto dto) {
         Customer customer = customerRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Customer not found: " + id));
+                                              .orElseThrow(
+                                                      () -> new ResourceNotFoundException("Customer not found: " + id));
 
         offerMapper.updateCustomer(dto, customer);
         Customer saved = customerRepository.save(customer);

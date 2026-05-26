@@ -1,13 +1,13 @@
 package ch.portami.inventorybackend.offer.mapper;
 
+import ch.portami.inventorybackend.offer.dto.CreateCustomerDto;
 import ch.portami.inventorybackend.offer.dto.CreateOfferDto;
 import ch.portami.inventorybackend.offer.dto.CreateOfferItemDto;
 import ch.portami.inventorybackend.offer.dto.CreateOfferItemOptionalDto;
 import ch.portami.inventorybackend.offer.dto.CustomerDto;
-import ch.portami.inventorybackend.offer.dto.CreateCustomerDto;
-import ch.portami.inventorybackend.offer.dto.UpdateCustomerDto;
 import ch.portami.inventorybackend.offer.dto.OfferDto;
 import ch.portami.inventorybackend.offer.dto.OfferItemDto;
+import ch.portami.inventorybackend.offer.dto.UpdateCustomerDto;
 import ch.portami.inventorybackend.offer.dto.UpdateOfferDto;
 import ch.portami.inventorybackend.offer.entity.Customer;
 import ch.portami.inventorybackend.offer.entity.Offer;
@@ -33,6 +33,7 @@ public interface OfferMapper {
     @Mapping(target = "state", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "dueAt", ignore = true)
     @Mapping(source = "items", target = "offerItems")
     Offer toOffer(CreateOfferDto dto);
 
@@ -40,6 +41,7 @@ public interface OfferMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "offerSent", ignore = true)
     @Mapping(source = "items", target = "offerItems")
     void updateOffer(UpdateOfferDto dto, @MappingTarget Offer offer);
 

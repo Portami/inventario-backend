@@ -1,5 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Application" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+    <option name="ACTIVE_PROFILES" value="dev" />
     <envs>
       <env name="SPRING_PROFILES_ACTIVE" value="dev" />
     </envs>
@@ -7,9 +8,6 @@
       <option value="$PROJECT_DIR$/.env" />
     </option>
     <module name="inventory-backend" />
-    <selectedOptions>
-      <option name="environmentVariables" />
-    </selectedOptions>
     <option name="SPRING_BOOT_MAIN_CLASS" value="ch.portami.inventorybackend.Application" />
     <extension name="coverage">
       <pattern>

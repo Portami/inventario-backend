@@ -2,7 +2,7 @@ name: Pull request workflow
 on:
   pull_request:
     branches: [ main ]
-    types: [opened, reopened, synchronize, ready_for_review, labeled, unlabeled]
+    types: [ opened, reopened, synchronize, ready_for_review, labeled, unlabeled ]
 
 permissions:
   contents: read
@@ -30,7 +30,7 @@ jobs:
     uses: ./.github/workflows/_test.yaml
 
   sonar:
-    needs: [get-tag, test]
+    needs: [ get-tag, test ]
     uses: ./.github/workflows/_sonar.yaml
     secrets: inherit
     with:
@@ -39,7 +39,7 @@ jobs:
 
   build-push:
     if: ${{ contains(github.event.pull_request.labels.*.name, 'deploy') }}
-    needs: [get-tag, test]
+    needs: [ get-tag, test ]
     permissions:
       contents: read
       packages: write
@@ -48,7 +48,7 @@ jobs:
       tag: ${{ needs.get-tag.outputs.sha_short }}
 
   update-infra:
-    needs: [get-tag, build-push]
+    needs: [ get-tag, build-push ]
     uses: ./.github/workflows/_update-infra.yaml
     secrets: inherit
     with:

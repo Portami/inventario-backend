@@ -32,19 +32,32 @@ public class Batch {
     @OneToMany(mappedBy = "batch", fetch = FetchType.LAZY)
     private final List<FeltRoll> feltRolls = new ArrayList<>();
 
-    public Batch() {}
+    public Batch() {
+    }
 
     public Batch(String name) {
         this.name = name;
     }
 
-    public Long getId() { return id; }
+    public Long getId() {
+        return id;
+    }
 
-    public String getName() { return name; }
-    public void setName(String batchName) { this.name = batchName; }
+    public String getName() {
+        return name;
+    }
 
-    public List<ScrapPiece> getScrapPieces() { return scrapPieces; }
-    public List<FeltRoll> getFeltRolls() { return feltRolls; }
+    public void setName(String batchName) {
+        this.name = batchName;
+    }
+
+    public List<ScrapPiece> getScrapPieces() {
+        return scrapPieces;
+    }
+
+    public List<FeltRoll> getFeltRolls() {
+        return feltRolls;
+    }
 
     // --- Sync helpers ---------------------------------------------------
 
@@ -72,8 +85,12 @@ public class Batch {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Batch that)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Batch that)) {
+            return false;
+        }
         return id != null && Objects.equals(id, that.id);
     }
 
@@ -84,6 +101,6 @@ public class Batch {
 
     @Override
     public String toString() {
-        return "Batch{id=" + id + ", batchName='" + name + "'}";
+        return "Batch{id=" + id + ", name='" + name + "'}";
     }
 }

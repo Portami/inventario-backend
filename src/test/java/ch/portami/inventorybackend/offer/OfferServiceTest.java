@@ -64,7 +64,8 @@ class OfferServiceTest {
             return it;
         });
 
-        var dto = new ch.portami.inventorybackend.offer.dto.CreateOfferItemOptionalDto(10L, "Desc", 1, new BigDecimal("1.00"));
+        var dto = new ch.portami.inventorybackend.offer.dto.CreateOfferItemOptionalDto(10L, "Desc", 1,
+                new BigDecimal("1.00"));
         var result = offerService.addOfferItem(ID, dto);
 
         assertThat(result).isNotNull();
@@ -130,6 +131,11 @@ class OfferServiceTest {
             Offer o = inv.getArgument(0);
             o.setId(ID);
             return o;
+        });
+        given(offerItemRepository.save(any(OfferItem.class))).willAnswer(inv -> {
+            OfferItem item = inv.getArgument(0);
+            item.setId(1L);
+            return item;
         });
 
         OfferDto result = offerService.createOffer(dto);
@@ -215,7 +221,7 @@ class OfferServiceTest {
         given(customerRepository.findByNameIgnoreCase("NewCo")).willReturn(Optional.empty());
         given(customerRepository.save(any(Customer.class))).willAnswer(inv -> inv.getArgument(0));
 
-        OfferDto result = offerService.updateOffer(ID, new UpdateOfferDto("NewCo", null, null));
+        OfferDto result = offerService.updateOffer(ID, new UpdateOfferDto("NewCo", null, null, null, null));
 
         assertThat(result.customerDto()
                          .name()).isEqualTo("NewCo");
@@ -231,7 +237,8 @@ class OfferServiceTest {
         given(offerRepository.findById(ID)).willReturn(Optional.of(offer));
         given(offerRepository.save(any(Offer.class))).willAnswer(inv -> inv.getArgument(0));
 
-        OfferDto updatedOffer = offerService.updateOffer(ID, new UpdateOfferDto(null, null, List.of(updatedItem)));
+        OfferDto updatedOffer = offerService.updateOffer(ID,
+                new UpdateOfferDto(null, null, List.of(updatedItem), null, null));
 
         OfferItemDto item = updatedOffer.items()
                                         .stream()
@@ -249,7 +256,7 @@ class OfferServiceTest {
     void updateOffer_withNullCustomerName_skipsCustomerResolution() {
         given(offerRepository.findById(ID)).willReturn(Optional.of(persistedOffer()));
 
-        offerService.updateOffer(ID, new UpdateOfferDto(null, OfferState.OFFER, null));
+        offerService.updateOffer(ID, new UpdateOfferDto(null, OfferState.OFFER, null, null, null));
 
         verifyNoMoreInteractions(customerRepository);
     }
@@ -258,7 +265,7 @@ class OfferServiceTest {
     void updateOffer_notFound_throws() {
         given(offerRepository.findById(ID)).willReturn(Optional.empty());
 
-        assertThatThrownBy(() -> offerService.updateOffer(ID, new UpdateOfferDto(null, null, null)))
+        assertThatThrownBy(() -> offerService.updateOffer(ID, new UpdateOfferDto(null, null, null, null, null)))
                 .isInstanceOf(ResourceNotFoundException.class);
     }
 

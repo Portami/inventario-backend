@@ -1,5 +1,6 @@
 package ch.portami.inventorybackend.felt.entity;
 
+import ch.portami.inventorybackend.storage.entity.Storage;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -9,9 +10,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import java.util.Objects;
-import ch.portami.inventorybackend.core.storage.entity.Storage;
 import jakarta.validation.constraints.DecimalMin;
+import java.util.Objects;
 
 @Entity
 @Table(name = "scrap_piece")
@@ -23,8 +23,8 @@ public class ScrapPiece {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "felt_color_variant_id", nullable = false)
-    private FeltColorVariant feltColorVariant;
+    @JoinColumn(name = "felt_id", nullable = false)
+    private Felt felt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "batch_id")
@@ -42,39 +42,71 @@ public class ScrapPiece {
     @Column(nullable = false)
     private Double width;
 
-    public ScrapPiece() {}
+    public ScrapPiece() {
+    }
 
-    public ScrapPiece(FeltColorVariant feltColorVariant, Batch batch, Storage storage, Double length, Double width) {
-        this.feltColorVariant = feltColorVariant;
+    public ScrapPiece(Felt felt, Batch batch, Storage storage, Double length, Double width) {
+        this.felt = felt;
         this.batch = batch;
         this.storage = storage;
         this.length = length;
         this.width = width;
     }
 
-    public Long getId() { return id; }
+    public Long getId() {
+        return id;
+    }
 
-    public FeltColorVariant getFeltColorVariant() { return feltColorVariant; }
-    public void setFeltColorVariant(FeltColorVariant feltColorVariant) { this.feltColorVariant = feltColorVariant; }
+    public Felt getFelt() {
+        return felt;
+    }
 
-    public Batch getBatch() { return batch; }
-    public void setBatch(Batch batch) { this.batch = batch; }
+    public void setFelt(Felt felt) {
+        this.felt = felt;
+    }
 
-    public Storage getStorage() { return storage; }
-    public void setStorage(Storage storage) { this.storage = storage; }
+    public Batch getBatch() {
+        return batch;
+    }
 
-    public Double getLength() { return length; }
-    public void setLength(Double length) { this.length = length; }
+    public void setBatch(Batch batch) {
+        this.batch = batch;
+    }
 
-    public Double getWidth() { return width; }
-    public void setWidth(Double width) { this.width = width; }
+    public Storage getStorage() {
+        return storage;
+    }
+
+    public void setStorage(Storage storage) {
+        this.storage = storage;
+    }
+
+    public Double getLength() {
+        return length;
+    }
+
+    public void setLength(Double length) {
+        this.length = length;
+    }
+
+    public Double getWidth() {
+        return width;
+    }
+
+    public void setWidth(Double width) {
+        this.width = width;
+    }
 
     // --- equals / hashCode ----------------------------------------------
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof ScrapPiece that)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof ScrapPiece that)) {
+            return false;
+        }
         return id != null && Objects.equals(id, that.id);
     }
 

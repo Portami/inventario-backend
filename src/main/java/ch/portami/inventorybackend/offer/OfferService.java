@@ -3,6 +3,7 @@ package ch.portami.inventorybackend.offer;
 import ch.portami.inventorybackend.core.exceptions.ResourceNotFoundException;
 import ch.portami.inventorybackend.offer.domain.OfferState;
 import ch.portami.inventorybackend.offer.dto.CreateOfferDto;
+import ch.portami.inventorybackend.offer.dto.CreateOfferItemDto;
 import ch.portami.inventorybackend.offer.dto.CreateOfferItemOptionalDto;
 import ch.portami.inventorybackend.offer.dto.OfferDto;
 import ch.portami.inventorybackend.offer.dto.OfferItemDto;
@@ -14,6 +15,7 @@ import ch.portami.inventorybackend.offer.mapper.OfferMapper;
 import ch.portami.inventorybackend.offer.repository.CustomerRepository;
 import ch.portami.inventorybackend.offer.repository.OfferItemRepository;
 import ch.portami.inventorybackend.offer.repository.OfferRepository;
+import java.time.ZonedDateTime;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,8 +41,22 @@ public class OfferService {
         Offer offer = offerMapper.toOffer(dto);
         offer.setCustomer(resolveCustomer(dto.customerName()));
         offer.setState(OfferState.OFFER);
+        offer.setDueAt(ZonedDateTime.now()
+                                    .plusDays(14));
+        Offer savedOffer = offerRepository.save(offer);
 
-        return offerMapper.toOfferDto(offerRepository.save(offer));
+        savedOffer.getOfferItems()
+                  .clear();
+        if (dto.items() != null) {
+            for (CreateOfferItemDto itemDto : dto.items()) {
+                OfferItem item = offerMapper.toOfferItem(itemDto);
+                item.setOfferId(savedOffer.getId());
+                savedOffer.getOfferItems()
+                          .add(offerItemRepository.save(item));
+            }
+        }
+
+        return offerMapper.toOfferDto(savedOffer);
     }
 
     @Transactional(readOnly = true)
@@ -70,6 +86,24 @@ public class OfferService {
             offer.setCustomer(resolveCustomer(dto.customerName()));
         }
 
+        if (dto.state() != null && !dto.state()
+                                       .equals(offer.getState())) {
+            offer.setOfferSent(false);
+            switch (dto.state()) {
+                case OFFER -> offer.setDueAt(ZonedDateTime.now()
+                                                          .plusDays(14));
+                case INVOICE -> offer.setDueAt(ZonedDateTime.now()
+                                                            .plusDays(10));
+                case PAYMENT_REMINDER -> offer.setDueAt(ZonedDateTime.now()
+                                                                     .plusDays(5));
+                default -> { /* leave dueAt unchanged */ }
+            }
+        }
+
+        if (dto.offerSent() != null) {
+            offer.setOfferSent(dto.offerSent());
+        }
+
         offerMapper.updateOffer(dto, offer);
 
         return offerMapper.toOfferDto(offerRepository.save(offer));
@@ -90,12 +124,13 @@ public class OfferService {
     }
 
     public void deleteOfferItem(Long offerId, Long itemId) {
-        offerItemRepository.findById(itemId).ifPresent(item -> {
-            if (!offerId.equals(item.getOfferId())) {
-                throw new ResourceNotFoundException("Offer item not found: " + itemId);
-            }
-            offerItemRepository.deleteById(itemId);
-        });
+        offerItemRepository.findById(itemId)
+                           .ifPresent(item -> {
+                               if (!offerId.equals(item.getOfferId())) {
+                                   throw new ResourceNotFoundException("Offer item not found: " + itemId);
+                               }
+                               offerItemRepository.deleteById(itemId);
+                           });
     }
 
     private Offer findById(Long id) {

@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotNull;
 public record CreateProductAttributeValueDto(
         @Schema(description = "ID of an existing product attribute")
         @NotNull Long attributeId,
-        
+
         @Schema(description = "Value of the product attribute for the new product variant", example = "Red")
         String value
 ) {

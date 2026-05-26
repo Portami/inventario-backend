@@ -1,5 +1,6 @@
 package ch.portami.inventorybackend.barcode;
 
+import ch.portami.inventorybackend.BaseIntegrationTest;
 import ch.portami.inventorybackend.barcode.dto.BarcodeLookupDto;
 import ch.portami.inventorybackend.barcode.entity.Barcode;
 import ch.portami.inventorybackend.barcode.repository.BarcodeRepository;
@@ -7,15 +8,17 @@ import ch.portami.inventorybackend.felt.dto.CreateFeltDto;
 import ch.portami.inventorybackend.felt.dto.CreateFeltRollDto;
 import ch.portami.inventorybackend.felt.dto.FeltDto;
 import ch.portami.inventorybackend.felt.dto.FeltRollDto;
-import ch.portami.inventorybackend.felt.entity.FeltColorVariant;
+import ch.portami.inventorybackend.felt.entity.Felt;
 import ch.portami.inventorybackend.felt.entity.FeltType;
 import ch.portami.inventorybackend.felt.entity.ScrapPiece;
 import ch.portami.inventorybackend.felt.entity.Supplier;
-import ch.portami.inventorybackend.felt.repository.FeltColorVariantRepository;
+import ch.portami.inventorybackend.felt.repository.FeltRepository;
 import ch.portami.inventorybackend.felt.repository.FeltRollRepository;
 import ch.portami.inventorybackend.felt.repository.FeltTypeRepository;
 import ch.portami.inventorybackend.felt.repository.ScrapPieceRepository;
 import ch.portami.inventorybackend.felt.repository.SupplierRepository;
+import ch.portami.inventorybackend.storage.entity.Storage;
+import ch.portami.inventorybackend.storage.repository.StorageRepository;
 import java.math.BigDecimal;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.assertj.core.api.ObjectAssert;
@@ -26,33 +29,15 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.client.RestTestClient;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.mariadb.MariaDBContainer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@Testcontainers
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureRestTestClient
-@ActiveProfiles("test")
-class BarcodeControllerIntegrationTest {
-
-    @Container
-    @ServiceConnection
-    static MariaDBContainer mariadb = new MariaDBContainer("mariadb:11.4")
-            .withDatabaseName("inventory_test")
-            .withUsername("test")
-            .withPassword("test");
+class BarcodeControllerIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
     private RestTestClient restTestClient;
@@ -65,16 +50,20 @@ class BarcodeControllerIntegrationTest {
     @Autowired
     private ScrapPieceRepository scrapPieceRepository;
     @Autowired
-    private FeltColorVariantRepository feltColorVariantRepository;
+    private FeltRepository feltRepository;
     @Autowired
     private FeltTypeRepository feltTypeRepository;
     @Autowired
     private SupplierRepository supplierRepository;
+    @Autowired
+    private StorageRepository storageRepository;
 
     private Long feltId;
+    private Long storageId;
 
     @BeforeAll
     void setup() {
+        Storage storage = storageRepository.save(new Storage("Test Storage"));
         Supplier supplier = supplierRepository.save(new Supplier("Test Supplier"));
         FeltType feltType = feltTypeRepository.save(new FeltType("Wool"));
 
@@ -95,6 +84,7 @@ class BarcodeControllerIntegrationTest {
 
         assertThat(felt).isNotNull();
         feltId = felt.id();
+        storageId = storage.getId();
     }
 
     @BeforeEach
@@ -110,7 +100,7 @@ class BarcodeControllerIntegrationTest {
         FeltRollDto roll = restTestClient.post()
                                          .uri("/api/rolls")
                                          .contentType(MediaType.APPLICATION_JSON)
-                                         .body(new CreateFeltRollDto(feltId, 10.0, 1.5, null, null))
+                                         .body(new CreateFeltRollDto(feltId, 10.0, 1.5, null, storageId))
                                          .exchange()
                                          .expectStatus()
                                          .isCreated()
@@ -129,11 +119,11 @@ class BarcodeControllerIntegrationTest {
     }
 
     private SeededBarcode seedScrapBarcode() {
-        FeltColorVariant variant = feltColorVariantRepository.findById(feltId)
-                                                             .orElseThrow(() -> new AssertionError(
-                                                                     "FeltColorVariant fixture missing"));
+        Felt felt = feltRepository.findById(feltId)
+                                  .orElseThrow(() -> new AssertionError(
+                                          "Felt fixture missing"));
         ScrapPiece scrap = scrapPieceRepository.save(
-                new ScrapPiece(variant, null, null, 50.0, 50.0));
+                new ScrapPiece(felt, null, null, 50.0, 50.0));
         Barcode barcode = barcodeService.createForScrap(scrap);
         return new SeededBarcode(barcode.getId(), scrap.getId());
     }

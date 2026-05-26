@@ -45,7 +45,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
         pd.setProperty("errors", errors);
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(pd);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                             .body(pd);
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
@@ -65,8 +66,10 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(ResourceSpecificException.class)
     public ProblemDetail handleResourceSpecificException(ResourceSpecificException ex) {
-        log.warn("ResourceSpecificException reached fallback handler. A specific @ExceptionHandler should have handled this exception: [{}] {}",
-                ex.getClass().getSimpleName(), ex.getMessage(), ex);
+        log.warn(
+                "ResourceSpecificException reached fallback handler. A specific @ExceptionHandler should have handled this exception: [{}] {}",
+                ex.getClass()
+                  .getSimpleName(), ex.getMessage(), ex);
 
         return buildProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, "Unhandled resource-specific exception", ex);
     }
@@ -108,7 +111,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     private static @NonNull Function<ConstraintViolation<?>, Map<String, Object>> constraintViolationMapFunction() {
-        return cv -> toErrorMap(cv.getPropertyPath().toString(), cv.getInvalidValue(), cv.getMessage());
+        return cv -> toErrorMap(cv.getPropertyPath()
+                                  .toString(), cv.getInvalidValue(), cv.getMessage());
     }
 
     private static @NonNull Map<String, Object> toErrorMap(String field, Object rejected, String message) {
@@ -121,10 +125,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ProblemDetail handleGeneric(Exception ex) {
-        log.error("Exception reached fallback handler. A specific @ExceptionHandler should have handled this exception: [{}] {}",
-                ex.getClass().getName(), ex.getMessage(), ex);
+        log.error(
+                "Exception reached fallback handler. A specific @ExceptionHandler should have handled this exception: [{}] {}",
+                ex.getClass()
+                  .getName(), ex.getMessage(), ex);
 
-        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred");
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR,
+                "An unexpected error occurred");
         pd.setTitle("Unhandled exception");
         return pd;
     }

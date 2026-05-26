@@ -1,5 +1,6 @@
 package ch.portami.inventorybackend.offer;
 
+import ch.portami.inventorybackend.BaseIntegrationTest;
 import ch.portami.inventorybackend.offer.domain.OfferState;
 import ch.portami.inventorybackend.offer.dto.CreateOfferItemOptionalDto;
 import ch.portami.inventorybackend.offer.dto.OfferItemDto;
@@ -17,38 +18,24 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.client.RestTestClient;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.mariadb.MariaDBContainer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@Testcontainers
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureRestTestClient
-@ActiveProfiles("test")
-class OfferItemControllerIntegrationTest {
-
-    @Container
-    @ServiceConnection
-    static MariaDBContainer mariadb = new MariaDBContainer("mariadb:11.4")
-            .withDatabaseName("inventory_test")
-            .withUsername("test")
-            .withPassword("test");
+class OfferItemControllerIntegrationTest extends BaseIntegrationTest {
 
     private static final String OFFERS_URL = "/api/offers";
 
-    @Autowired private RestTestClient restTestClient;
-    @Autowired private OfferRepository offerRepository;
-    @Autowired private CustomerRepository customerRepository;
-    @Autowired private OfferItemRepository offerItemRepository;
+    @Autowired
+    private RestTestClient restTestClient;
+    @Autowired
+    private OfferRepository offerRepository;
+    @Autowired
+    private CustomerRepository customerRepository;
+    @Autowired
+    private OfferItemRepository offerItemRepository;
 
     @BeforeEach
     void setUp() {
@@ -74,14 +61,14 @@ class OfferItemControllerIntegrationTest {
             CreateOfferItemOptionalDto dto = new CreateOfferItemOptionalDto(5L, "desc", 1, new BigDecimal("1.00"));
 
             OfferItemDto body = restTestClient.post()
-                                            .uri(OFFERS_URL + "/{id}/items", offer.getId())
-                                            .contentType(MediaType.APPLICATION_JSON)
-                                            .body(dto)
-                                            .exchange()
-                                            .expectStatus()
-                                            .isCreated()
-                                            .returnResult(OfferItemDto.class)
-                                            .getResponseBody();
+                                              .uri(OFFERS_URL + "/{id}/items", offer.getId())
+                                              .contentType(MediaType.APPLICATION_JSON)
+                                              .body(dto)
+                                              .exchange()
+                                              .expectStatus()
+                                              .isCreated()
+                                              .returnResult(OfferItemDto.class)
+                                              .getResponseBody();
 
             assertThat(body).isNotNull();
             assertThat(body.id()).isGreaterThan(0);

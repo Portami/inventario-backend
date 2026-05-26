@@ -1,5 +1,6 @@
 package ch.portami.inventorybackend.offer;
 
+import ch.portami.inventorybackend.BaseIntegrationTest;
 import ch.portami.inventorybackend.offer.domain.OfferState;
 import ch.portami.inventorybackend.offer.dto.CreateOfferDto;
 import ch.portami.inventorybackend.offer.dto.CreateOfferItemDto;
@@ -19,38 +20,23 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.client.RestTestClient;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.mariadb.MariaDBContainer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@Testcontainers
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureRestTestClient
-@ActiveProfiles("test")
-class OfferControllerIntegrationTest {
-
-    @Container
-    @ServiceConnection
-    static MariaDBContainer mariadb = new MariaDBContainer("mariadb:11.4")
-            .withDatabaseName("inventory_test")
-            .withUsername("test")
-            .withPassword("test");
+class OfferControllerIntegrationTest extends BaseIntegrationTest {
 
     private static final String OFFERS_URL = "/api/offers";
 
-    @Autowired private RestTestClient restTestClient;
-    @Autowired private OfferRepository offerRepository;
-    @Autowired private CustomerRepository customerRepository;
+    @Autowired
+    private RestTestClient restTestClient;
+    @Autowired
+    private OfferRepository offerRepository;
+    @Autowired
+    private CustomerRepository customerRepository;
 
     @BeforeEach
     void setUp() {
@@ -92,6 +78,8 @@ class OfferControllerIntegrationTest {
             assertThat(body.customerDto()
                            .name()).isEqualTo("Acme");
             assertThat(body.state()).isEqualTo(OfferState.OFFER);
+            assertThat(body.offerSent()).isFalse();
+            assertThat(body.dueAt()).isNotNull();
             assertThat(body.items()).hasSize(1);
         }
 
@@ -124,15 +112,20 @@ class OfferControllerIntegrationTest {
         }
 
         @Test
-        @DisplayName("Should return 400 when items list is null")
+        @DisplayName("Should create offer with null items list (no lines)")
         void testCreateOfferNullItems() {
-            restTestClient.post()
-                          .uri(OFFERS_URL)
-                          .contentType(MediaType.APPLICATION_JSON)
-                          .body(new CreateOfferDto("Acme", null))
-                          .exchange()
-                          .expectStatus()
-                          .isBadRequest();
+            OfferDto body = restTestClient.post()
+                                          .uri(OFFERS_URL)
+                                          .contentType(MediaType.APPLICATION_JSON)
+                                          .body(new CreateOfferDto("Acme", null))
+                                          .exchange()
+                                          .expectStatus()
+                                          .isCreated()
+                                          .returnResult(OfferDto.class)
+                                          .getResponseBody();
+
+            assertThat(body).isNotNull();
+            assertThat(body.items()).isEmpty();
         }
     }
 
@@ -231,7 +224,7 @@ class OfferControllerIntegrationTest {
             OfferDto body = restTestClient.patch()
                                           .uri(OFFERS_URL + "/{id}", offerId)
                                           .contentType(MediaType.APPLICATION_JSON)
-                                          .body(new UpdateOfferDto("NewCo", null, new ArrayList<>()))
+                                          .body(new UpdateOfferDto("NewCo", null, new ArrayList<>(), null, null))
                                           .exchange()
                                           .expectStatus()
                                           .isOk()
@@ -245,12 +238,13 @@ class OfferControllerIntegrationTest {
         }
 
         @Test
-        @DisplayName("Should update state")
-        void testUpdateOfferState() {
+        @DisplayName("Should update state to INVOICE and set due date 10 days out")
+        void testUpdateOfferStateToInvoice() {
             OfferDto body = restTestClient.patch()
                                           .uri(OFFERS_URL + "/{id}", offerId)
                                           .contentType(MediaType.APPLICATION_JSON)
-                                          .body(new UpdateOfferDto(null, OfferState.INVOICE, new ArrayList<>()))
+                                          .body(new UpdateOfferDto(null, OfferState.INVOICE, new ArrayList<>(), null,
+                                                  null))
                                           .exchange()
                                           .expectStatus()
                                           .isOk()
@@ -259,8 +253,77 @@ class OfferControllerIntegrationTest {
 
             assertThat(body).isNotNull();
             assertThat(body.state()).isEqualTo(OfferState.INVOICE);
-            assertThat(body.customerDto()
-                           .name()).isEqualTo("Acme");
+            assertThat(body.dueAt()).isNotNull();
+            assertThat(body.dueAt()).isAfter(ZonedDateTime.now()
+                                                          .plusDays(9));
+            assertThat(body.dueAt()).isBefore(ZonedDateTime.now()
+                                                           .plusDays(11));
+        }
+
+        @Test
+        @DisplayName("Should update state to PAYMENT_REMINDER and set due date 5 days out")
+        void testUpdateOfferStateToPaymentReminder() {
+            OfferDto body = restTestClient.patch()
+                                          .uri(OFFERS_URL + "/{id}", offerId)
+                                          .contentType(MediaType.APPLICATION_JSON)
+                                          .body(new UpdateOfferDto(null, OfferState.PAYMENT_REMINDER, new ArrayList<>(),
+                                                  null, null))
+                                          .exchange()
+                                          .expectStatus()
+                                          .isOk()
+                                          .returnResult(OfferDto.class)
+                                          .getResponseBody();
+
+            assertThat(body).isNotNull();
+            assertThat(body.state()).isEqualTo(OfferState.PAYMENT_REMINDER);
+            assertThat(body.dueAt()).isNotNull();
+            assertThat(body.dueAt()).isAfter(ZonedDateTime.now()
+                                                          .plusDays(4));
+            assertThat(body.dueAt()).isBefore(ZonedDateTime.now()
+                                                           .plusDays(6));
+        }
+
+        @Test
+        @DisplayName("Should mark offer as sent")
+        void testMarkOfferSent() {
+            OfferDto body = restTestClient.patch()
+                                          .uri(OFFERS_URL + "/{id}", offerId)
+                                          .contentType(MediaType.APPLICATION_JSON)
+                                          .body(new UpdateOfferDto(null, null, new ArrayList<>(), null, true))
+                                          .exchange()
+                                          .expectStatus()
+                                          .isOk()
+                                          .returnResult(OfferDto.class)
+                                          .getResponseBody();
+
+            assertThat(body).isNotNull();
+            assertThat(body.offerSent()).isTrue();
+        }
+
+        @Test
+        @DisplayName("Should reset offerSent to false on state change")
+        void testOfferSentResetsOnStateChange() {
+            restTestClient.patch()
+                          .uri(OFFERS_URL + "/{id}", offerId)
+                          .contentType(MediaType.APPLICATION_JSON)
+                          .body(new UpdateOfferDto(null, null, new ArrayList<>(), null, true))
+                          .exchange()
+                          .expectStatus()
+                          .isOk();
+
+            OfferDto body = restTestClient.patch()
+                                          .uri(OFFERS_URL + "/{id}", offerId)
+                                          .contentType(MediaType.APPLICATION_JSON)
+                                          .body(new UpdateOfferDto(null, OfferState.INVOICE, new ArrayList<>(), null,
+                                                  null))
+                                          .exchange()
+                                          .expectStatus()
+                                          .isOk()
+                                          .returnResult(OfferDto.class)
+                                          .getResponseBody();
+
+            assertThat(body).isNotNull();
+            assertThat(body.offerSent()).isFalse();
         }
 
         @Test
@@ -269,7 +332,7 @@ class OfferControllerIntegrationTest {
             restTestClient.patch()
                           .uri(OFFERS_URL + "/{id}", 99999L)
                           .contentType(MediaType.APPLICATION_JSON)
-                          .body(new UpdateOfferDto("NewCo", null, new ArrayList<>()))
+                          .body(new UpdateOfferDto("NewCo", null, new ArrayList<>(), null, null))
                           .exchange()
                           .expectStatus()
                           .isNotFound();

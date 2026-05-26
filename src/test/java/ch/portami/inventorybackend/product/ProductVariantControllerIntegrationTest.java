@@ -1,7 +1,6 @@
 package ch.portami.inventorybackend.product;
 
-import ch.portami.inventorybackend.core.storage.entity.Storage;
-import ch.portami.inventorybackend.core.storage.repository.StorageRepository;
+import ch.portami.inventorybackend.BaseIntegrationTest;
 import ch.portami.inventorybackend.product.dto.productattributevalue.CreateProductAttributeValueDto;
 import ch.portami.inventorybackend.product.dto.productattributevalue.ProductAttributeValueChangeDto;
 import ch.portami.inventorybackend.product.dto.productattributevalue.ProductAttributeValueDto;
@@ -19,42 +18,27 @@ import ch.portami.inventorybackend.product.repository.CategoryRepository;
 import ch.portami.inventorybackend.product.repository.ProductInventoryRepository;
 import ch.portami.inventorybackend.product.repository.ProductRepository;
 import ch.portami.inventorybackend.product.repository.ProductVariantRepository;
+import ch.portami.inventorybackend.storage.entity.Storage;
+import ch.portami.inventorybackend.storage.repository.StorageRepository;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.client.RestTestClient;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.mariadb.MariaDBContainer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Testcontainers
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureRestTestClient
-@ActiveProfiles("test")
-class ProductVariantControllerIntegrationTest {
-
-    @Container
-    @ServiceConnection
-    static MariaDBContainer mariadb = new MariaDBContainer("mariadb:11.4")
-            .withDatabaseName("inventory_test")
-            .withUsername("test")
-            .withPassword("test");
+class ProductVariantControllerIntegrationTest extends BaseIntegrationTest {
 
     private static final String VARIANTS_URL_TEMPLATE = "/api/products/{productId}/variants";
     private static Long testProductId;
@@ -78,7 +62,8 @@ class ProductVariantControllerIntegrationTest {
     private ProductInventoryRepository productInventoryRepository;
 
     @BeforeAll
-    static void beforeAll(@Autowired CategoryRepository categoryRepository, @Autowired ProductRepository productRepository) {
+    static void beforeAll(@Autowired CategoryRepository categoryRepository,
+            @Autowired ProductRepository productRepository) {
         Category category = new Category("Test Category for Variants");
         category = categoryRepository.save(category);
 
@@ -98,14 +83,16 @@ class ProductVariantControllerIntegrationTest {
     void setUp(@Autowired PlatformTransactionManager transactionManager) {
         new TransactionTemplate(transactionManager).executeWithoutResult(_ -> {
             productVariantRepository.deleteAll();
-            product = productRepository.findById(testProductId).orElseThrow();
+            product = productRepository.findById(testProductId)
+                                       .orElseThrow();
             attributes = new ArrayList<>(product.getProductAttributes());
         });
     }
 
     private ProductVariant createTestVariant() {
         ProductVariant variant = new ProductVariant(product, "Test Variant", BigDecimal.valueOf(10));
-        ProductAttributeValue attributeValue = new ProductAttributeValue(variant, product.getProductAttributes().getFirst(), "Red");
+        ProductAttributeValue attributeValue = new ProductAttributeValue(variant, product.getProductAttributes()
+                                                                                         .getFirst(), "Red");
         variant.addProductAttributeValue(attributeValue);
         return productVariantRepository.save(variant);
     }
@@ -139,19 +126,22 @@ class ProductVariantControllerIntegrationTest {
             );
 
             ProductVariantDto body = restTestClient.post()
-                    .uri(VARIANTS_URL_TEMPLATE, testProductId)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(createVariantDto)
-                    .exchange()
-                    .expectStatus().isCreated()
-                    .returnResult(ProductVariantDto.class)
-                    .getResponseBody();
+                                                   .uri(VARIANTS_URL_TEMPLATE, testProductId)
+                                                   .contentType(MediaType.APPLICATION_JSON)
+                                                   .body(createVariantDto)
+                                                   .exchange()
+                                                   .expectStatus()
+                                                   .isCreated()
+                                                   .returnResult(ProductVariantDto.class)
+                                                   .getResponseBody();
 
             assertThat(body).isNotNull();
             assertThat(body.name()).isEqualTo("New Variant");
             assertThat(body.price()).isEqualByComparingTo(BigDecimal.valueOf(25));
             assertThat(body.attributes()).hasSize(1);
-            assertThat(body.attributes().getFirst().value()).isEqualTo("Red");
+            assertThat(body.attributes()
+                           .getFirst()
+                           .value()).isEqualTo("Red");
             assertThat(body.id()).isGreaterThan(0);
         }
 
@@ -159,11 +149,13 @@ class ProductVariantControllerIntegrationTest {
         @DisplayName("Should create variant with multiple attribute values")
         void testCreateVariantWithMultipleAttributes() {
             CreateProductAttributeValueDto colorDto = new CreateProductAttributeValueDto(
-                    attributes.get(0).getId(),
+                    attributes.get(0)
+                              .getId(),
                     "Green"
             );
             CreateProductAttributeValueDto sizeDto = new CreateProductAttributeValueDto(
-                    attributes.get(1).getId(),
+                    attributes.get(1)
+                              .getId(),
                     "Medium"
             );
             CreateProductVariantDto createVariantDto = new CreateProductVariantDto(
@@ -173,17 +165,19 @@ class ProductVariantControllerIntegrationTest {
             );
 
             ProductVariantDto body = restTestClient.post()
-                    .uri(VARIANTS_URL_TEMPLATE, testProductId)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(createVariantDto)
-                    .exchange()
-                    .expectStatus().isCreated()
-                    .returnResult(ProductVariantDto.class)
-                    .getResponseBody();
+                                                   .uri(VARIANTS_URL_TEMPLATE, testProductId)
+                                                   .contentType(MediaType.APPLICATION_JSON)
+                                                   .body(createVariantDto)
+                                                   .exchange()
+                                                   .expectStatus()
+                                                   .isCreated()
+                                                   .returnResult(ProductVariantDto.class)
+                                                   .getResponseBody();
 
             assertThat(body).isNotNull();
             assertThat(body.attributes()).hasSize(2);
-            assertThat(body.attributes()).extracting(ProductAttributeValueDto::value).contains("Green", "Medium");
+            assertThat(body.attributes()).extracting(ProductAttributeValueDto::value)
+                                         .contains("Green", "Medium");
         }
 
         @Test
@@ -196,13 +190,14 @@ class ProductVariantControllerIntegrationTest {
             );
 
             ProductVariantDto body = restTestClient.post()
-                    .uri(VARIANTS_URL_TEMPLATE, testProductId)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(createVariantDto)
-                    .exchange()
-                    .expectStatus().isCreated()
-                    .returnResult(ProductVariantDto.class)
-                    .getResponseBody();
+                                                   .uri(VARIANTS_URL_TEMPLATE, testProductId)
+                                                   .contentType(MediaType.APPLICATION_JSON)
+                                                   .body(createVariantDto)
+                                                   .exchange()
+                                                   .expectStatus()
+                                                   .isCreated()
+                                                   .returnResult(ProductVariantDto.class)
+                                                   .getResponseBody();
 
             assertThat(body).isNotNull();
             assertThat(body.name()).isEqualTo("No-Attr Variant");
@@ -212,7 +207,8 @@ class ProductVariantControllerIntegrationTest {
         @Test
         @DisplayName("Should return 400 when name is null")
         void testCreateVariantMissingName() {
-            ProductAttribute attribute = product.getProductAttributes().getFirst();
+            ProductAttribute attribute = product.getProductAttributes()
+                                                .getFirst();
 
             CreateProductAttributeValueDto attributeDto = new CreateProductAttributeValueDto(
                     attribute.getId(),
@@ -225,17 +221,19 @@ class ProductVariantControllerIntegrationTest {
             );
 
             restTestClient.post()
-                    .uri(VARIANTS_URL_TEMPLATE, testProductId)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(createVariantDto)
-                    .exchange()
-                    .expectStatus().isBadRequest();
+                          .uri(VARIANTS_URL_TEMPLATE, testProductId)
+                          .contentType(MediaType.APPLICATION_JSON)
+                          .body(createVariantDto)
+                          .exchange()
+                          .expectStatus()
+                          .isBadRequest();
         }
 
         @Test
         @DisplayName("Should return 400 when price is null")
         void testCreateVariantMissingPrice() {
-            ProductAttribute attribute = product.getProductAttributes().getFirst();
+            ProductAttribute attribute = product.getProductAttributes()
+                                                .getFirst();
 
             CreateProductAttributeValueDto attributeDto = new CreateProductAttributeValueDto(
                     attribute.getId(),
@@ -248,11 +246,12 @@ class ProductVariantControllerIntegrationTest {
             );
 
             restTestClient.post()
-                    .uri(VARIANTS_URL_TEMPLATE, testProductId)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(createVariantDto)
-                    .exchange()
-                    .expectStatus().isBadRequest();
+                          .uri(VARIANTS_URL_TEMPLATE, testProductId)
+                          .contentType(MediaType.APPLICATION_JSON)
+                          .body(createVariantDto)
+                          .exchange()
+                          .expectStatus()
+                          .isBadRequest();
         }
 
         @Test
@@ -265,11 +264,12 @@ class ProductVariantControllerIntegrationTest {
             );
 
             restTestClient.post()
-                    .uri(VARIANTS_URL_TEMPLATE, testProductId)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(createVariantDto)
-                    .exchange()
-                    .expectStatus().isBadRequest();
+                          .uri(VARIANTS_URL_TEMPLATE, testProductId)
+                          .contentType(MediaType.APPLICATION_JSON)
+                          .body(createVariantDto)
+                          .exchange()
+                          .expectStatus()
+                          .isBadRequest();
         }
 
         @Test
@@ -286,11 +286,12 @@ class ProductVariantControllerIntegrationTest {
             );
 
             restTestClient.post()
-                    .uri(VARIANTS_URL_TEMPLATE, testProductId)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(createVariantDto)
-                    .exchange()
-                    .expectStatus().isBadRequest();
+                          .uri(VARIANTS_URL_TEMPLATE, testProductId)
+                          .contentType(MediaType.APPLICATION_JSON)
+                          .body(createVariantDto)
+                          .exchange()
+                          .expectStatus()
+                          .isBadRequest();
         }
 
         @Test
@@ -303,11 +304,12 @@ class ProductVariantControllerIntegrationTest {
             );
 
             restTestClient.post()
-                    .uri(VARIANTS_URL_TEMPLATE, 99999L)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(createVariantDto)
-                    .exchange()
-                    .expectStatus().isNotFound();
+                          .uri(VARIANTS_URL_TEMPLATE, 99999L)
+                          .contentType(MediaType.APPLICATION_JSON)
+                          .body(createVariantDto)
+                          .exchange()
+                          .expectStatus()
+                          .isNotFound();
         }
 
     }
@@ -322,11 +324,13 @@ class ProductVariantControllerIntegrationTest {
             ProductVariant variant = createTestVariant();
 
             ProductVariantDto body = restTestClient.get()
-                    .uri(VARIANTS_URL_TEMPLATE + "/{variantId}", testProductId, variant.getId())
-                    .exchange()
-                    .expectStatus().isOk()
-                    .returnResult(ProductVariantDto.class)
-                    .getResponseBody();
+                                                   .uri(VARIANTS_URL_TEMPLATE + "/{variantId}", testProductId,
+                                                           variant.getId())
+                                                   .exchange()
+                                                   .expectStatus()
+                                                   .isOk()
+                                                   .returnResult(ProductVariantDto.class)
+                                                   .getResponseBody();
 
             assertThat(body).isNotNull();
             assertThat(body.id()).isEqualTo(variant.getId());
@@ -341,11 +345,13 @@ class ProductVariantControllerIntegrationTest {
             ProductVariant variant = createTestVariantWithMultipleAttributes();
 
             ProductVariantDto body = restTestClient.get()
-                    .uri(VARIANTS_URL_TEMPLATE + "/{variantId}", testProductId, variant.getId())
-                    .exchange()
-                    .expectStatus().isOk()
-                    .returnResult(ProductVariantDto.class)
-                    .getResponseBody();
+                                                   .uri(VARIANTS_URL_TEMPLATE + "/{variantId}", testProductId,
+                                                           variant.getId())
+                                                   .exchange()
+                                                   .expectStatus()
+                                                   .isOk()
+                                                   .returnResult(ProductVariantDto.class)
+                                                   .getResponseBody();
 
             assertThat(body).isNotNull();
             assertThat(body.id()).isEqualTo(variant.getId());
@@ -399,7 +405,7 @@ class ProductVariantControllerIntegrationTest {
             ProductInventoryDto inventoryRecord2 = body.inventory()
                                                        .get(1);
 
-            if (inventoryRecord1.storageId() == storageA.getId()) {
+            if (Objects.equals(inventoryRecord1.storageId(), storageA.getId())) {
                 assertThat(inventoryRecord1.storageName()).isEqualTo(storageA.getName());
                 assertThat(inventoryRecord1.quantity()).isEqualTo(100);
 
@@ -421,9 +427,10 @@ class ProductVariantControllerIntegrationTest {
         @DisplayName("Should return 404 when variant does not exist")
         void testGetVariantByIdNotFound() {
             restTestClient.get()
-                    .uri(VARIANTS_URL_TEMPLATE + "/{variantId}", testProductId, 99999L)
-                    .exchange()
-                    .expectStatus().isNotFound();
+                          .uri(VARIANTS_URL_TEMPLATE + "/{variantId}", testProductId, 99999L)
+                          .exchange()
+                          .expectStatus()
+                          .isNotFound();
         }
 
         @Test
@@ -431,9 +438,10 @@ class ProductVariantControllerIntegrationTest {
         void testGetVariantWithNonExistentProduct() {
             ProductVariant variant = createTestVariant();
             restTestClient.get()
-                    .uri(VARIANTS_URL_TEMPLATE + "/{variantId}", 99999L, variant.getId())
-                    .exchange()
-                    .expectStatus().isNotFound();
+                          .uri(VARIANTS_URL_TEMPLATE + "/{variantId}", 99999L, variant.getId())
+                          .exchange()
+                          .expectStatus()
+                          .isNotFound();
         }
 
     }
@@ -446,11 +454,14 @@ class ProductVariantControllerIntegrationTest {
         @DisplayName("Should return empty list when no variants exist")
         void testGetAllVariantsEmpty() {
             List<ProductVariantDto> body = restTestClient.get()
-                    .uri(VARIANTS_URL_TEMPLATE, testProductId)
-                    .exchange()
-                    .expectStatus().isOk()
-                    .returnResult(new ParameterizedTypeReference<List<ProductVariantDto>>() {})
-                    .getResponseBody();
+                                                         .uri(VARIANTS_URL_TEMPLATE, testProductId)
+                                                         .exchange()
+                                                         .expectStatus()
+                                                         .isOk()
+                                                         .returnResult(
+                                                                 new ParameterizedTypeReference<List<ProductVariantDto>>() {
+                                                                 })
+                                                         .getResponseBody();
 
             assertThat(body).isEmpty();
         }
@@ -465,23 +476,28 @@ class ProductVariantControllerIntegrationTest {
             productVariantRepository.save(variant3);
 
             List<ProductVariantDto> body = restTestClient.get()
-                    .uri(VARIANTS_URL_TEMPLATE, testProductId)
-                    .exchange()
-                    .expectStatus().isOk()
-                    .returnResult(new ParameterizedTypeReference<List<ProductVariantDto>>() {})
-                    .getResponseBody();
+                                                         .uri(VARIANTS_URL_TEMPLATE, testProductId)
+                                                         .exchange()
+                                                         .expectStatus()
+                                                         .isOk()
+                                                         .returnResult(
+                                                                 new ParameterizedTypeReference<List<ProductVariantDto>>() {
+                                                                 })
+                                                         .getResponseBody();
 
             assertThat(body).hasSize(3);
-            assertThat(body).extracting(ProductVariantDto::name).contains("Test Variant", "Multi-Attribute Variant", "Third Variant");
+            assertThat(body).extracting(ProductVariantDto::name)
+                            .contains("Test Variant", "Multi-Attribute Variant", "Third Variant");
         }
 
         @Test
         @DisplayName("Should return 404 when product does not exist")
         void testGetAllVariantsProductNotFound() {
             restTestClient.get()
-                    .uri(VARIANTS_URL_TEMPLATE, 99999L)
-                    .exchange()
-                    .expectStatus().isNotFound();
+                          .uri(VARIANTS_URL_TEMPLATE, 99999L)
+                          .exchange()
+                          .expectStatus()
+                          .isNotFound();
         }
 
     }
@@ -508,13 +524,15 @@ class ProductVariantControllerIntegrationTest {
             );
 
             ProductVariantDto body = restTestClient.patch()
-                    .uri(VARIANTS_URL_TEMPLATE + "/{variantId}", testProductId, variantId)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(updateVariantDto)
-                    .exchange()
-                    .expectStatus().isOk()
-                    .returnResult(ProductVariantDto.class)
-                    .getResponseBody();
+                                                   .uri(VARIANTS_URL_TEMPLATE + "/{variantId}", testProductId,
+                                                           variantId)
+                                                   .contentType(MediaType.APPLICATION_JSON)
+                                                   .body(updateVariantDto)
+                                                   .exchange()
+                                                   .expectStatus()
+                                                   .isOk()
+                                                   .returnResult(ProductVariantDto.class)
+                                                   .getResponseBody();
 
             assertThat(body).isNotNull();
             assertThat(body.name()).isEqualTo("Updated Name");
@@ -531,13 +549,15 @@ class ProductVariantControllerIntegrationTest {
             );
 
             ProductVariantDto body = restTestClient.patch()
-                    .uri(VARIANTS_URL_TEMPLATE + "/{variantId}", testProductId, variantId)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(updateVariantDto)
-                    .exchange()
-                    .expectStatus().isOk()
-                    .returnResult(ProductVariantDto.class)
-                    .getResponseBody();
+                                                   .uri(VARIANTS_URL_TEMPLATE + "/{variantId}", testProductId,
+                                                           variantId)
+                                                   .contentType(MediaType.APPLICATION_JSON)
+                                                   .body(updateVariantDto)
+                                                   .exchange()
+                                                   .expectStatus()
+                                                   .isOk()
+                                                   .returnResult(ProductVariantDto.class)
+                                                   .getResponseBody();
 
             assertThat(body).isNotNull();
             assertThat(body.price()).isEqualByComparingTo(BigDecimal.valueOf(99.99));
@@ -553,13 +573,15 @@ class ProductVariantControllerIntegrationTest {
             );
 
             ProductVariantDto body = restTestClient.patch()
-                    .uri(VARIANTS_URL_TEMPLATE + "/{variantId}", testProductId, variantId)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(updateVariantDto)
-                    .exchange()
-                    .expectStatus().isOk()
-                    .returnResult(ProductVariantDto.class)
-                    .getResponseBody();
+                                                   .uri(VARIANTS_URL_TEMPLATE + "/{variantId}", testProductId,
+                                                           variantId)
+                                                   .contentType(MediaType.APPLICATION_JSON)
+                                                   .body(updateVariantDto)
+                                                   .exchange()
+                                                   .expectStatus()
+                                                   .isOk()
+                                                   .returnResult(ProductVariantDto.class)
+                                                   .getResponseBody();
 
             assertThat(body).isNotNull();
             assertThat(body.name()).isEqualTo("New Name");
@@ -582,28 +604,34 @@ class ProductVariantControllerIntegrationTest {
             );
 
             ProductVariantDto updatedVariant = restTestClient.patch()
-                    .uri(VARIANTS_URL_TEMPLATE + "/{variantId}", testProductId, variantId)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(updateVariantDto)
-                    .exchange()
-                    .expectStatus().isOk()
-                    .returnResult(ProductVariantDto.class)
-                    .getResponseBody();
+                                                             .uri(VARIANTS_URL_TEMPLATE + "/{variantId}", testProductId,
+                                                                     variantId)
+                                                             .contentType(MediaType.APPLICATION_JSON)
+                                                             .body(updateVariantDto)
+                                                             .exchange()
+                                                             .expectStatus()
+                                                             .isOk()
+                                                             .returnResult(ProductVariantDto.class)
+                                                             .getResponseBody();
 
             assertThat(updatedVariant).isNotNull();
             assertThat(updatedVariant.attributes()).hasSize(1);
-            assertThat(updatedVariant.attributes().getFirst().value()).isEqualTo("Blue");
+            assertThat(updatedVariant.attributes()
+                                     .getFirst()
+                                     .value()).isEqualTo("Blue");
         }
 
         @Test
         @DisplayName("Should update variant with multiple attribute values")
         void testUpdateVariantWithMultipleAttributes() {
             ProductAttributeValueChangeDto colorChange = new ProductAttributeValueChangeDto(
-                    attributes.get(0).getId(),
+                    attributes.get(0)
+                              .getId(),
                     "Purple"
             );
             ProductAttributeValueChangeDto sizeChange = new ProductAttributeValueChangeDto(
-                    attributes.get(1).getId(),
+                    attributes.get(1)
+                              .getId(),
                     "Small"
             );
             UpdateProductVariantDto updateVariantDto = new UpdateProductVariantDto(
@@ -613,17 +641,20 @@ class ProductVariantControllerIntegrationTest {
             );
 
             ProductVariantDto updatedVariant = restTestClient.patch()
-                    .uri(VARIANTS_URL_TEMPLATE + "/{variantId}", testProductId, variantId)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(updateVariantDto)
-                    .exchange()
-                    .expectStatus().isOk()
-                    .returnResult(ProductVariantDto.class)
-                    .getResponseBody();
+                                                             .uri(VARIANTS_URL_TEMPLATE + "/{variantId}", testProductId,
+                                                                     variantId)
+                                                             .contentType(MediaType.APPLICATION_JSON)
+                                                             .body(updateVariantDto)
+                                                             .exchange()
+                                                             .expectStatus()
+                                                             .isOk()
+                                                             .returnResult(ProductVariantDto.class)
+                                                             .getResponseBody();
 
             assertThat(updatedVariant).isNotNull();
             assertThat(updatedVariant.attributes()).hasSize(2);
-            assertThat(updatedVariant.attributes()).extracting(ProductAttributeValueDto::value).contains("Purple", "Small");
+            assertThat(updatedVariant.attributes()).extracting(ProductAttributeValueDto::value)
+                                                   .contains("Purple", "Small");
         }
 
         @Test
@@ -636,13 +667,15 @@ class ProductVariantControllerIntegrationTest {
             );
 
             ProductVariantDto updatedVariant = restTestClient.patch()
-                    .uri(VARIANTS_URL_TEMPLATE + "/{variantId}", testProductId, variantId)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(updateVariantDto)
-                    .exchange()
-                    .expectStatus().isOk()
-                    .returnResult(ProductVariantDto.class)
-                    .getResponseBody();
+                                                             .uri(VARIANTS_URL_TEMPLATE + "/{variantId}", testProductId,
+                                                                     variantId)
+                                                             .contentType(MediaType.APPLICATION_JSON)
+                                                             .body(updateVariantDto)
+                                                             .exchange()
+                                                             .expectStatus()
+                                                             .isOk()
+                                                             .returnResult(ProductVariantDto.class)
+                                                             .getResponseBody();
 
             assertThat(updatedVariant).isNotNull();
             assertThat(updatedVariant.attributes()).isEmpty();
@@ -658,11 +691,12 @@ class ProductVariantControllerIntegrationTest {
             );
 
             restTestClient.patch()
-                    .uri(VARIANTS_URL_TEMPLATE + "/{variantId}", testProductId, 99999L)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(updateVariantDto)
-                    .exchange()
-                    .expectStatus().isNotFound();
+                          .uri(VARIANTS_URL_TEMPLATE + "/{variantId}", testProductId, 99999L)
+                          .contentType(MediaType.APPLICATION_JSON)
+                          .body(updateVariantDto)
+                          .exchange()
+                          .expectStatus()
+                          .isNotFound();
         }
 
         @Test
@@ -675,11 +709,12 @@ class ProductVariantControllerIntegrationTest {
             );
 
             restTestClient.patch()
-                    .uri(VARIANTS_URL_TEMPLATE + "/{variantId}", 99999L, variantId)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(updateVariantDto)
-                    .exchange()
-                    .expectStatus().isNotFound();
+                          .uri(VARIANTS_URL_TEMPLATE + "/{variantId}", 99999L, variantId)
+                          .contentType(MediaType.APPLICATION_JSON)
+                          .body(updateVariantDto)
+                          .exchange()
+                          .expectStatus()
+                          .isNotFound();
         }
 
     }
@@ -700,9 +735,10 @@ class ProductVariantControllerIntegrationTest {
         @DisplayName("Should delete variant successfully")
         void testDeleteVariantSuccess() {
             restTestClient.delete()
-                    .uri(VARIANTS_URL_TEMPLATE + "/{variantId}", testProductId, variantId)
-                    .exchange()
-                    .expectStatus().isNoContent();
+                          .uri(VARIANTS_URL_TEMPLATE + "/{variantId}", testProductId, variantId)
+                          .exchange()
+                          .expectStatus()
+                          .isNoContent();
 
             assertThat(productVariantRepository.existsById(variantId)).isFalse();
         }
@@ -711,18 +747,20 @@ class ProductVariantControllerIntegrationTest {
         @DisplayName("Should do nothing when deleting non-existent variant")
         void testDeleteVariantNotFound() {
             restTestClient.delete()
-                    .uri(VARIANTS_URL_TEMPLATE + "/{variantId}", testProductId, 99999L)
-                    .exchange()
-                    .expectStatus().isNoContent();
+                          .uri(VARIANTS_URL_TEMPLATE + "/{variantId}", testProductId, 99999L)
+                          .exchange()
+                          .expectStatus()
+                          .isNoContent();
         }
 
         @Test
         @DisplayName("Should return 404 when product does not exist")
         void testDeleteVariantProductNotFound() {
             restTestClient.delete()
-                    .uri(VARIANTS_URL_TEMPLATE + "/{variantId}", 99999L, variantId)
-                    .exchange()
-                    .expectStatus().isNotFound();
+                          .uri(VARIANTS_URL_TEMPLATE + "/{variantId}", 99999L, variantId)
+                          .exchange()
+                          .expectStatus()
+                          .isNotFound();
         }
 
     }

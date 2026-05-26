@@ -1,77 +1,112 @@
 package ch.portami.inventorybackend.felt;
 
-import ch.portami.inventorybackend.barcode.BarcodeService;
-import ch.portami.inventorybackend.core.storage.entity.Storage;
-import ch.portami.inventorybackend.core.storage.repository.StorageRepository;
+import ch.portami.inventorybackend.core.exceptions.BusinessRuleViolationException;
+import ch.portami.inventorybackend.core.exceptions.ResourceIdentifier;
+import ch.portami.inventorybackend.felt.dto.BatchDto;
 import ch.portami.inventorybackend.felt.dto.CreateFeltRollDto;
 import ch.portami.inventorybackend.felt.dto.FeltRollDto;
+import ch.portami.inventorybackend.felt.dto.SplitFeltRollDto;
 import ch.portami.inventorybackend.felt.dto.UpdateFeltRollDto;
 import ch.portami.inventorybackend.felt.entity.Batch;
 import ch.portami.inventorybackend.felt.entity.Felt;
-import ch.portami.inventorybackend.felt.entity.FeltColorVariant;
 import ch.portami.inventorybackend.felt.entity.FeltRoll;
-import ch.portami.inventorybackend.felt.entity.FeltType;
-import ch.portami.inventorybackend.felt.entity.FeltVariant;
-import ch.portami.inventorybackend.felt.entity.Supplier;
+import ch.portami.inventorybackend.felt.event.FeltRollCreatedEvent;
+import ch.portami.inventorybackend.felt.exception.FeltNotFoundException;
 import ch.portami.inventorybackend.felt.exception.FeltRollNotFoundException;
-import ch.portami.inventorybackend.felt.repository.BatchRepository;
-import ch.portami.inventorybackend.felt.repository.FeltColorVariantRepository;
-import ch.portami.inventorybackend.core.storage.exception.InvalidStorageReferenceException;
 import ch.portami.inventorybackend.felt.exception.InvalidBatchReferenceException;
+import ch.portami.inventorybackend.felt.mapper.BatchMapper;
+import ch.portami.inventorybackend.felt.mapper.FeltRollMapper;
+import ch.portami.inventorybackend.felt.repository.BatchRepository;
+import ch.portami.inventorybackend.felt.repository.FeltRepository;
 import ch.portami.inventorybackend.felt.repository.FeltRollRepository;
+import ch.portami.inventorybackend.felt.util.BatchIdentifierGenerator;
+import ch.portami.inventorybackend.storage.StorageService;
+import ch.portami.inventorybackend.storage.entity.Storage;
 import java.util.List;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static ch.portami.inventorybackend.core.util.NullSafeMapper.applyIfPresent;
 
 @Service
 @Transactional(readOnly = true)
 public class FeltRollService {
 
-    private final FeltColorVariantRepository feltColorVariantRepo;
+    private final StorageService storageService;
+    private final FeltRepository feltRepo;
     private final FeltRollRepository feltRollRepo;
     private final BatchRepository batchRepo;
-    private final StorageRepository storageRepo;
-    private final BarcodeService barcodeService;
+    private final ApplicationEventPublisher eventPublisher;
+    private final FeltRollMapper feltRollMapper;
+    private final BatchMapper batchMapper;
 
-    public FeltRollService(FeltColorVariantRepository feltColorVariantRepo, FeltRollRepository feltRollRepo,
-            BatchRepository batchRepo, StorageRepository storageRepo, BarcodeService barcodeService) {
-        this.feltColorVariantRepo = feltColorVariantRepo;
+    public FeltRollService(StorageService storageService, FeltRepository feltRepo, FeltRollRepository feltRollRepo,
+            BatchRepository batchRepo,
+            ApplicationEventPublisher eventPublisher, FeltRollMapper feltRollMapper,
+            BatchMapper batchMapper) {
+        this.storageService = storageService;
+        this.feltRepo = feltRepo;
         this.feltRollRepo = feltRollRepo;
         this.batchRepo = batchRepo;
-        this.storageRepo = storageRepo;
-        this.barcodeService = barcodeService;
+        this.eventPublisher = eventPublisher;
+        this.feltRollMapper = feltRollMapper;
+        this.batchMapper = batchMapper;
+    }
+
+    public List<FeltRollDto> findAll() {
+        return feltRollRepo.findAll()
+                           .stream()
+                           .map(feltRollMapper::toDto)
+                           .toList();
     }
 
     public List<FeltRollDto> findAllByFelt(Long feltId) {
-        if (!feltColorVariantRepo.existsById(feltId)) {
-            throw new FeltRollNotFoundException(feltId);
+        if (!feltRepo.existsById(feltId)) {
+            throw new FeltNotFoundException(feltId);
         }
-        return feltRollRepo.findByFeltColorVariantId(feltId)
+        return feltRollRepo.findByFeltId(feltId)
                            .stream()
-                           .map(this::toDto)
+                           .map(feltRollMapper::toDto)
+                           .toList();
+    }
+
+    public List<BatchDto> findAllBatchesByFelt(Long feltId) {
+        return feltRollRepo.findByFeltId(feltId)
+                           .stream()
+                           .map(FeltRoll::getBatch)
+                           .distinct()
+                           .map(batchMapper::toDto)
                            .toList();
     }
 
     public FeltRollDto findById(Long id) {
         return feltRollRepo.findById(id)
-                           .map(this::toDto)
+                           .map(feltRollMapper::toDto)
                            .orElseThrow(() -> new FeltRollNotFoundException(id));
     }
 
     @Transactional
     public FeltRollDto create(CreateFeltRollDto dto) {
-        FeltColorVariant colorVariant = feltColorVariantRepo.findById(dto.feltId())
-                                                            .orElseThrow(() -> new FeltRollNotFoundException(dto.feltId()));
+        Felt felt = feltRepo.findById(dto.feltId())
+                            .orElseThrow(() -> new FeltNotFoundException(dto.feltId()));
 
         Batch batch = resolveOptionalBatch(dto.batchId());
-        Storage storage = resolveOptionalStorage(dto.storageId());
+        Storage storage = storageService.getExistingById(dto.storageId());
 
-        FeltRoll roll = new FeltRoll(colorVariant, batch, storage, dto.length(), dto.width());
+        FeltRoll roll = new FeltRoll(felt, batch, storage, dto.length(), dto.width());
         roll = feltRollRepo.save(roll);
 
-        barcodeService.createForRoll(roll);
+        if (batch == null) {
+            String batchName = BatchIdentifierGenerator.createIdentifier(roll.getId());
+            Batch newBatch = new Batch(batchName);
+            newBatch = batchRepo.save(newBatch);
+            roll.setBatch(newBatch);
+        }
 
-        return toDto(roll);
+        eventPublisher.publishEvent(new FeltRollCreatedEvent(roll));
+
+        return feltRollMapper.toDto(roll);
     }
 
     @Transactional
@@ -79,20 +114,45 @@ public class FeltRollService {
         FeltRoll roll = feltRollRepo.findById(id)
                                     .orElseThrow(() -> new FeltRollNotFoundException(id));
 
-        if (dto.length() != null) {
-            roll.setLength(dto.length());
-        }
-        if (dto.width() != null) {
-            roll.setWidth(dto.width());
-        }
+        applyIfPresent(dto::length, roll::setLength);
+        applyIfPresent(dto::width, roll::setWidth);
+
+        applyIfPresent(dto::storageId, storageService::getExistingById, roll::setStorage);
+
+        applyIfPresent(dto::batchId, batchId -> batchRepo.findById(batchId)
+                                                         .orElseThrow(
+                                                                 () -> new InvalidBatchReferenceException(batchId)),
+                roll::setBatch);
+
         if (dto.batchId() != null) {
             roll.setBatch(resolveOptionalBatch(dto.batchId()));
         }
-        if (dto.storageId() != null) {
-            roll.setStorage(resolveOptionalStorage(dto.storageId()));
+
+        return feltRollMapper.toDto(roll);
+    }
+
+    @Transactional
+    public FeltRollDto split(Long sourceRollId, SplitFeltRollDto dto) {
+        FeltRoll source = feltRollRepo.findById(sourceRollId)
+                                      .orElseThrow(() -> new FeltRollNotFoundException(sourceRollId));
+
+        double cutWidth = dto.width();
+
+        if (cutWidth >= source.getLength()) {
+            throw new BusinessRuleViolationException(
+                    "Split width (" + cutWidth + ") must be less than source roll length (" + source.getLength() + ")",
+                    new ResourceIdentifier("rollId", sourceRollId));
         }
 
-        return toDto(roll);
+        FeltRoll newRoll = new FeltRoll(source.getFelt(), source.getBatch(), source.getStorage(), source.getWidth(),
+                cutWidth);
+        newRoll = feltRollRepo.save(newRoll);
+
+        source.setLength(source.getLength() - cutWidth);
+
+        eventPublisher.publishEvent(new FeltRollCreatedEvent(newRoll));
+
+        return feltRollMapper.toDto(newRoll);
     }
 
     @Transactional
@@ -109,30 +169,5 @@ public class FeltRollService {
         }
         return batchRepo.findById(batchId)
                         .orElseThrow(() -> new InvalidBatchReferenceException(batchId));
-    }
-
-    private Storage resolveOptionalStorage(Long storageId) {
-        if (storageId == null) {
-            return null;
-        }
-        return storageRepo.findById(storageId)
-                          .orElseThrow(() -> new InvalidStorageReferenceException(storageId));
-    }
-
-    private FeltRollDto toDto(FeltRoll roll) {
-        FeltColorVariant feltColorVariant = roll.getFeltColorVariant();
-        FeltVariant feltVariant = feltColorVariant.getFeltVariant();
-        Felt felt = feltVariant.getFelt();
-        FeltType feltType = felt.getFeltType();
-        Supplier supplier = felt.getSupplier();
-        Batch batch = roll.getBatch();
-        Storage storage = roll.getStorage();
-
-        return new FeltRollDto(roll.getId(), roll.getLength(), roll.getWidth(), feltColorVariant.getId(),
-                feltColorVariant.getColor(), feltColorVariant.getSupplierColor(), feltVariant.getId(),
-                feltVariant.getThickness(), feltVariant.getDensity(), feltVariant.getPrice(), felt.getId(),
-                felt.getArticleNumber(), feltType.getName(), supplier.getName(), batch != null ? batch.getId() : null,
-                batch != null ? batch.getName() : null, storage != null ? storage.getId() : null,
-                storage != null ? storage.getName() : null);
     }
 }

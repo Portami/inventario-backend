@@ -1,7 +1,6 @@
 package ch.portami.inventorybackend.product.entity;
 
-import java.util.Objects;
-import ch.portami.inventorybackend.core.storage.entity.Storage;
+import ch.portami.inventorybackend.storage.entity.Storage;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -12,6 +11,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import java.util.Objects;
 
 @Entity
 @Table(
@@ -39,7 +39,8 @@ public class ProductInventory {
     @Column(nullable = false)
     private Integer count;
 
-    public ProductInventory() {}
+    public ProductInventory() {
+    }
 
     public ProductInventory(ProductVariant productVariant, Storage storage, Integer count) {
         this.productVariant = productVariant;
@@ -47,23 +48,44 @@ public class ProductInventory {
         this.count = count;
     }
 
-    public Long getId() { return id; }
+    public Long getId() {
+        return id;
+    }
 
-    public ProductVariant getProductVariant() { return productVariant; }
-    public void setProductVariant(ProductVariant productVariant) { this.productVariant = productVariant; }
+    public ProductVariant getProductVariant() {
+        return productVariant;
+    }
 
-    public Storage getStorage() { return storage; }
-    public void setStorage(Storage storage) { this.storage = storage; }
+    public void setProductVariant(ProductVariant productVariant) {
+        this.productVariant = productVariant;
+    }
 
-    public Integer getCount() { return count; }
-    public void setCount(Integer count) { this.count = count; }
+    public Storage getStorage() {
+        return storage;
+    }
+
+    public void setStorage(Storage storage) {
+        this.storage = storage;
+    }
+
+    public Integer getCount() {
+        return count;
+    }
+
+    public void setCount(Integer count) {
+        this.count = count;
+    }
 
     // --- equals / hashCode ----------------------------------------------
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof ProductInventory that)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof ProductInventory that)) {
+            return false;
+        }
         return id != null && Objects.equals(id, that.id);
     }
 
