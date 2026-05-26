@@ -39,7 +39,7 @@ public class FeltStocktakeRollOrScrap {
     @OnDelete(action = OnDeleteAction.SET_NULL)
     private ScrapPiece scrap;
 
-    @ManyToOne(fetch = FetchType.EAGER, optional = false)
+    @ManyToOne(fetch = FetchType.EAGER, optional = true)
     @JoinColumn(name = "expected_storage_id", nullable = true)
     private Storage expectedStorage;
 
@@ -73,7 +73,7 @@ public class FeltStocktakeRollOrScrap {
     protected FeltStocktakeRollOrScrap() {
     }
 
-    public FeltStocktakeRollOrScrap(FeltStocktakeItem stocktakeItem, Storage expectedStorage, Double length,
+    public FeltStocktakeRollOrScrap(FeltStocktakeItem stocktakeItem, @Nullable Storage expectedStorage, Double length,
             Double width,
             String color, Double thickness, Double density, BigDecimal price, String articleNumber, String feltTypeName,
             String supplierName, FeltRoll roll) {
@@ -92,7 +92,7 @@ public class FeltStocktakeRollOrScrap {
         this.roll = roll;
     }
 
-    public FeltStocktakeRollOrScrap(FeltStocktakeItem stocktakeItem, Storage expectedStorage, Double length,
+    public FeltStocktakeRollOrScrap(FeltStocktakeItem stocktakeItem, @Nullable Storage expectedStorage, Double length,
             Double width,
             String color, Double thickness, Double density, BigDecimal price, String articleNumber, String feltTypeName,
             String supplierName, ScrapPiece scrap) {
@@ -123,7 +123,7 @@ public class FeltStocktakeRollOrScrap {
         return stocktakeItem;
     }
 
-    public Storage getExpectedStorage() {
+    public @Nullable Storage getExpectedStorage() {
         return expectedStorage;
     }
 
@@ -186,7 +186,7 @@ public class FeltStocktakeRollOrScrap {
     public int hashCode() {
         return getClass().hashCode();
     }
-    
+
     @Override
     public String toString() {
         return "FeltStocktakeRollOrScrap{id=" + id + ", articleNumber='" + articleNumber + "', color='" + color + "'}";

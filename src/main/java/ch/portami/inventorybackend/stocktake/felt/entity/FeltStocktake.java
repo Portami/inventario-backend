@@ -1,6 +1,5 @@
 package ch.portami.inventorybackend.stocktake.felt.entity;
 
-import ch.portami.inventorybackend.core.storage.entity.Storage;
 import jakarta.annotation.Nullable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -8,16 +7,12 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
 
 @Entity
 @Table(name = "felt_stocktake")
@@ -38,14 +33,8 @@ public class FeltStocktake {
     @Column(name = "is_completed", nullable = false)
     private Instant completedAt;
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @Fetch(FetchMode.JOIN)
-    @JoinTable(
-            name = "felt_stocktake_storage",
-            joinColumns = @JoinColumn(name = "felt_stocktake_id"),
-            inverseJoinColumns = @JoinColumn(name = "storage_id")
-    )
-    private Set<Storage> storages = new HashSet<>();
+    @OneToMany(mappedBy = "stocktake", fetch = FetchType.LAZY)
+    private final Set<FeltStocktakeStorage> storages = new HashSet<>();
 
     protected FeltStocktake() {
     }
@@ -78,7 +67,7 @@ public class FeltStocktake {
         this.completedAt = completedAt;
     }
 
-    public Set<Storage> getStorages() {
+    public Set<FeltStocktakeStorage> getStorages() {
         return storages;
     }
 

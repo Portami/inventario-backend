@@ -1,6 +1,7 @@
 package ch.portami.inventorybackend.stocktake.felt.entity;
 
 import ch.portami.inventorybackend.core.storage.entity.Storage;
+import jakarta.annotation.Nonnull;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -81,15 +82,15 @@ public class FeltStocktakeScan {
         return scannedStorage;
     }
 
-    public Boolean isVoided() {
+    public @Nonnull Boolean isVoided() {
         return voided;
     }
 
     public void setVoided(Boolean voided) {
         this.voided = voided;
     }
-
-    public Boolean isCorrected() {
+    
+    public @Nonnull Boolean isCorrected() {
         return corrected;
     }
 
@@ -116,7 +117,7 @@ public class FeltStocktakeScan {
     public int hashCode() {
         return getClass().hashCode();
     }
-    
+
     @Override
     public String toString() {
         return "FeltStocktakeScan{id=" + id + ", barcode='" + barcode + "', scannedAt=" + scannedAt + "}";

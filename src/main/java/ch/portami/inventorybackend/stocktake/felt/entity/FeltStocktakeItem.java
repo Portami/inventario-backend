@@ -1,6 +1,7 @@
 package ch.portami.inventorybackend.stocktake.felt.entity;
 
 import ch.portami.inventorybackend.core.storage.entity.Storage;
+import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -49,12 +50,23 @@ public class FeltStocktakeItem {
     @BatchSize(size = 100)
     private final List<FeltStocktakeScan> scans = new ArrayList<>();
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "stocktake_id", nullable = false)
+    private FeltStocktake stocktake;
+
+    @Column(name = "resolution_comment", nullable = true)
+    private String resolutionComment;
+
     protected FeltStocktakeItem() {
     }
 
-    public FeltStocktakeItem(String barcode, @Nullable FeltStocktakeRollOrScrap rollOrScrap) {
+    public FeltStocktakeItem(FeltStocktake stocktake) {
+        this.stocktake = stocktake;
+    }
+
+    public FeltStocktakeItem(FeltStocktake stocktake, String barcode) {
+        this.stocktake = stocktake;
         this.barcode = barcode;
-        this.rollOrScrap = rollOrScrap;
     }
 
     public Long getId() {
@@ -69,11 +81,15 @@ public class FeltStocktakeItem {
         return rollOrScrap;
     }
 
+    public void setRollOrScrap(@Nullable FeltStocktakeRollOrScrap rollOrScrap) {
+        this.rollOrScrap = rollOrScrap;
+    }
+
     public @Nullable Storage getNewStorage() {
         return newStorage;
     }
 
-    public Boolean isProblemAcknowledged() {
+    public @Nonnull Boolean isProblemAcknowledged() {
         return problemAcknowledged;
     }
 
@@ -81,7 +97,7 @@ public class FeltStocktakeItem {
         this.problemAcknowledged = problemAcknowledged;
     }
 
-    public Boolean isMutationWanted() {
+    public @Nonnull Boolean isMutationWanted() {
         return mutationWanted;
     }
 
@@ -93,7 +109,7 @@ public class FeltStocktakeItem {
         this.newStorage = newStorage;
     }
 
-    public Boolean isMutationApplied() {
+    public @Nonnull Boolean isMutationApplied() {
         return mutationApplied;
     }
 
@@ -103,6 +119,18 @@ public class FeltStocktakeItem {
 
     public List<FeltStocktakeScan> getScans() {
         return scans;
+    }
+
+    public FeltStocktake getStocktake() {
+        return stocktake;
+    }
+
+    public @Nullable String getResolutionComment() {
+        return resolutionComment;
+    }
+
+    public void setResolutionComment(@Nullable String resolutionComment) {
+        this.resolutionComment = resolutionComment;
     }
 
     @Override
