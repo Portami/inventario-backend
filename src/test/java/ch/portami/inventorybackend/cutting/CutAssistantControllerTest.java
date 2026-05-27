@@ -22,6 +22,7 @@ import static org.mockito.Mockito.when;
 public class CutAssistantControllerTest extends BaseIntegrationTest {
 
     @LocalServerPort
+
     private int port;
 
     private RestTemplate restTemplate;
