@@ -14,14 +14,14 @@ public interface FeltStocktakeItemRepository extends JpaRepository<FeltStocktake
 
     @Query("SELECT i FROM FeltStocktakeItem i " +
             "INNER JOIN FeltStocktakeRollOrScrap r ON r.stocktakeItem.id = i.id " +
-            "WHERE i.stocktakeId = :stocktakeId AND r.roll.id = :rollId")
+            "WHERE i.stocktake.id = :stocktakeId AND r.roll.id = :rollId")
     Optional<FeltStocktakeItem> findByStocktakeIdAndRollId(Long stocktakeId, Long rollId);
 
     @Query("SELECT i FROM FeltStocktakeItem i " +
             "INNER JOIN FeltStocktakeRollOrScrap r ON r.stocktakeItem.id = i.id " +
-            "WHERE i.stocktakeId = :stocktakeId AND r.scrap.id = :scrapId")
+            "WHERE i.stocktake.id = :stocktakeId AND r.scrap.id = :scrapId")
     Optional<FeltStocktakeItem> findByStocktakeIdAndScrapId(Long stocktakeId, Long scrapId);
 
     Optional<FeltStocktakeItem> findByStocktakeIdAndBarcode(Long stocktakeId, String barcode);
-    
+
 }
