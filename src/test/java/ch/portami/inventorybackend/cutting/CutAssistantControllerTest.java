@@ -37,23 +37,24 @@ public class CutAssistantControllerTest extends BaseIntegrationTest {
     }
 
     @Test
-    void givenFeltTypeAndPieces_whenRequestProposals_thenReturns200AndProposalList() {
+    void givenSufficientStock_whenRequestingProposal_thenReturns200AndSingleProposal() {
         Long feltId = 1L;
         String feltType = "Wool";
+        String url = baseUrl + "/api/v1/cut-assistant/proposals";
         
-        // Mock inventory so the optimizer has material to cut from
         CuttableStock largeRoll = new CuttableStock(StockType.ROLL, feltId, feltType, 500.0, 500.0);
         when(cuttingStockLoader.loadAll()).thenReturn(List.of(largeRoll));
 
         var piece = new RequestCutProposalsDto.RequestedPieceDto(100, 50, 1);
         var requestDto = new RequestCutProposalsDto(feltType, List.of(piece));
-        String url = baseUrl + "/api/v1/cut-assistant/proposals";
 
-        ResponseEntity<CutProposalDto[]> response = restTemplate.postForEntity(url, requestDto, CutProposalDto[].class);
+        ResponseEntity<CutProposalDto> response = restTemplate.postForEntity(url, requestDto, CutProposalDto.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().length).isGreaterThan(0);
+        CutProposalDto proposal = response.getBody();
+        assertThat(proposal).isNotNull();
+        assertThat(proposal.proposalId()).isNotNull();
+        assertThat(proposal.proposedCuts()).hasSize(1);
     }
 
     @Test
@@ -70,14 +71,13 @@ public class CutAssistantControllerTest extends BaseIntegrationTest {
         var piece = new RequestCutProposalsDto.RequestedPieceDto(100, 100, 1);
         var requestDto = new RequestCutProposalsDto(feltType, List.of(piece));
 
-        ResponseEntity<CutProposalDto[]> response = restTemplate.postForEntity(url, requestDto, CutProposalDto[].class);
+        ResponseEntity<CutProposalDto> response = restTemplate.postForEntity(url, requestDto, CutProposalDto.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        CutProposalDto[] proposals = response.getBody();
-        assertThat(proposals).isNotNull();
-        assertThat(proposals.length).isGreaterThan(0);
+        CutProposalDto proposal = response.getBody();
+        assertThat(proposal).isNotNull();
         
-        assertThat(proposals[0].proposedCuts()).hasSize(1);
-        assertThat(proposals[0].proposedCuts().get(0).sourceStockId()).isNotNull();
+        assertThat(proposal.proposedCuts()).hasSize(1);
+        assertThat(proposal.proposedCuts().get(0).sourceStockId()).isNotNull();
     }
 }
