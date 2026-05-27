@@ -1,6 +1,5 @@
 package ch.portami.inventorybackend.stocktake.felt.mapper;
 
-import ch.portami.inventorybackend.core.storage.entity.Storage;
 import ch.portami.inventorybackend.stocktake.felt.domain.FeltStocktakeItemEvaluation;
 import ch.portami.inventorybackend.stocktake.felt.domain.FeltStocktakeItemEvaluator;
 import ch.portami.inventorybackend.stocktake.felt.domain.FeltStocktakeItemTypeResolver;
@@ -10,6 +9,7 @@ import ch.portami.inventorybackend.stocktake.felt.dto.item.FeltStocktakeRollOrSc
 import ch.portami.inventorybackend.stocktake.felt.entity.FeltStocktakeItem;
 import ch.portami.inventorybackend.stocktake.felt.entity.FeltStocktakeRollOrScrap;
 import ch.portami.inventorybackend.stocktake.felt.entity.FeltStocktakeScan;
+import ch.portami.inventorybackend.storage.entity.Storage;
 import java.util.List;
 import java.util.Set;
 import org.springframework.stereotype.Component;
@@ -76,13 +76,13 @@ public class FeltStocktakeItemMapper {
             rollOrScrapId = rollOrScrap.getRoll()
                                        .getId();
             feltId = rollOrScrap.getRoll()
-                                .getFeltColorVariant()
+                                .getFelt()
                                 .getId();
         } else if (rollOrScrap.getScrap() != null) {
             rollOrScrapId = rollOrScrap.getScrap()
                                        .getId();
             feltId = rollOrScrap.getScrap()
-                                .getFeltColorVariant()
+                                .getFelt()
                                 .getId();
         }
 

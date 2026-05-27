@@ -1,15 +1,8 @@
 package ch.portami.inventorybackend.stocktake.felt.service;
 
-import ch.portami.inventorybackend.core.storage.entity.Storage;
-import ch.portami.inventorybackend.core.storage.exception.InvalidStorageReferenceException;
-import ch.portami.inventorybackend.core.storage.repository.StorageRepository;
 import ch.portami.inventorybackend.felt.entity.Felt;
-import ch.portami.inventorybackend.felt.entity.FeltColorVariant;
 import ch.portami.inventorybackend.felt.entity.FeltRoll;
-import ch.portami.inventorybackend.felt.entity.FeltType;
-import ch.portami.inventorybackend.felt.entity.FeltVariant;
 import ch.portami.inventorybackend.felt.entity.ScrapPiece;
-import ch.portami.inventorybackend.felt.entity.Supplier;
 import ch.portami.inventorybackend.felt.repository.FeltRollRepository;
 import ch.portami.inventorybackend.felt.repository.ScrapPieceRepository;
 import ch.portami.inventorybackend.stocktake.felt.domain.FeltStocktakeItemEvaluation;
@@ -32,6 +25,9 @@ import ch.portami.inventorybackend.stocktake.felt.repository.FeltStocktakeReposi
 import ch.portami.inventorybackend.stocktake.felt.repository.FeltStocktakeRollOrScrapRepository;
 import ch.portami.inventorybackend.stocktake.felt.repository.FeltStocktakeScanRepository;
 import ch.portami.inventorybackend.stocktake.felt.repository.FeltStocktakeStorageRepository;
+import ch.portami.inventorybackend.storage.entity.Storage;
+import ch.portami.inventorybackend.storage.exception.InvalidStorageReferenceException;
+import ch.portami.inventorybackend.storage.repository.StorageRepository;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -200,24 +196,22 @@ public class FeltStocktakeService {
         FeltStocktakeItem item = new FeltStocktakeItem(stocktake);
         item = itemRepo.save(item);
 
-        FeltColorVariant colorVariant = roll.getFeltColorVariant();
-        FeltVariant variant = colorVariant.getFeltVariant();
-        Felt felt = variant.getFelt();
-        FeltType type = felt.getFeltType();
-        Supplier supplier = felt.getSupplier();
+        Felt felt = roll.getFelt();
 
         FeltStocktakeRollOrScrap rollOrScrap = new FeltStocktakeRollOrScrap(
                 item,
                 roll.getStorage(),
                 roll.getLength(),
                 roll.getWidth(),
-                colorVariant.getColor(),
-                variant.getThickness(),
-                variant.getDensity(),
-                variant.getPrice(),
+                felt.getColor(),
+                felt.getThickness(),
+                felt.getDensity(),
+                felt.getPrice(),
                 felt.getArticleNumber(),
-                type.getName(),
-                supplier.getName(),
+                felt.getFeltType()
+                    .getName(),
+                felt.getSupplier()
+                    .getName(),
                 roll
         );
         rollOrScrap = rollOrScrapRepo.save(rollOrScrap);
@@ -228,24 +222,22 @@ public class FeltStocktakeService {
         FeltStocktakeItem item = new FeltStocktakeItem(stocktake);
         item = itemRepo.save(item);
 
-        FeltColorVariant colorVariant = scrap.getFeltColorVariant();
-        FeltVariant variant = colorVariant.getFeltVariant();
-        Felt felt = variant.getFelt();
-        FeltType type = felt.getFeltType();
-        Supplier supplier = felt.getSupplier();
+        Felt felt = scrap.getFelt();
 
         FeltStocktakeRollOrScrap rollOrScrap = new FeltStocktakeRollOrScrap(
                 item,
                 scrap.getStorage(),
                 scrap.getLength(),
                 scrap.getWidth(),
-                colorVariant.getColor(),
-                variant.getThickness(),
-                variant.getDensity(),
-                variant.getPrice(),
+                felt.getColor(),
+                felt.getThickness(),
+                felt.getDensity(),
+                felt.getPrice(),
                 felt.getArticleNumber(),
-                type.getName(),
-                supplier.getName(),
+                felt.getFeltType()
+                    .getName(),
+                felt.getSupplier()
+                    .getName(),
                 scrap
         );
         rollOrScrap = rollOrScrapRepo.save(rollOrScrap);

@@ -1,6 +1,6 @@
 package ch.portami.inventorybackend.stocktake.felt.entity;
 
-import ch.portami.inventorybackend.core.storage.entity.Storage;
+import ch.portami.inventorybackend.storage.entity.Storage;
 import jakarta.annotation.Nonnull;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -89,7 +89,7 @@ public class FeltStocktakeScan {
     public void setVoided(Boolean voided) {
         this.voided = voided;
     }
-    
+
     public @Nonnull Boolean isCorrected() {
         return corrected;
     }

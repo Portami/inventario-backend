@@ -1,6 +1,5 @@
 package ch.portami.inventorybackend.stocktake.felt.domain;
 
-import ch.portami.inventorybackend.core.storage.entity.Storage;
 import ch.portami.inventorybackend.felt.entity.FeltRoll;
 import ch.portami.inventorybackend.felt.entity.ScrapPiece;
 import ch.portami.inventorybackend.stocktake.felt.dto.item.FeltStocktakeItemStatus;
@@ -9,10 +8,10 @@ import ch.portami.inventorybackend.stocktake.felt.dto.item.FeltStocktakeResoluti
 import ch.portami.inventorybackend.stocktake.felt.entity.FeltStocktakeItem;
 import ch.portami.inventorybackend.stocktake.felt.entity.FeltStocktakeRollOrScrap;
 import ch.portami.inventorybackend.stocktake.felt.entity.FeltStocktakeScan;
+import ch.portami.inventorybackend.storage.entity.Storage;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-
 import org.springframework.stereotype.Component;
 
 @Component

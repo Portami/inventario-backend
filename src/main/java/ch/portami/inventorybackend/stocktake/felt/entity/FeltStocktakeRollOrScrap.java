@@ -1,8 +1,8 @@
 package ch.portami.inventorybackend.stocktake.felt.entity;
 
-import ch.portami.inventorybackend.core.storage.entity.Storage;
 import ch.portami.inventorybackend.felt.entity.FeltRoll;
 import ch.portami.inventorybackend.felt.entity.ScrapPiece;
+import ch.portami.inventorybackend.storage.entity.Storage;
 import jakarta.annotation.Nullable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

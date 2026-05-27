@@ -1,6 +1,5 @@
 package ch.portami.inventorybackend.stocktake.felt.service;
 
-import ch.portami.inventorybackend.core.storage.entity.Storage;
 import ch.portami.inventorybackend.stocktake.felt.domain.FeltStocktakeItemEvaluation;
 import ch.portami.inventorybackend.stocktake.felt.domain.FeltStocktakeItemEvaluator;
 import ch.portami.inventorybackend.stocktake.felt.dto.item.FeltStocktakeItemDto;
@@ -21,6 +20,7 @@ import ch.portami.inventorybackend.stocktake.felt.repository.FeltStocktakeItemRe
 import ch.portami.inventorybackend.stocktake.felt.repository.FeltStocktakeRepository;
 import ch.portami.inventorybackend.stocktake.felt.repository.FeltStocktakeScanRepository;
 import ch.portami.inventorybackend.stocktake.felt.repository.FeltStocktakeStorageRepository;
+import ch.portami.inventorybackend.storage.entity.Storage;
 import jakarta.annotation.Nullable;
 import java.util.HashSet;
 import java.util.List;
