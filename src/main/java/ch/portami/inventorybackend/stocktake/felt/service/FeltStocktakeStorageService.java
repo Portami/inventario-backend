@@ -2,6 +2,7 @@ package ch.portami.inventorybackend.stocktake.felt.service;
 
 import ch.portami.inventorybackend.stocktake.felt.entity.FeltStocktake;
 import ch.portami.inventorybackend.stocktake.felt.entity.FeltStocktakeStorage;
+import ch.portami.inventorybackend.stocktake.felt.exception.FeltStocktakeCompletedException;
 import ch.portami.inventorybackend.stocktake.felt.exception.FeltStocktakeNotFoundException;
 import ch.portami.inventorybackend.stocktake.felt.exception.FeltStocktakeStorageNotFoundException;
 import ch.portami.inventorybackend.stocktake.felt.repository.FeltStocktakeRepository;
@@ -24,33 +25,40 @@ public class FeltStocktakeStorageService {
 
     @Transactional
     public void closeStorage(Long stocktakeId, Long storageId) {
-        FeltStocktake stocktake = getStocktake(stocktakeId);
+        checkForUncompletedStocktake(stocktakeId);
 
-        if (stocktake.getCompletedAt() != null) {
+        FeltStocktakeStorage storageLink = getStocktakeStorage(stocktakeId, storageId);
+
+        if (storageLink.isClosed()) {
             return;
         }
 
-        FeltStocktakeStorage storageLink = getStocktakeStorage(stocktakeId, storageId);
         storageLink.setClosed(true);
 
     }
 
     @Transactional
     public void reopenStorage(Long stocktakeId, Long storageId) {
-        FeltStocktake stocktake = getStocktake(stocktakeId);
+        checkForUncompletedStocktake(stocktakeId);
 
-        if (stocktake.getCompletedAt() == null) {
+        FeltStocktakeStorage storageLink = getStocktakeStorage(stocktakeId, storageId);
+
+        if (!storageLink.isClosed()) {
             return;
         }
 
-        FeltStocktakeStorage storageLink = getStocktakeStorage(stocktakeId, storageId);
         storageLink.setClosed(false);
 
     }
 
-    private FeltStocktake getStocktake(Long stocktakeId) {
-        return stocktakeRepo.findById(stocktakeId)
-                            .orElseThrow(() -> new FeltStocktakeNotFoundException(stocktakeId));
+    private void checkForUncompletedStocktake(Long stocktakeId) {
+        FeltStocktake stocktake = stocktakeRepo.findById(stocktakeId)
+                                               .orElseThrow(() -> new FeltStocktakeNotFoundException(stocktakeId));
+
+        if (stocktake.getCompletedAt() != null) {
+            throw new FeltStocktakeCompletedException(stocktakeId);
+        }
+        
     }
 
     private FeltStocktakeStorage getStocktakeStorage(Long stocktakeId, Long storageId) {
