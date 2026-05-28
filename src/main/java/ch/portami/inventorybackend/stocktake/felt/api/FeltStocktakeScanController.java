@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,7 +30,7 @@ public class FeltStocktakeScanController {
     }
 
     @Operation(summary = "Create a stocktake scan", description = "Records a scan for a felt roll or scrap piece within a stocktake.")
-    @ApiResponse(responseCode = "200", description = "Scan created and returned in the response body")
+    @ApiResponse(responseCode = "201", description = "Scan created and returned in the response body")
     @ApiResponse(responseCode = "400", description = "Validation error in the request body")
     @ApiResponse(responseCode = "404", description = "No stocktake exists with the given ID")
     @ApiResponse(responseCode = "409", description = "Stocktake is already completed and cannot be modified")
@@ -37,7 +38,8 @@ public class FeltStocktakeScanController {
     @PostMapping
     public ResponseEntity<FeltStocktakeScanDto> createFeltStocktakeScan(@PathVariable Long stocktakeId,
             @RequestBody @Valid CreateFeltStocktakeScanDto createFeltStocktakeScanDto) {
-        return ResponseEntity.ok(scanService.createScan(stocktakeId, createFeltStocktakeScanDto));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                             .body(scanService.createScan(stocktakeId, createFeltStocktakeScanDto));
     }
 
     @Operation(summary = "Get a stocktake scan by ID")

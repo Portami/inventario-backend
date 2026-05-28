@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,13 +31,14 @@ public class FeltStocktakeController {
     }
 
     @Operation(summary = "Create a felt stocktake", description = "Creates a new stocktake and initializes items for the selected storages.")
-    @ApiResponse(responseCode = "200", description = "Stocktake created and returned in the response body")
+    @ApiResponse(responseCode = "201", description = "Stocktake created and returned in the response body")
     @ApiResponse(responseCode = "400", description = "Validation error in the request body")
     @ApiResponse(responseCode = "422", description = "One or more referenced storage IDs do not exist")
     @PostMapping
     public ResponseEntity<FeltStocktakeDto> createStocktake(
             @RequestBody @Valid CreateFeltStocktakeDto createFeltStocktakeDto) {
-        return ResponseEntity.ok(stocktakeService.createStocktake(createFeltStocktakeDto));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                             .body(stocktakeService.createStocktake(createFeltStocktakeDto));
     }
 
     @Operation(summary = "Get a felt stocktake by ID")
