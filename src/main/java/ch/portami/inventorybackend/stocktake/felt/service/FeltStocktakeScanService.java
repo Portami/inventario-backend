@@ -19,7 +19,7 @@ import ch.portami.inventorybackend.stocktake.felt.exception.FeltStocktakeComplet
 import ch.portami.inventorybackend.stocktake.felt.exception.FeltStocktakeNotFoundException;
 import ch.portami.inventorybackend.stocktake.felt.exception.FeltStocktakeScanLockedException;
 import ch.portami.inventorybackend.stocktake.felt.exception.FeltStocktakeScanNotFoundException;
-import ch.portami.inventorybackend.stocktake.felt.exception.FeltStocktakeStorageNotFoundException;
+import ch.portami.inventorybackend.stocktake.felt.exception.InvalidFeltStocktakeStorageReferenceException;
 import ch.portami.inventorybackend.stocktake.felt.mapper.FeltStocktakeScanMapper;
 import ch.portami.inventorybackend.stocktake.felt.repository.FeltStocktakeItemRepository;
 import ch.portami.inventorybackend.stocktake.felt.repository.FeltStocktakeRepository;
@@ -257,7 +257,7 @@ public class FeltStocktakeScanService {
     private void ensureStorageInStocktake(Long stocktakeId, Long storageId) {
         if (stocktakeStorageRepo.findByStocktakeIdAndStorageId(stocktakeId, storageId)
                                 .isEmpty()) {
-            throw new FeltStocktakeStorageNotFoundException(stocktakeId, storageId);
+            throw new InvalidFeltStocktakeStorageReferenceException(stocktakeId, storageId);
         }
     }
 
