@@ -30,7 +30,7 @@ public class FeltStocktake {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
-    @Column(name = "is_completed", nullable = false)
+    @Column(name = "completed_at", nullable = true)
     private Instant completedAt;
 
     @OneToMany(mappedBy = "stocktake", fetch = FetchType.LAZY)
