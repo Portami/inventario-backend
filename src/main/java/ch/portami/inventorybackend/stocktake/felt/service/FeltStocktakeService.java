@@ -79,10 +79,9 @@ public class FeltStocktakeService {
         FeltStocktake stocktake = stocktakeRepo.save(new FeltStocktake(dto.description()));
 
         List<Storage> storages = resolveStorages(dto.storageIds());
-        List<FeltStocktakeStorage> storageLinks = storages.stream()
-                                                          .map(storage -> new FeltStocktakeStorage(stocktake, storage))
-                                                          .toList();
-        stocktakeStorageRepo.saveAll(storageLinks);
+        storages.stream()
+                .map(storage -> new FeltStocktakeStorage(stocktake, storage))
+                .forEach(stocktake::addStorage);
 
         createItemsForStorages(stocktake, dto.includeScrap());
 
@@ -111,20 +110,19 @@ public class FeltStocktakeService {
         ensureNotCompleted(stocktake);
 
         List<Storage> storages = resolveStorages(dto.storageIds());
-        Set<Long> existingStorageIds = stocktakeStorageRepo.findByStocktakeId(id)
-                                                           .stream()
-                                                           .map(link -> link.getStorage()
-                                                                            .getId())
-                                                           .collect(HashSet::new, Set::add, Set::addAll);
+        Set<Long> existingStorageIds = stocktake.getStorages()
+                                                .stream()
+                                                .map(link -> link.getStorage()
+                                                                 .getId())
+                                                .collect(HashSet::new, Set::add, Set::addAll);
 
-        List<FeltStocktakeStorage> newLinks = new ArrayList<>();
+        Set<FeltStocktakeStorage> stocktakeStorages = stocktake.getStorages();
+
         for (Storage storage : storages) {
             if (!existingStorageIds.contains(storage.getId())) {
-                newLinks.add(new FeltStocktakeStorage(stocktake, storage));
+                stocktakeStorages.add(new FeltStocktakeStorage(stocktake, storage));
             }
         }
-
-        stocktakeStorageRepo.saveAll(newLinks);
 
         return stocktakeMapper.toFeltStocktakeDto(stocktake);
     }

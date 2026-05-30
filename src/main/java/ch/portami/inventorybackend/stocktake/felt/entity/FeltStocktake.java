@@ -72,6 +72,10 @@ public class FeltStocktake {
         return storages;
     }
 
+    public void addStorage(FeltStocktakeStorage storage) {
+        storages.add(storage);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
