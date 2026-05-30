@@ -29,12 +29,12 @@ public class FeltStocktakeRollOrScrap {
     @JoinColumn(name = "item_id")
     private FeltStocktakeItem stocktakeItem;
 
-    @OneToOne(fetch = FetchType.LAZY, optional = true)
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
     @JoinColumn(name = "roll_id", nullable = true)
     @OnDelete(action = OnDeleteAction.SET_NULL)
     private FeltRoll roll;
 
-    @OneToOne(fetch = FetchType.LAZY, optional = true)
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
     @JoinColumn(name = "scrap_id", nullable = true)
     @OnDelete(action = OnDeleteAction.SET_NULL)
     private ScrapPiece scrap;
