@@ -27,6 +27,7 @@ public class FeltStocktakeRollOrScrap {
     @OneToOne
     @MapsId
     @JoinColumn(name = "item_id")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private FeltStocktakeItem stocktakeItem;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = true)

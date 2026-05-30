@@ -1,6 +1,7 @@
 package ch.portami.inventorybackend.stocktake.felt.entity;
 
 import jakarta.annotation.Nullable;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -33,7 +34,7 @@ public class FeltStocktake {
     @Column(name = "completed_at", nullable = true)
     private Instant completedAt;
 
-    @OneToMany(mappedBy = "stocktake", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "stocktake", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private final Set<FeltStocktakeStorage> storages = new HashSet<>();
 
     protected FeltStocktake() {

@@ -3,6 +3,7 @@ package ch.portami.inventorybackend.stocktake.felt.entity;
 import ch.portami.inventorybackend.storage.entity.Storage;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -17,6 +18,8 @@ import jakarta.persistence.Table;
 import java.util.ArrayList;
 import java.util.List;
 import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
 @Table(name = "felt_stocktake_item")
@@ -30,7 +33,7 @@ public class FeltStocktakeItem {
     @Column(name = "barcode", nullable = true)
     private String barcode;
 
-    @OneToOne(mappedBy = "stocktakeItem", fetch = FetchType.EAGER, optional = true)
+    @OneToOne(mappedBy = "stocktakeItem", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true, optional = true)
     private FeltStocktakeRollOrScrap rollOrScrap;
 
     @Column(name = "problem_acknowledged", nullable = false)
@@ -46,12 +49,13 @@ public class FeltStocktakeItem {
     @Column(name = "mutation_applied", nullable = false)
     private Boolean mutationApplied = false;
 
-    @OneToMany(mappedBy = "stocktakeItem", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "stocktakeItem", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @BatchSize(size = 100)
     private final List<FeltStocktakeScan> scans = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "stocktake_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private FeltStocktake stocktake;
 
     @Column(name = "resolution_comment", nullable = true)
