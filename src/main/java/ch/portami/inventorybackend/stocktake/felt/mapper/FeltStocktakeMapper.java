@@ -33,7 +33,7 @@ public class FeltStocktakeMapper {
     private FeltStocktakeListInfoDto toFeltStocktakeListInfoDto(FeltStocktakeStorage storage) {
         return new FeltStocktakeListInfoDto(storage.getStorage()
                                                    .getId(), storage.getStorage()
-                                                                    .getName());
+                                                                    .getName(), storage.isClosed());
     }
-    
+
 }

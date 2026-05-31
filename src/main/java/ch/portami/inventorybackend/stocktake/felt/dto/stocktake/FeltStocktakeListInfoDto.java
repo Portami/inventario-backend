@@ -8,7 +8,10 @@ public record FeltStocktakeListInfoDto(
         Long storageId,
 
         @Schema(description = "The name of the storage this list belongs to.")
-        String storageName
+        String storageName,
+
+        @Schema(description = "Whether the stocktake list is closed.")
+        Boolean isClosed
 ) {
 
 }
