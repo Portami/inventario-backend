@@ -51,7 +51,7 @@ public class FeltStocktakeItemController {
     @ApiResponse(responseCode = "200", description = "Item updated and returned in the response body")
     @ApiResponse(responseCode = "400", description = "Validation error in the request body")
     @ApiResponse(responseCode = "404", description = "No stocktake or item exists with the given IDs")
-    @ApiResponse(responseCode = "409", description = "The resolution type is not valid for the current item status or the stocktake is already completed and cannot be modified")
+    @ApiResponse(responseCode = "409", description = "The item does not need a resolution, the resolution type is not valid for the current item status or the stocktake is already completed and cannot be modified")
     @PostMapping("/{itemId}/resolve")
     public ResponseEntity<FeltStocktakeItemDto> resolveStocktakeRollProblem(@PathVariable Long stocktakeId,
             @PathVariable Long itemId,

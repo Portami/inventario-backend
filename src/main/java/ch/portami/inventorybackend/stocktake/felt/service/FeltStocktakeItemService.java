@@ -15,6 +15,7 @@ import ch.portami.inventorybackend.stocktake.felt.exception.FeltStocktakeComplet
 import ch.portami.inventorybackend.stocktake.felt.exception.FeltStocktakeItemNotFoundException;
 import ch.portami.inventorybackend.stocktake.felt.exception.FeltStocktakeNotFoundException;
 import ch.portami.inventorybackend.stocktake.felt.exception.InvalidFeltStocktakeResolutionType;
+import ch.portami.inventorybackend.stocktake.felt.exception.NoFeltStocktakeProblemToResolveException;
 import ch.portami.inventorybackend.stocktake.felt.mapper.FeltStocktakeItemMapper;
 import ch.portami.inventorybackend.stocktake.felt.repository.FeltStocktakeItemRepository;
 import ch.portami.inventorybackend.stocktake.felt.repository.FeltStocktakeRepository;
@@ -100,6 +101,10 @@ public class FeltStocktakeItemService {
 
         FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, scans, false, expectedStorageClosed,
                 stocktakeStorageIds);
+
+        if (!evaluation.needsResolution()) {
+            throw new NoFeltStocktakeProblemToResolveException(stocktakeId, itemId);
+        }
 
         if (!isValidResolutionType(evaluation.status(), dto.resolution())) {
             throw new InvalidFeltStocktakeResolutionType(stocktakeId, itemId, evaluation.status(),
