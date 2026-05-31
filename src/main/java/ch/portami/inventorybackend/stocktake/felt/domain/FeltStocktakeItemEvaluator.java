@@ -22,8 +22,8 @@ public class FeltStocktakeItemEvaluator {
 
         Storage expectedStorage = expectedStorage(item);
         List<FeltStocktakeScan> activeScans = scans.stream()
-                                                   .filter(FeltStocktakeScan::isVoided)
-                                                   .filter(FeltStocktakeScan::isCorrected)
+                                                   .filter(s -> !s.isVoided())
+                                                   .filter(s -> !s.isCorrected())
                                                    .toList();
 
         FeltStocktakeItemStatus status = determineStatus(item, activeScans, expectedStorage, expectedStorageClosed);
@@ -76,6 +76,10 @@ public class FeltStocktakeItemEvaluator {
 
     private FeltStocktakeResolutionType determineResolutionType(FeltStocktakeItem item,
             FeltStocktakeItemStatus status) {
+
+        if (!item.isProblemAcknowledged()) {
+            return null;
+        }
 
         return switch (status) {
             case OK, INITIAL, DUPLICATE_SCAN -> null;
