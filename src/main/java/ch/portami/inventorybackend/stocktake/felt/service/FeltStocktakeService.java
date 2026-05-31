@@ -343,7 +343,7 @@ public class FeltStocktakeService {
     }
 
     private List<Storage> resolveStorages(List<Long> storageIds) {
-        if (storageIds == null || storageIds.isEmpty()) {
+        if (storageIds == null) {
             return storageRepo.findAll();
         }
         List<Storage> storages = storageRepo.findAllById(storageIds);
