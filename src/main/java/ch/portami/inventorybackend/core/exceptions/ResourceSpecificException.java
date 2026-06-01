@@ -1,9 +1,12 @@
 package ch.portami.inventorybackend.core.exceptions;
 
+import java.io.Serial;
 import java.util.List;
 
 public abstract class ResourceSpecificException extends RuntimeException {
 
+    @Serial
+    private static final long serialVersionUID = 1L;
     private final List<ResourceIdentifier> resourceIdentifiers;
 
     protected ResourceSpecificException(ResourceIdentifier... identifiers) {

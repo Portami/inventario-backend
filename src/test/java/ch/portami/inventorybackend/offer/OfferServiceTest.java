@@ -266,7 +266,9 @@ class OfferServiceTest {
     void updateOffer_notFound_throws() {
         given(offerRepository.findById(ID)).willReturn(Optional.empty());
 
-        assertThatThrownBy(() -> offerService.updateOffer(ID, new UpdateOfferDto(null, null, null, null, null)))
+        UpdateOfferDto dto = new UpdateOfferDto(null, null, null, null, null);
+
+        assertThatThrownBy(() -> offerService.updateOffer(ID, dto))
                 .isInstanceOf(ResourceNotFoundException.class);
     }
 

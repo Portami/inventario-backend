@@ -1,5 +1,9 @@
 package ch.portami.inventorybackend.core.exceptions;
 
-public record ResourceIdentifier(String type, Object id) {
+import java.io.Serial;
+import java.io.Serializable;
 
+public record ResourceIdentifier(String type, Serializable id) implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
 }
