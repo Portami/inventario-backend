@@ -76,7 +76,6 @@ public class ScrapPieceController {
 
     @Operation(summary = "Delete a scrap piece")
     @ApiResponse(responseCode = "204", description = "Scrap piece deleted")
-    @ApiResponse(responseCode = "404", description = "No scrap piece exists with the given ID")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@Parameter(description = "Scrap piece ID") @PathVariable Long id) {
         service.delete(id);

@@ -429,15 +429,13 @@ class FeltRollControllerIntegrationTest extends BaseIntegrationTest {
         }
 
         @Test
-        @DisplayName("returns 404 when roll does not exist")
+        @DisplayName("returns 204 when roll does not exist")
         void returns404ForMissingRoll() {
             restTestClient.delete()
                           .uri("/api/rolls/99999")
                           .exchange()
                           .expectStatus()
-                          .isNotFound()
-                          .expectBody(ProblemDetail.class)
-                          .value(err -> assertThat(err.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value()));
+                          .isNoContent();
         }
     }
 }

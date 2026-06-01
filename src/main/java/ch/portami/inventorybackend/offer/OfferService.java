@@ -17,8 +17,11 @@ import ch.portami.inventorybackend.offer.repository.OfferItemRepository;
 import ch.portami.inventorybackend.offer.repository.OfferRepository;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static ch.portami.inventorybackend.core.util.NullSafeMapper.applyIfPresent;
 
 @Service
 @Transactional
@@ -82,9 +85,7 @@ public class OfferService {
     public OfferDto updateOffer(Long id, UpdateOfferDto dto) {
         Offer offer = findById(id);
 
-        if (dto.customerName() != null) {
-            offer.setCustomer(resolveCustomer(dto.customerName()));
-        }
+        applyIfPresent(dto::customerName, this::resolveCustomer, offer::setCustomer);
 
         if (dto.state() != null && !dto.state()
                                        .equals(offer.getState())) {
@@ -124,13 +125,17 @@ public class OfferService {
     }
 
     public void deleteOfferItem(Long offerId, Long itemId) {
-        offerItemRepository.findById(itemId)
-                           .ifPresent(item -> {
-                               if (!offerId.equals(item.getOfferId())) {
-                                   throw new ResourceNotFoundException("Offer item not found: " + itemId);
-                               }
-                               offerItemRepository.deleteById(itemId);
-                           });
+        Optional<OfferItem> item = offerItemRepository.findById(itemId);
+
+        if (item.isEmpty()) {
+            return;
+        }
+
+        if (!offerId.equals(item.get().getOfferId())) {
+            throw new ResourceNotFoundException("Offer item not found: " + itemId + " for offer: " + offerId);
+        }
+
+        offerItemRepository.deleteById(itemId);
     }
 
     private Offer findById(Long id) {

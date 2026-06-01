@@ -157,9 +157,6 @@ public class FeltRollService {
 
     @Transactional
     public void delete(Long id) {
-        if (!feltRollRepo.existsById(id)) {
-            throw new FeltRollNotFoundException(id);
-        }
         feltRollRepo.deleteById(id);
     }
 

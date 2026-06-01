@@ -497,15 +497,13 @@ class FeltControllerIntegrationTest extends BaseIntegrationTest {
         }
 
         @Test
-        @DisplayName("returns 404 when felt does not exist")
+        @DisplayName("returns 204 when felt does not exist")
         void returns404ForUnknownFelt() {
             restTestClient.delete()
                           .uri("/api/felts/{id}", 99999)
                           .exchange()
                           .expectStatus()
-                          .isNotFound()
-                          .expectBody(ProblemDetail.class)
-                          .value(err -> assertThat(err.getStatus()).isEqualTo(HttpStatus.NOT_FOUND.value()));
+                          .isNoContent();
         }
     }
 }

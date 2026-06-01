@@ -103,9 +103,6 @@ public class ScrapPieceService {
 
     @Transactional
     public void delete(Long id) {
-        if (!scrapPieceRepo.existsById(id)) {
-            throw new ScrapPieceNotFoundException(id);
-        }
         scrapPieceRepo.deleteById(id);
     }
 

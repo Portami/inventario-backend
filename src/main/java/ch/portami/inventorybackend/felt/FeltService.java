@@ -122,8 +122,6 @@ public class FeltService {
 
     @Transactional
     public void delete(Long id) {
-        Felt felt = feltRepo.findById(id)
-                            .orElseThrow(() -> new FeltNotFoundException(id));
-        feltRepo.delete(felt);
+        feltRepo.deleteById(id);
     }
 }
