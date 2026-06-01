@@ -4,6 +4,9 @@ import ch.portami.inventorybackend.core.exceptions.InvalidResourceReferenceExcep
 import ch.portami.inventorybackend.core.exceptions.ResourceIdentifier;
 import java.text.MessageFormat;
 
+/**
+ * Thrown when a request references a batch by an id that does not correspond to an existing batch.
+ */
 public class InvalidBatchReferenceException extends InvalidResourceReferenceException {
 
     public InvalidBatchReferenceException(long batchId) {

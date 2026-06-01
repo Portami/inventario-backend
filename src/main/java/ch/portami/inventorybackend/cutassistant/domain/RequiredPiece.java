@@ -4,6 +4,15 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
+/**
+ * A piece the caller needs cut, in a given felt and quantity.
+ *
+ * @param feltId   the id of the felt the piece must be cut from
+ * @param color    the required felt color
+ * @param length   the required length (positive)
+ * @param width    the required width (positive)
+ * @param quantity how many of this piece are needed (positive)
+ */
 public record RequiredPiece(
         @NotNull(message = "feltId must not be null") Long feltId,
         @NotBlank(message = "color must not be blank") String color,

@@ -4,6 +4,9 @@ import ch.portami.inventorybackend.core.exceptions.ResourceIdentifier;
 import ch.portami.inventorybackend.core.exceptions.ResourceNotFoundException;
 import java.text.MessageFormat;
 
+/**
+ * Thrown when a felt is looked up by an id that does not correspond to an existing felt.
+ */
 public class FeltNotFoundException extends ResourceNotFoundException {
 
     public FeltNotFoundException(long feltId) {

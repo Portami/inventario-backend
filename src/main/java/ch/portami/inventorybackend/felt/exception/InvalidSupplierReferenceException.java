@@ -4,6 +4,10 @@ import ch.portami.inventorybackend.core.exceptions.InvalidResourceReferenceExcep
 import ch.portami.inventorybackend.core.exceptions.ResourceIdentifier;
 import java.text.MessageFormat;
 
+/**
+ * Thrown when a request references a supplier by an id that does not correspond to an existing
+ * supplier.
+ */
 public class InvalidSupplierReferenceException extends InvalidResourceReferenceException {
 
     public InvalidSupplierReferenceException(long supplierId) {

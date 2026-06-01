@@ -1,5 +1,11 @@
 package ch.portami.inventorybackend.core.exceptions;
 
+/**
+ * Thrown when an operation would violate a domain business rule even though the request itself is
+ * well-formed (e.g. an inventory operation that is not allowed in the current state).
+ *
+ * <p>Mapped to HTTP 409 (Conflict) by {@link GlobalExceptionHandler}.
+ */
 public class BusinessRuleViolationException extends ResourceSpecificException {
 
     public BusinessRuleViolationException(ResourceIdentifier... identifiers) {

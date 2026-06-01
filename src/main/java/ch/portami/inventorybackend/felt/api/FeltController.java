@@ -28,6 +28,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * REST endpoints for felts, exposed under {@code /api/felts}.
+ */
 @Tag(name = "Felts", description = "Manage felts. Each felt represents a unique combination of type, supplier, article number, thickness, density, price and color.")
 @RestController
 @RequestMapping("/api/felts")

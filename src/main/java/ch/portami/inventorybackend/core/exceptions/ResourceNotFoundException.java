@@ -1,5 +1,11 @@
 package ch.portami.inventorybackend.core.exceptions;
 
+/**
+ * Thrown when a requested resource cannot be found, typically when looking it up by its identifier.
+ *
+ * <p>Mapped to HTTP 404 (Not Found) by {@link GlobalExceptionHandler}. Domain modules extend this
+ * with resource-specific subtypes (e.g. {@code FeltNotFoundException}).
+ */
 public class ResourceNotFoundException extends ResourceSpecificException {
 
     public ResourceNotFoundException(ResourceIdentifier... identifiers) {

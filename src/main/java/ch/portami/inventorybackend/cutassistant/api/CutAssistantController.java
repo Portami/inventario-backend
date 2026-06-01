@@ -10,6 +10,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * REST endpoints for the cutting assistant, exposed under {@code /api/cut-assistant}.
+ */
 @RestController
 @RequestMapping("/api/cut-assistant")
 public class CutAssistantController {

@@ -1,5 +1,12 @@
 package ch.portami.inventorybackend.core.exceptions;
 
+/**
+ * Thrown when a request references another resource by id that does not exist (e.g. creating an
+ * entity that points at a non-existent parent).
+ *
+ * <p>Mapped to HTTP 422 (Unprocessable Content) by {@link GlobalExceptionHandler}. Domain modules
+ * extend this with resource-specific subtypes (e.g. {@code InvalidSupplierReferenceException}).
+ */
 public class InvalidResourceReferenceException extends ResourceSpecificException {
 
     public InvalidResourceReferenceException(ResourceIdentifier... identifiers) {

@@ -9,6 +9,10 @@ import ch.portami.inventorybackend.felt.entity.ScrapPiece;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Service for creating barcodes for inventory items and resolving scanned barcodes back to the
+ * entity they identify.
+ */
 @Service
 @Transactional(readOnly = true)
 public class BarcodeService {
@@ -19,17 +23,36 @@ public class BarcodeService {
         this.barcodeRepo = barcodeRepo;
     }
 
+    /**
+     * Resolves a scanned barcode to the entity it identifies.
+     *
+     * @param id the numeric barcode value
+     * @return a lookup DTO indicating the kind of entity (roll or scrap piece) and its ID
+     * @throws BarcodeNotFoundException if no barcode with the given value exists
+     */
     public BarcodeLookupDto findByCode(long id) {
         Barcode barcode = barcodeRepo.findById(id)
                                      .orElseThrow(() -> new BarcodeNotFoundException(id));
         return toDto(barcode);
     }
 
+    /**
+     * Creates and persists a barcode for the given felt roll.
+     *
+     * @param roll the felt roll to create a barcode for
+     * @return the persisted barcode
+     */
     @Transactional
     public Barcode createForRoll(FeltRoll roll) {
         return barcodeRepo.save(Barcode.forRoll(roll));
     }
 
+    /**
+     * Creates and persists a barcode for the given scrap piece.
+     *
+     * @param scrap the scrap piece to create a barcode for
+     * @return the persisted barcode
+     */
     @Transactional
     public Barcode createForScrap(ScrapPiece scrap) {
         return barcodeRepo.save(Barcode.forScrap(scrap));

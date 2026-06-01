@@ -25,6 +25,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * REST endpoints for felt rolls, exposed under {@code /api/rolls}.
+ */
 @Tag(name = "Rolls")
 @RestController
 @RequestMapping("/api/rolls")

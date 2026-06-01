@@ -23,6 +23,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import static ch.portami.inventorybackend.core.util.NullSafeMapper.applyIfPresent;
 
+/**
+ * Service for retrieving and managing felts, along with read access to their felt types and
+ * suppliers.
+ */
 @Service
 @Transactional(readOnly = true)
 public class FeltService {
@@ -49,6 +53,11 @@ public class FeltService {
         this.supplierMapper = supplierMapper;
     }
 
+    /**
+     * Retrieves all felts.
+     *
+     * @return a list of DTOs for all felts
+     */
     public List<FeltDto> findAll() {
         return feltRepo.findAll()
                        .stream()
@@ -56,12 +65,24 @@ public class FeltService {
                        .toList();
     }
 
+    /**
+     * Retrieves a felt by its ID.
+     *
+     * @param id the ID of the felt to retrieve
+     * @return the DTO of the retrieved felt
+     * @throws FeltNotFoundException if no felt with the given ID exists
+     */
     public FeltDto findById(Long id) {
         return feltRepo.findById(id)
                        .map(feltMapper::toDto)
                        .orElseThrow(() -> new FeltNotFoundException(id));
     }
 
+    /**
+     * Retrieves all felt types.
+     *
+     * @return a list of DTOs for all felt types
+     */
     public List<FeltTypeDto> findAllFeltTypes() {
         return feltTypeRepo.findAll()
                            .stream()
@@ -69,6 +90,11 @@ public class FeltService {
                            .toList();
     }
 
+    /**
+     * Retrieves all suppliers.
+     *
+     * @return a list of DTOs for all suppliers
+     */
     public List<SupplierDto> findAllSuppliers() {
         return supplierRepo.findAll()
                            .stream()
@@ -76,6 +102,14 @@ public class FeltService {
                            .toList();
     }
 
+    /**
+     * Creates a new felt, resolving its referenced felt type and supplier.
+     *
+     * @param dto the data for the new felt
+     * @return the DTO of the created felt
+     * @throws InvalidFeltTypeReferenceException if the referenced felt type does not exist
+     * @throws InvalidSupplierReferenceException if the referenced supplier does not exist
+     */
     @Transactional
     public FeltDto create(CreateFeltDto dto) {
         FeltType feltType = feltTypeRepo.findById(dto.feltTypeId())
@@ -93,6 +127,17 @@ public class FeltService {
         return feltMapper.toDto(felt);
     }
 
+    /**
+     * Applies a partial update to a felt. Only non-null fields of the DTO are applied; referenced
+     * felt type and supplier are re-resolved when supplied.
+     *
+     * @param id  the ID of the felt to update
+     * @param dto the requested updates; null fields are left unchanged
+     * @return the DTO of the updated felt
+     * @throws FeltNotFoundException             if no felt with the given ID exists
+     * @throws InvalidFeltTypeReferenceException if a referenced felt type does not exist
+     * @throws InvalidSupplierReferenceException if a referenced supplier does not exist
+     */
     @Transactional
     public FeltDto update(Long id, UpdateFeltDto dto) {
         Felt felt = feltRepo.findById(id)
@@ -120,6 +165,11 @@ public class FeltService {
         return feltMapper.toDto(felt);
     }
 
+    /**
+     * Deletes a felt by its ID. Deleting a non-existent felt is a no-op.
+     *
+     * @param id the ID of the felt to delete
+     */
     @Transactional
     public void delete(Long id) {
         feltRepo.deleteById(id);

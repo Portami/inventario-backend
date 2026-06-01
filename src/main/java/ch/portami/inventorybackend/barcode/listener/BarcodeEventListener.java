@@ -6,6 +6,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
+/**
+ * Listens for inventory domain events and creates the corresponding barcodes.
+ *
+ * <p>Handlers run {@link TransactionPhase#BEFORE_COMMIT} so the barcode is persisted within the same
+ * transaction that created the originating entity.
+ */
 @Component
 public class BarcodeEventListener {
 

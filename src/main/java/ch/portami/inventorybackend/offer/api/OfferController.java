@@ -22,6 +22,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * REST endpoints for offers, exposed under {@code /api/offers}.
+ */
 @Tag(name = "Offers", description = "Manage offers")
 @RestController
 @RequestMapping("/api/offers")

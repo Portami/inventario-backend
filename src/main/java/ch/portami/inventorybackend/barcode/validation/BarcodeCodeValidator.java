@@ -4,6 +4,10 @@ import ch.portami.inventorybackend.barcode.BarcodeCode;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
+/**
+ * Validator backing {@link ValidBarcodeCode}: rejects barcode codes that are null, blank,
+ * non-numeric, or not a positive number, reporting a specific message for each case.
+ */
 public class BarcodeCodeValidator implements ConstraintValidator<ValidBarcodeCode, BarcodeCode> {
 
     @Override

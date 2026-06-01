@@ -3,6 +3,14 @@ package ch.portami.inventorybackend.core.exceptions;
 import java.io.Serial;
 import java.util.List;
 
+/**
+ * Base class for exceptions that concern a specific domain resource (or set of resources).
+ *
+ * <p>Each instance carries the {@link ResourceIdentifier}s of the resource(s) involved, so that
+ * {@link GlobalExceptionHandler} can expose them as structured properties on the error response.
+ * Concrete subclasses ({@link ResourceNotFoundException}, {@link InvalidResourceReferenceException},
+ * {@link BusinessRuleViolationException}) map to specific HTTP statuses.
+ */
 public abstract class ResourceSpecificException extends RuntimeException {
 
     @Serial

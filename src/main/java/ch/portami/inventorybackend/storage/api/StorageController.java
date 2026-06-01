@@ -11,6 +11,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * REST endpoints for storage locations, exposed under {@code /api/storages}.
+ */
 @Tag(name = "Storage", description = "Manage storage locations")
 @RestController
 @RequestMapping("/api/storages")
