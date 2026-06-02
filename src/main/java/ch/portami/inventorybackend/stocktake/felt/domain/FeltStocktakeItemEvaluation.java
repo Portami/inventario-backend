@@ -9,7 +9,6 @@ public record FeltStocktakeItemEvaluation(
         FeltStocktakeItemStatus status,
         boolean needsResolution,
         FeltStocktakeResolutionType resolutionType,
-        boolean mutationOutsideStocktake,
         boolean mutationApplied,
         @Nullable Storage newStorage,
         @Nullable String resolutionComment
@@ -17,7 +16,7 @@ public record FeltStocktakeItemEvaluation(
 
     public static FeltStocktakeItemEvaluation createWithoutResolution(FeltStocktakeItemStatus status,
             boolean needsResolution) {
-        return new FeltStocktakeItemEvaluation(status, needsResolution, null, false, false, null, null);
+        return new FeltStocktakeItemEvaluation(status, needsResolution, null, false, null, null);
     }
 
     public boolean hasProblem() {

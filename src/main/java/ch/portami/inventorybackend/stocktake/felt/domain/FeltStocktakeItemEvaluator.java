@@ -1,7 +1,5 @@
 package ch.portami.inventorybackend.stocktake.felt.domain;
 
-import ch.portami.inventorybackend.felt.entity.FeltRoll;
-import ch.portami.inventorybackend.felt.entity.ScrapPiece;
 import ch.portami.inventorybackend.stocktake.felt.dto.item.FeltStocktakeItemStatus;
 import ch.portami.inventorybackend.stocktake.felt.dto.item.FeltStocktakeResolutionType;
 import ch.portami.inventorybackend.stocktake.felt.entity.FeltStocktakeItem;
@@ -112,8 +110,6 @@ public class FeltStocktakeItemEvaluator {
             FeltStocktakeItemStatus status, FeltStocktakeResolutionType resolutionType, boolean stocktakeCompleted,
             Storage expectedStorage) {
 
-        boolean mutationOutsideStocktake =
-                !stocktakeCompleted && hasMutationOutsideStocktake(item, resolutionType, expectedStorage);
         boolean mutationApplied = stocktakeCompleted
                 ? item.isMutationApplied()
                 : willApplyMutation(item, resolutionType);
@@ -129,7 +125,6 @@ public class FeltStocktakeItemEvaluator {
                 status,
                 false,
                 resolutionType,
-                mutationOutsideStocktake,
                 mutationApplied,
                 newStorage,
                 item.getResolutionComment()
@@ -153,25 +148,6 @@ public class FeltStocktakeItemEvaluator {
 
     }
 
-    private boolean hasMutationOutsideStocktake(FeltStocktakeItem item, FeltStocktakeResolutionType resolutionType,
-            Storage expectedStorage) {
-        FeltStocktakeRollOrScrap rollOrScrap = item.getRollOrScrap();
-        if (rollOrScrap == null) {
-            return true;
-        }
-        Storage currentStorage = currentStorage(rollOrScrap);
-        if (currentStorage == null) {
-            return true;
-        }
-
-        return switch (resolutionType) {
-            case ADJUST_STORAGE, MOVE_PHYSICALLY -> !Objects.equals(currentStorage, expectedStorage);
-            case REMOVE_MISSING, IGNORE_MISSING -> expectedStorage == null
-                    || !Objects.equals(currentStorage, expectedStorage);
-            case ACKNOWLEDGE -> false;
-        };
-    }
-
     private boolean isUnknownItem(FeltStocktakeItem item) {
         FeltStocktakeRollOrScrap rollOrScrap = item.getRollOrScrap();
         if (rollOrScrap == null) {
@@ -186,15 +162,6 @@ public class FeltStocktakeItemEvaluator {
             return null;
         }
         return rollOrScrap.getExpectedStorage();
-    }
-
-    private Storage currentStorage(FeltStocktakeRollOrScrap rollOrScrap) {
-        FeltRoll roll = rollOrScrap.getRoll();
-        if (roll != null) {
-            return roll.getStorage();
-        }
-        ScrapPiece scrap = rollOrScrap.getScrap();
-        return scrap != null ? scrap.getStorage() : null;
     }
 
     private boolean isExpectedStorage(FeltStocktakeScan scan, Storage expectedStorage) {

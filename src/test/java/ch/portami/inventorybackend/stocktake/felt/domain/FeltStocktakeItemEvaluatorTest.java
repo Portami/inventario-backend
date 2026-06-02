@@ -103,7 +103,6 @@ class FeltStocktakeItemEvaluatorTest {
 
         assertThat(evaluation.status()).isEqualTo(FeltStocktakeItemStatus.UNKNOWN);
         assertThat(evaluation.resolutionType()).isEqualTo(FeltStocktakeResolutionType.IGNORE_MISSING);
-        assertThat(evaluation.mutationOutsideStocktake()).isTrue();
         assertThat(evaluation.mutationApplied()).isFalse();
     }
 
@@ -130,7 +129,6 @@ class FeltStocktakeItemEvaluatorTest {
         assertThat(evaluation.status()).isEqualTo(FeltStocktakeItemStatus.NOT_IN_STOCKTAKE);
         assertThat(evaluation.resolutionType()).isEqualTo(FeltStocktakeResolutionType.IGNORE_MISSING);
         assertThat(evaluation.needsResolution()).isFalse();
-        assertThat(evaluation.mutationOutsideStocktake()).isTrue();
         assertThat(evaluation.mutationApplied()).isFalse();
     }
 
@@ -168,7 +166,6 @@ class FeltStocktakeItemEvaluatorTest {
         assertThat(evaluation.status()).isEqualTo(FeltStocktakeItemStatus.MISSING);
         assertThat(evaluation.resolutionType()).isEqualTo(FeltStocktakeResolutionType.IGNORE_MISSING);
         assertThat(evaluation.needsResolution()).isFalse();
-        assertThat(evaluation.mutationOutsideStocktake()).isFalse();
         assertThat(evaluation.mutationApplied()).isFalse();
     }
 
@@ -184,7 +181,6 @@ class FeltStocktakeItemEvaluatorTest {
         assertThat(evaluation.status()).isEqualTo(FeltStocktakeItemStatus.MISSING);
         assertThat(evaluation.resolutionType()).isEqualTo(FeltStocktakeResolutionType.REMOVE_MISSING);
         assertThat(evaluation.needsResolution()).isFalse();
-        assertThat(evaluation.mutationOutsideStocktake()).isFalse();
         assertThat(evaluation.mutationApplied()).isTrue();
     }
 

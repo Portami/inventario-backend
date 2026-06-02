@@ -8,9 +8,6 @@ public record FeltStocktakeResolutionDto(
         // No schema definition for this field as it would overwrite the more detailed descriptions on the enum type.
         FeltStocktakeResolutionType resolution,
 
-        @Schema(description = "Indicates whether a relevant change to this item was made outside of the stocktake process.")
-        Boolean mutationOutsideStocktake,
-
         @Schema(description = "Indicates whether an actual inventory mutation has been applied on completion of the stocktaking. If the stocktake is not completed yet, it will indicate if one will happen if the stocktake would be completed now.")
         Boolean mutationApplied,
 
