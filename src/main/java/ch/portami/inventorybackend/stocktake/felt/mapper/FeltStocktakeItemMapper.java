@@ -28,9 +28,9 @@ public class FeltStocktakeItemMapper {
         this.resolutionMapper = resolutionMapper;
     }
 
-    public FeltStocktakeItemDto toDto(FeltStocktakeItem item, List<FeltStocktakeScan> scans,
-            boolean stocktakeCompleted, boolean expectedStorageClosed, Set<Long> stocktakeStorageIds) {
-        FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, scans, stocktakeCompleted,
+    public FeltStocktakeItemDto toDto(FeltStocktakeItem item, boolean stocktakeCompleted, boolean expectedStorageClosed,
+            Set<Long> stocktakeStorageIds) {
+        FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, stocktakeCompleted,
                 expectedStorageClosed, stocktakeStorageIds);
 
         FeltStocktakeItemStatus status = evaluation.status();
@@ -45,11 +45,11 @@ public class FeltStocktakeItemMapper {
             expectedStorageName = expectedStorage.getName();
         }
 
-        List<FeltStocktakeScan> scansToExpose = scans;
+        List<FeltStocktakeScan> scansToExpose = item.getScans();
         if (stocktakeCompleted) {
-            scansToExpose = scans.stream()
-                                 .filter(scan -> !Boolean.TRUE.equals(scan.isVoided()))
-                                 .toList();
+            scansToExpose = scansToExpose.stream()
+                                         .filter(scan -> !Boolean.TRUE.equals(scan.isVoided()))
+                                         .toList();
         }
 
         return new FeltStocktakeItemDto(

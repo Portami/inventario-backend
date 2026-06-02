@@ -82,15 +82,16 @@ public class FeltStocktakeScanService {
         ensureStorageInStocktake(stocktakeId, scannedStorage.getId());
 
         FeltStocktakeItem item = resolveItem(stocktake, dto.barcode());
-        List<FeltStocktakeScan> scans = scanRepo.findByStocktakeIdAndStocktakeItemId(stocktakeId, item.getId());
-        FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, scans, false, false,
+
+        FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, false, false,
                 stocktakeStorageIds(stocktakeId));
 
         FeltStocktakeScan scan = new FeltStocktakeScan(stocktake, item, dto.barcode(), scannedStorage);
+        item.addScan(scan);
         scan = scanRepo.save(scan);
 
         if (evaluation.status() == FeltStocktakeItemStatus.RESCAN_REQUIRED) {
-            correctOriginalScan(scans);
+            correctOriginalScan(item.getScans());
         }
 
         return scanMapper.toDto(scan);
@@ -125,10 +126,9 @@ public class FeltStocktakeScanService {
         }
 
         FeltStocktakeItem item = scan.getStocktakeItem();
-        List<FeltStocktakeScan> scans = scanRepo.findByStocktakeIdAndStocktakeItemId(stocktakeId, item.getId());
         boolean expectedStorageClosed = isExpectedStorageClosed(item, stocktakeId);
         Set<Long> stocktakeStorageIds = stocktakeStorageIds(stocktakeId);
-        FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, scans, false, expectedStorageClosed,
+        FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, false, expectedStorageClosed,
                 stocktakeStorageIds);
 
         if (evaluation.hasResolvedProblem()) {

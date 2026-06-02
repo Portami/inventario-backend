@@ -16,14 +16,15 @@ import org.springframework.stereotype.Component;
 @Component
 public class FeltStocktakeItemEvaluator {
 
-    public FeltStocktakeItemEvaluation evaluate(FeltStocktakeItem item, List<FeltStocktakeScan> scans,
-            boolean stocktakeCompleted, boolean expectedStorageClosed, Set<Long> stocktakeStorageIds) {
+    public FeltStocktakeItemEvaluation evaluate(FeltStocktakeItem item, boolean stocktakeCompleted,
+            boolean expectedStorageClosed, Set<Long> stocktakeStorageIds) {
 
         Storage expectedStorage = expectedStorage(item);
-        List<FeltStocktakeScan> activeScans = scans.stream()
-                                                   .filter(s -> !s.isVoided())
-                                                   .filter(s -> !s.isCorrected())
-                                                   .toList();
+        List<FeltStocktakeScan> activeScans = item.getScans()
+                                                  .stream()
+                                                  .filter(s -> !s.isVoided())
+                                                  .filter(s -> !s.isCorrected())
+                                                  .toList();
 
         FeltStocktakeItemStatus status = determineStatus(item, activeScans, expectedStorage, expectedStorageClosed);
 

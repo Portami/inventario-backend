@@ -158,8 +158,7 @@ public class FeltStocktakeService {
             }
 
             boolean expectedStorageClosed = isExpectedStorageClosed(item, id);
-            List<FeltStocktakeScan> scans = scanRepo.findByStocktakeIdAndStocktakeItemId(id, item.getId());
-            FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, scans, false, expectedStorageClosed,
+            FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, false, expectedStorageClosed,
                     stocktakeStorageIds);
             if (evaluation.needsResolution()) {
                 throw new UnresolvedFeltStocktakeProblemException(id, item.getId(), evaluation.status());
@@ -170,7 +169,7 @@ public class FeltStocktakeService {
         }
 
         for (FeltStocktakeItem item : usedItems) {
-            applyCompletionMutation(item, id, stocktakeStorageIds);
+            applyCompletionMutation(item, stocktakeStorageIds);
         }
 
         itemRepo.deleteAll(unusedItems);
@@ -242,11 +241,10 @@ public class FeltStocktakeService {
         item.setRollOrScrap(rollOrScrap);
     }
 
-    private void applyCompletionMutation(FeltStocktakeItem item, Long stocktakeId, Set<Long> stocktakeStorageIds) {
+    private void applyCompletionMutation(FeltStocktakeItem item, Set<Long> stocktakeStorageIds) {
         Storage expectedStorage = item.getRollOrScrap() != null ? item.getRollOrScrap()
                                                                       .getExpectedStorage() : null;
-        List<FeltStocktakeScan> scans = scanRepo.findByStocktakeIdAndStocktakeItemId(stocktakeId, item.getId());
-        FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, scans, false, true, stocktakeStorageIds);
+        FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, false, true, stocktakeStorageIds);
 
         if (!evaluation.hasProblem()) {
             return;
@@ -255,7 +253,7 @@ public class FeltStocktakeService {
         switch (evaluation.resolutionType()) {
             case ADJUST_STORAGE -> applyAdjustStorage(item);
             case REMOVE_MISSING -> applyRemoveMissing(item);
-            case MOVE_PHYSICALLY -> markWrongStorageScansCorrected(scans, expectedStorage);
+            case MOVE_PHYSICALLY -> markWrongStorageScansCorrected(item.getScans(), expectedStorage);
             case IGNORE_MISSING, ACKNOWLEDGE -> { /* Do nothing */ }
         }
     }

@@ -125,6 +125,10 @@ public class FeltStocktakeItem {
         return scans;
     }
 
+    public void addScan(FeltStocktakeScan scan) {
+        scans.add(scan);
+    }
+
     public FeltStocktake getStocktake() {
         return stocktake;
     }
