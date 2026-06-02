@@ -267,36 +267,35 @@ public class FeltStocktakeService {
         FeltStocktakeRollOrScrap rollOrScrap = item.getRollOrScrap();
 
         if (rollOrScrap == null) {
-            // The item was removed during the stocktake, so we cannot adjust storage.
-            return;
+            throw new IllegalStateException("Cannot adjust storage of unknown item without roll or scrap");
         }
 
         if (rollOrScrap.getRoll() != null) {
             rollOrScrap.getRoll()
                        .setStorage(newStorage);
+            item.setMutationApplied(true);
         } else if (rollOrScrap.getScrap() != null) {
             rollOrScrap.getScrap()
                        .setStorage(newStorage);
+            item.setMutationApplied(true);
         }
-
-        item.setMutationApplied(true);
 
     }
 
     private void applyRemoveMissing(FeltStocktakeItem item) {
         FeltStocktakeRollOrScrap rollOrScrap = item.getRollOrScrap();
+
         if (rollOrScrap == null) {
-            // The item was already removed during the stocktake.
-            return;
+            throw new IllegalStateException("Cannot remove unknown item without roll or scrap");
         }
 
         if (rollOrScrap.getRoll() != null) {
             rollRepo.delete(rollOrScrap.getRoll());
+            item.setMutationApplied(true);
         } else if (rollOrScrap.getScrap() != null) {
             scrapRepo.delete(rollOrScrap.getScrap());
+            item.setMutationApplied(true);
         }
-
-        item.setMutationApplied(true);
 
     }
 
