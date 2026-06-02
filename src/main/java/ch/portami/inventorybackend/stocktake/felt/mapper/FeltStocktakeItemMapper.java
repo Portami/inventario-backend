@@ -19,10 +19,13 @@ public class FeltStocktakeItemMapper {
 
     private final FeltStocktakeItemEvaluator evaluator;
     private final FeltStocktakeScanMapper scanAssembler;
+    private final FeltStocktakeResolutionMapper resolutionMapper;
 
-    public FeltStocktakeItemMapper(FeltStocktakeItemEvaluator evaluator, FeltStocktakeScanMapper scanAssembler) {
+    public FeltStocktakeItemMapper(FeltStocktakeItemEvaluator evaluator, FeltStocktakeScanMapper scanAssembler,
+            FeltStocktakeResolutionMapper resolutionMapper) {
         this.evaluator = evaluator;
         this.scanAssembler = scanAssembler;
+        this.resolutionMapper = resolutionMapper;
     }
 
     public FeltStocktakeItemDto toDto(FeltStocktakeItem item, List<FeltStocktakeScan> scans,
@@ -58,7 +61,7 @@ public class FeltStocktakeItemMapper {
                 expectedStorageName,
                 status,
                 evaluation.needsResolution(),
-                evaluation.resolutionDto(),
+                evaluation.hasResolvedProblem() ? resolutionMapper.toDto(evaluation) : null,
                 scansToExpose.stream()
                              .map(scanAssembler::toDto)
                              .toList()

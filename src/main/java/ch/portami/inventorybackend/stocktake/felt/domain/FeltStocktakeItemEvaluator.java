@@ -3,7 +3,6 @@ package ch.portami.inventorybackend.stocktake.felt.domain;
 import ch.portami.inventorybackend.felt.entity.FeltRoll;
 import ch.portami.inventorybackend.felt.entity.ScrapPiece;
 import ch.portami.inventorybackend.stocktake.felt.dto.item.FeltStocktakeItemStatus;
-import ch.portami.inventorybackend.stocktake.felt.dto.item.FeltStocktakeResolutionDto;
 import ch.portami.inventorybackend.stocktake.felt.dto.item.FeltStocktakeResolutionType;
 import ch.portami.inventorybackend.stocktake.felt.entity.FeltStocktakeItem;
 import ch.portami.inventorybackend.stocktake.felt.entity.FeltStocktakeRollOrScrap;
@@ -40,10 +39,11 @@ public class FeltStocktakeItemEvaluator {
 
         boolean needsResolution = needsResolution(status, resolutionType);
 
-        FeltStocktakeResolutionDto resolutionDto = toResolutionDto(item, resolutionType, expectedStorage,
-                stocktakeCompleted);
+        if (resolutionType == null) {
+            return FeltStocktakeItemEvaluation.createWithoutResolution(status, needsResolution);
+        }
 
-        return new FeltStocktakeItemEvaluation(status, needsResolution, resolutionType, resolutionDto);
+        return createEvaluationWithResolution(item, status, resolutionType, stocktakeCompleted, expectedStorage);
     }
 
     private FeltStocktakeItemStatus determineStatus(FeltStocktakeItem item, List<FeltStocktakeScan> activeScans,
@@ -107,12 +107,10 @@ public class FeltStocktakeItemEvaluator {
 
     }
 
-    private FeltStocktakeResolutionDto toResolutionDto(FeltStocktakeItem item,
-            FeltStocktakeResolutionType resolutionType,
-            Storage expectedStorage, boolean stocktakeCompleted) {
-        if (resolutionType == null) {
-            return null;
-        }
+    private FeltStocktakeItemEvaluation createEvaluationWithResolution(FeltStocktakeItem item,
+            FeltStocktakeItemStatus status, FeltStocktakeResolutionType resolutionType, boolean stocktakeCompleted,
+            Storage expectedStorage) {
+
         boolean mutationOutsideStocktake =
                 !stocktakeCompleted && hasMutationOutsideStocktake(item, resolutionType, expectedStorage);
         boolean mutationApplied = stocktakeCompleted
@@ -126,12 +124,13 @@ public class FeltStocktakeItemEvaluator {
             newStorage = expectedStorage;
         }
 
-        return new FeltStocktakeResolutionDto(
+        return new FeltStocktakeItemEvaluation(
+                status,
+                false,
                 resolutionType,
                 mutationOutsideStocktake,
                 mutationApplied,
-                newStorage != null ? newStorage.getId() : null,
-                newStorage != null ? newStorage.getName() : null,
+                newStorage,
                 item.getResolutionComment()
         );
     }
