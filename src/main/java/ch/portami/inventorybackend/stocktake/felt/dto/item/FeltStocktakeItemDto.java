@@ -15,7 +15,7 @@ public record FeltStocktakeItemDto(
         Long itemId,
 
         @Schema(description = "The roll or scrap details of the item. It is null for unknown-barcode items.", nullable = true)
-        @Nullable FeltStocktakeRollOrScrapDto rollOrScrapDto,
+        @Nullable FeltStocktakeRollOrScrapDto rollOrScrap,
 
         @Schema(description = "The barcode of the item. It is only set for unknown-barcode items, and is null for all other items.", nullable = true)
         @Nullable String barcode,
