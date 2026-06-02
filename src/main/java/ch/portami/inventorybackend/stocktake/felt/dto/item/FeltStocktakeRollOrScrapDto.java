@@ -35,13 +35,7 @@ public record FeltStocktakeRollOrScrapDto(
         String feltTypeName,
 
         @Schema(description = "Display name of the supplier.")
-        String supplierName,
-
-        @Schema(description = "ID of the expected storage location.")
-        Long expectedStorageId,
-
-        @Schema(description = "Name of the expected storage location.")
-        String expectedStorageName
+        String supplierName
 ) {
 
 }

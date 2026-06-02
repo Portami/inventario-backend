@@ -67,8 +67,6 @@ public class FeltStocktakeItemMapper {
 
     private FeltStocktakeRollOrScrapDto toRollOrScrapDto(FeltStocktakeRollOrScrap rollOrScrap) {
 
-        Storage expectedStorage = rollOrScrap.getExpectedStorage();
-
         Long rollOrScrapId = null;
         Long feltId = null;
 
@@ -97,9 +95,7 @@ public class FeltStocktakeItemMapper {
                 rollOrScrap.getPrice(),
                 rollOrScrap.getArticleNumber(),
                 rollOrScrap.getFeltTypeName(),
-                rollOrScrap.getSupplierName(),
-                expectedStorage != null ? expectedStorage.getId() : null,
-                expectedStorage != null ? expectedStorage.getName() : null
+                rollOrScrap.getSupplierName()
         );
 
     }
