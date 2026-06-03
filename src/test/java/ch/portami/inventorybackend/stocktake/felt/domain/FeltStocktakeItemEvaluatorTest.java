@@ -102,7 +102,7 @@ class FeltStocktakeItemEvaluatorTest {
         FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, false, false, Set.of(storage.getId()));
 
         assertThat(evaluation.status()).isEqualTo(FeltStocktakeItemStatus.UNKNOWN);
-        assertThat(evaluation.resolutionType()).isEqualTo(FeltStocktakeResolutionType.IGNORE_MISSING);
+        assertThat(evaluation.resolutionType()).isEqualTo(FeltStocktakeResolutionType.ACKNOWLEDGE);
         assertThat(evaluation.mutationApplied()).isFalse();
     }
 
@@ -127,7 +127,7 @@ class FeltStocktakeItemEvaluatorTest {
         FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, false, false, Set.of(1L));
 
         assertThat(evaluation.status()).isEqualTo(FeltStocktakeItemStatus.NOT_IN_STOCKTAKE);
-        assertThat(evaluation.resolutionType()).isEqualTo(FeltStocktakeResolutionType.IGNORE_MISSING);
+        assertThat(evaluation.resolutionType()).isEqualTo(FeltStocktakeResolutionType.ACKNOWLEDGE);
         assertThat(evaluation.needsResolution()).isFalse();
         assertThat(evaluation.mutationApplied()).isFalse();
     }

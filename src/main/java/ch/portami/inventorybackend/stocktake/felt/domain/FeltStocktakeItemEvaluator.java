@@ -89,7 +89,7 @@ public class FeltStocktakeItemEvaluator {
             case MISSING -> item.isMutationWanted()
                     ? FeltStocktakeResolutionType.REMOVE_MISSING
                     : FeltStocktakeResolutionType.IGNORE_MISSING;
-            case NOT_IN_STOCKTAKE, UNKNOWN -> FeltStocktakeResolutionType.IGNORE_MISSING;
+            case NOT_IN_STOCKTAKE, UNKNOWN -> FeltStocktakeResolutionType.ACKNOWLEDGE;
         };
 
     }
