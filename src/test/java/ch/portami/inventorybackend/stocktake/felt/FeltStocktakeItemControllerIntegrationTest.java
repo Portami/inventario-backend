@@ -77,6 +77,10 @@ class FeltStocktakeItemControllerIntegrationTest extends BaseIntegrationTest {
     private Long rollBarcodeId;
     private Long rollId;
 
+    private record RollBarcodeIds(Long rollId, Long barcodeId) {
+
+    }
+
     @BeforeAll
     void beforeAll() {
         storageAId = storageRepository.save(new Storage("Storage A"))
@@ -119,12 +123,11 @@ class FeltStocktakeItemControllerIntegrationTest extends BaseIntegrationTest {
                                          .getId();
     }
 
-    private FeltStocktakeDto postStocktake(boolean includeScrap) {
+    private FeltStocktakeDto postStocktake(boolean includeScrap, List<Long> storageIds) {
         FeltStocktakeDto body = restTestClient.post()
                                               .uri("/api/stocktakes")
                                               .contentType(MediaType.APPLICATION_JSON)
-                                              .body(new CreateFeltStocktakeDto("Item run", includeScrap,
-                                                      List.of(storageAId, storageBId)))
+                                              .body(new CreateFeltStocktakeDto("Item run", includeScrap, storageIds))
                                               .exchange()
                                               .expectStatus()
                                               .isCreated()
@@ -133,6 +136,10 @@ class FeltStocktakeItemControllerIntegrationTest extends BaseIntegrationTest {
                                               .getResponseBody();
         assertThat(body).isNotNull();
         return body;
+    }
+
+    private FeltStocktakeDto postStocktake(boolean includeScrap) {
+        return postStocktake(includeScrap, List.of(storageAId, storageBId));
     }
 
     private void createScan(Long stocktakeId, Long storageId, String barcode) {
@@ -153,6 +160,23 @@ class FeltStocktakeItemControllerIntegrationTest extends BaseIntegrationTest {
     private FeltStocktakeItem findBarcodeItem(Long stocktakeId, String barcode) {
         return stocktakeItemRepository.findByStocktakeIdAndBarcode(stocktakeId, barcode)
                                       .orElseThrow();
+    }
+
+    private RollBarcodeIds createAdditionalRollWithBarcode(Long storageId) {
+        Felt felt = feltRepository.save(new Felt(
+                feltTypeRepository.getReferenceById(feltTypeId),
+                supplierRepository.getReferenceById(supplierId),
+                "ART-NEW",
+                2.2,
+                280.0,
+                new BigDecimal("9.90"),
+                "Blue",
+                "Supplier Blue"
+        ));
+        FeltRoll roll = feltRollRepository.save(
+                new FeltRoll(felt, null, storageRepository.getReferenceById(storageId), 8.0, 1.2));
+        Barcode barcode = barcodeRepository.save(Barcode.forRoll(roll));
+        return new RollBarcodeIds(roll.getId(), barcode.getId());
     }
 
     private void closeStorage(Long stocktakeId, Long storageId) {
@@ -205,12 +229,53 @@ class FeltStocktakeItemControllerIntegrationTest extends BaseIntegrationTest {
         }
 
         @Test
+        @DisplayName("returns item scanned in wrong storage both for expected storage and actual storage")
+        void returnsWrongStorageItemForBothStorages() {
+            FeltStocktakeDto stocktake = postStocktake(false);
+            createScan(stocktake.id(), storageBId, String.valueOf(rollBarcodeId));
+
+            restTestClient.get()
+                          .uri("/api/stocktakes/{id}/items?storageId={storageId}", stocktake.id(), storageBId)
+                          .exchange()
+                          .expectStatus()
+                          .isOk()
+                          .expectBody(ITEM_LIST)
+                          .value(list -> assertThat(list).hasSize(1)
+                                                         .extracting(FeltStocktakeItemDto::status)
+                                                         .containsExactly(FeltStocktakeItemStatus.WRONG_STORAGE));
+
+            restTestClient.get()
+                          .uri("/api/stocktakes/{id}/items?storageId={storageId}", stocktake.id(), storageAId)
+                          .exchange()
+                          .expectStatus()
+                          .isOk()
+                          .expectBody(ITEM_LIST)
+                          .value(list -> assertThat(list).hasSize(1)
+                                                         .extracting(FeltStocktakeItemDto::status)
+                                                         .containsExactly(FeltStocktakeItemStatus.WRONG_STORAGE));
+        }
+
+        @Test
         @DisplayName("returns empty list when no items found")
         void returnsEmptyList() {
             FeltStocktakeDto stocktake = postStocktake(false);
 
             restTestClient.get()
                           .uri("/api/stocktakes/{id}/items?storageId={storageId}", stocktake.id(), 999L)
+                          .exchange()
+                          .expectStatus()
+                          .isOk()
+                          .expectBody(ITEM_LIST)
+                          .value(list -> assertThat(list).isEmpty());
+        }
+
+        @Test
+        @DisplayName("does not return items for storages not in stocktake")
+        void doesNotReturnItemsForNonIncludedStorages() {
+            FeltStocktakeDto stocktake = postStocktake(false, List.of(storageBId));
+
+            restTestClient.get()
+                          .uri("/api/stocktakes/{id}/items", stocktake.id())
                           .exchange()
                           .expectStatus()
                           .isOk()
@@ -310,6 +375,137 @@ class FeltStocktakeItemControllerIntegrationTest extends BaseIntegrationTest {
         }
 
         @Test
+        @DisplayName("resolves wrong storage by adjusting storage")
+        void resolvesWrongStorageWithAdjustStorage() {
+            FeltStocktakeDto stocktake = postStocktake(false);
+            createScan(stocktake.id(), storageBId, String.valueOf(rollBarcodeId));
+            FeltStocktakeItem item = findRollItem(stocktake.id());
+
+            restTestClient.post()
+                          .uri("/api/stocktakes/{id}/items/{itemId}/resolve", stocktake.id(), item.getId())
+                          .contentType(MediaType.APPLICATION_JSON)
+                          .body(new ResolveFeltStocktakeProblemDto(FeltStocktakeResolutionType.ADJUST_STORAGE, "Fix"))
+                          .exchange()
+                          .expectStatus()
+                          .isOk()
+                          .expectBody(FeltStocktakeItemDto.class)
+                          .value(dto -> {
+                              assertThat(dto.status()).isEqualTo(FeltStocktakeItemStatus.WRONG_STORAGE);
+                              assertThat(dto.resolution()).isNotNull();
+                              assertThat(dto.resolution()
+                                            .resolution()).isEqualTo(FeltStocktakeResolutionType.ADJUST_STORAGE);
+                              assertThat(dto.resolution()
+                                            .newStorageId()).isEqualTo(storageBId);
+                          });
+        }
+
+        @Test
+        @DisplayName("resolves wrong storage by moving physically")
+        void resolvesWrongStorageWithMovePhysically() {
+            FeltStocktakeDto stocktake = postStocktake(false);
+            createScan(stocktake.id(), storageBId, String.valueOf(rollBarcodeId));
+            FeltStocktakeItem item = findRollItem(stocktake.id());
+
+            restTestClient.post()
+                          .uri("/api/stocktakes/{id}/items/{itemId}/resolve", stocktake.id(), item.getId())
+                          .contentType(MediaType.APPLICATION_JSON)
+                          .body(new ResolveFeltStocktakeProblemDto(FeltStocktakeResolutionType.MOVE_PHYSICALLY, "Move"))
+                          .exchange()
+                          .expectStatus()
+                          .isOk()
+                          .expectBody(FeltStocktakeItemDto.class)
+                          .value(dto -> {
+                              assertThat(dto.status()).isEqualTo(FeltStocktakeItemStatus.RESCAN_REQUIRED);
+                              assertThat(dto.resolution()).isNotNull();
+                              assertThat(dto.resolution()
+                                            .resolution()).isEqualTo(FeltStocktakeResolutionType.MOVE_PHYSICALLY);
+                              assertThat(dto.resolution()
+                                            .newStorageId()).isEqualTo(storageAId);
+                          });
+        }
+
+        @Test
+        @DisplayName("resolves missing item by ignoring it")
+        void resolvesMissingWithIgnore() {
+            FeltStocktakeDto stocktake = postStocktake(false);
+            closeStorage(stocktake.id(), storageAId);
+            FeltStocktakeItem item = findRollItem(stocktake.id());
+
+            restTestClient.post()
+                          .uri("/api/stocktakes/{id}/items/{itemId}/resolve", stocktake.id(), item.getId())
+                          .contentType(MediaType.APPLICATION_JSON)
+                          .body(new ResolveFeltStocktakeProblemDto(FeltStocktakeResolutionType.IGNORE_MISSING,
+                                  "Ignore"))
+                          .exchange()
+                          .expectStatus()
+                          .isOk()
+                          .expectBody(FeltStocktakeItemDto.class)
+                          .value(dto -> {
+                              assertThat(dto.status()).isEqualTo(FeltStocktakeItemStatus.MISSING);
+                              assertThat(dto.resolution()).isNotNull();
+                              assertThat(dto.resolution()
+                                            .resolution()).isEqualTo(FeltStocktakeResolutionType.IGNORE_MISSING);
+                          });
+        }
+
+        @Test
+        @DisplayName("resolves missing item by removing it")
+        void resolvesMissingWithRemove() {
+            FeltStocktakeDto stocktake = postStocktake(false);
+            closeStorage(stocktake.id(), storageAId);
+            FeltStocktakeItem item = findRollItem(stocktake.id());
+
+            restTestClient.post()
+                          .uri("/api/stocktakes/{id}/items/{itemId}/resolve", stocktake.id(), item.getId())
+                          .contentType(MediaType.APPLICATION_JSON)
+                          .body(new ResolveFeltStocktakeProblemDto(FeltStocktakeResolutionType.REMOVE_MISSING,
+                                  "Remove"))
+                          .exchange()
+                          .expectStatus()
+                          .isOk()
+                          .expectBody(FeltStocktakeItemDto.class)
+                          .value(dto -> {
+                              assertThat(dto.status()).isEqualTo(FeltStocktakeItemStatus.MISSING);
+                              assertThat(dto.resolution()).isNotNull();
+                              assertThat(dto.resolution()
+                                            .resolution()).isEqualTo(FeltStocktakeResolutionType.REMOVE_MISSING);
+                          });
+        }
+
+        @Test
+        @DisplayName("acknowledges not-in-stocktake item")
+        void acknowledgesNotInStocktakeItem() {
+            FeltStocktakeDto stocktake = postStocktake(false);
+            RollBarcodeIds extraRoll = createAdditionalRollWithBarcode(storageAId);
+            createScan(stocktake.id(), storageAId, String.valueOf(extraRoll.barcodeId()));
+            FeltStocktakeItem item = stocktakeItemRepository.findByStocktakeIdAndRollId(stocktake.id(),
+                                                                    extraRoll.rollId())
+                                                            .orElseThrow();
+
+            restTestClient.get()
+                          .uri("/api/stocktakes/{id}/items/{itemId}", stocktake.id(), item.getId())
+                          .exchange()
+                          .expectStatus()
+                          .isOk()
+                          .expectBody(FeltStocktakeItemDto.class)
+                          .value(dto -> assertThat(dto.status()).isEqualTo(FeltStocktakeItemStatus.NOT_IN_STOCKTAKE));
+
+            restTestClient.post()
+                          .uri("/api/stocktakes/{id}/items/{itemId}/resolve", stocktake.id(), item.getId())
+                          .contentType(MediaType.APPLICATION_JSON)
+                          .body(new ResolveFeltStocktakeProblemDto(FeltStocktakeResolutionType.ACKNOWLEDGE, "Ack"))
+                          .exchange()
+                          .expectStatus()
+                          .isOk()
+                          .expectBody(FeltStocktakeItemDto.class)
+                          .value(dto -> {
+                              assertThat(dto.resolution()).isNotNull();
+                              assertThat(dto.resolution()
+                                            .resolution()).isEqualTo(FeltStocktakeResolutionType.ACKNOWLEDGE);
+                          });
+        }
+
+        @Test
         @DisplayName("returns 404 for non-existing item")
         void returnsNotFound() {
             FeltStocktakeDto stocktake = postStocktake(false);
@@ -340,7 +536,7 @@ class FeltStocktakeItemControllerIntegrationTest extends BaseIntegrationTest {
         }
 
         @Test
-        @DisplayName("returns 409 for item without problem")
+        @DisplayName("returns 409 for unscanned item in non-closed storage")
         void rejectsNonProblemItem() {
             FeltStocktakeDto stocktake = postStocktake(false);
             FeltStocktakeItem item = findRollItem(stocktake.id());
@@ -378,6 +574,103 @@ class FeltStocktakeItemControllerIntegrationTest extends BaseIntegrationTest {
                           .expectStatus()
                           .isEqualTo(HttpStatus.CONFLICT);
         }
+
+        @Test
+        @DisplayName("returns 409 for ok item")
+        void rejectsOkItem() {
+            FeltStocktakeDto stocktake = postStocktake(false);
+            createScan(stocktake.id(), storageAId, String.valueOf(rollBarcodeId));
+            FeltStocktakeItem item = findRollItem(stocktake.id());
+
+            restTestClient.post()
+                          .uri("/api/stocktakes/{id}/items/{itemId}/resolve", stocktake.id(), item.getId())
+                          .contentType(MediaType.APPLICATION_JSON)
+                          .body(new ResolveFeltStocktakeProblemDto(FeltStocktakeResolutionType.ACKNOWLEDGE, "No issue"))
+                          .exchange()
+                          .expectStatus()
+                          .isEqualTo(HttpStatus.CONFLICT);
+        }
+
+        @Test
+        @DisplayName("returns 409 for duplicate scan item")
+        void rejectsDuplicateScanItem() {
+            FeltStocktakeDto stocktake = postStocktake(false);
+            createScan(stocktake.id(), storageAId, String.valueOf(rollBarcodeId));
+            createScan(stocktake.id(), storageAId, String.valueOf(rollBarcodeId));
+            FeltStocktakeItem item = findRollItem(stocktake.id());
+
+            restTestClient.post()
+                          .uri("/api/stocktakes/{id}/items/{itemId}/resolve", stocktake.id(), item.getId())
+                          .contentType(MediaType.APPLICATION_JSON)
+                          .body(new ResolveFeltStocktakeProblemDto(FeltStocktakeResolutionType.ACKNOWLEDGE,
+                                  "Duplicate"))
+                          .exchange()
+                          .expectStatus()
+                          .isEqualTo(HttpStatus.CONFLICT);
+        }
+
+        @Test
+        @DisplayName("returns 409 for rescan-required item")
+        void rejectsRescanRequiredItem() {
+            FeltStocktakeDto stocktake = postStocktake(false);
+            createScan(stocktake.id(), storageBId, String.valueOf(rollBarcodeId));
+            FeltStocktakeItem item = findRollItem(stocktake.id());
+
+            restTestClient.post()
+                          .uri("/api/stocktakes/{id}/items/{itemId}/resolve", stocktake.id(), item.getId())
+                          .contentType(MediaType.APPLICATION_JSON)
+                          .body(new ResolveFeltStocktakeProblemDto(FeltStocktakeResolutionType.MOVE_PHYSICALLY,
+                                  "Move"))
+                          .exchange()
+                          .expectStatus()
+                          .isOk()
+                          .expectBody(FeltStocktakeItemDto.class)
+                          .value(dto -> assertThat(dto.status()).isEqualTo(FeltStocktakeItemStatus.RESCAN_REQUIRED));
+
+            restTestClient.post()
+                          .uri("/api/stocktakes/{id}/items/{itemId}/resolve", stocktake.id(), item.getId())
+                          .contentType(MediaType.APPLICATION_JSON)
+                          .body(new ResolveFeltStocktakeProblemDto(FeltStocktakeResolutionType.MOVE_PHYSICALLY,
+                                  "Move again"))
+                          .exchange()
+                          .expectStatus()
+                          .isEqualTo(HttpStatus.CONFLICT);
+        }
+
+        @Test
+        @DisplayName("returns 409 for acknowledge resolution for item in wrong storage")
+        void rejectsAcknowledgeForWrongStorage() {
+            FeltStocktakeDto stocktake = postStocktake(false);
+            createScan(stocktake.id(), storageBId, String.valueOf(rollBarcodeId));
+            FeltStocktakeItem item = findRollItem(stocktake.id());
+
+            restTestClient.post()
+                          .uri("/api/stocktakes/{id}/items/{itemId}/resolve", stocktake.id(), item.getId())
+                          .contentType(MediaType.APPLICATION_JSON)
+                          .body(new ResolveFeltStocktakeProblemDto(FeltStocktakeResolutionType.ACKNOWLEDGE,
+                                  "Ack"))
+                          .exchange()
+                          .expectStatus()
+                          .isEqualTo(HttpStatus.CONFLICT);
+        }
+
+        @Test
+        @DisplayName("returns 409 for acknowledge resolution for missing item")
+        void rejectsAcknowledgeForMissingItem() {
+            FeltStocktakeDto stocktake = postStocktake(false);
+            closeStorage(stocktake.id(), storageAId);
+            FeltStocktakeItem item = findRollItem(stocktake.id());
+
+            restTestClient.post()
+                          .uri("/api/stocktakes/{id}/items/{itemId}/resolve", stocktake.id(), item.getId())
+                          .contentType(MediaType.APPLICATION_JSON)
+                          .body(new ResolveFeltStocktakeProblemDto(FeltStocktakeResolutionType.ACKNOWLEDGE,
+                                  "Ack"))
+                          .exchange()
+                          .expectStatus()
+                          .isEqualTo(HttpStatus.CONFLICT);
+        }
+
     }
 
     @Nested
@@ -440,6 +733,18 @@ class FeltStocktakeItemControllerIntegrationTest extends BaseIntegrationTest {
                           .isOk()
                           .expectBody(FeltStocktakeItemDto.class)
                           .value(dto -> assertThat(dto.resolution()).isNull());
+        }
+
+        @Test
+        @DisplayName("returns 404 for non-existing item")
+        void returnsNotFound() {
+            FeltStocktakeDto stocktake = postStocktake(false);
+
+            restTestClient.post()
+                          .uri("/api/stocktakes/{id}/items/{itemId}/unresolve", stocktake.id(), 999L)
+                          .exchange()
+                          .expectStatus()
+                          .isNotFound();
         }
 
         @Test
