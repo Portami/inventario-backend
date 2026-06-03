@@ -267,6 +267,29 @@ class FeltStocktakeItemEvaluatorTest {
     }
 
     @Test
+    void convertsToWrongStorageWithResolutionWhenItemWasRescanned() {
+        Storage expectedStorage = createStorage(1L);
+        Storage scannedStorage = createStorage(2L);
+        FeltStocktakeItem item = createItemWithRoll(expectedStorage, expectedStorage);
+        FeltStocktakeScan initialScan = createScan(item, scannedStorage, "WRONG");
+        item.addScan(initialScan);
+        item.setProblemAcknowledged(true);
+        item.setMutationWanted(false);
+
+        item.addScan(createScan(item, expectedStorage, "RESCAN"));
+        initialScan.setCorrected(true);
+
+        FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, false, false,
+                Set.of(expectedStorage.getId()));
+
+        assertThat(evaluation.status()).isEqualTo(FeltStocktakeItemStatus.WRONG_STORAGE);
+        assertThat(evaluation.resolutionType()).isEqualTo(FeltStocktakeResolutionType.MOVE_PHYSICALLY);
+        assertThat(evaluation.newStorage()).isEqualTo(expectedStorage);
+        assertThat(evaluation.mutationApplied()).isFalse();
+        assertThat(evaluation.needsResolution()).isFalse();
+    }
+
+    @Test
     void usesMutationAppliedFlagWhenStocktakeCompleted() {
         Storage expectedStorage = createStorage(1L);
         Storage scannedStorage = createStorage(2L);

@@ -66,7 +66,7 @@ public class FeltStocktakeItemEvaluator {
 
         FeltStocktakeScan scan = activeScans.getFirst();
 
-        if (isExpectedStorage(scan, expectedStorage)) {
+        if (isExpectedStorage(scan, expectedStorage) && !item.isProblemAcknowledged()) {
             return FeltStocktakeItemStatus.OK;
         }
 
