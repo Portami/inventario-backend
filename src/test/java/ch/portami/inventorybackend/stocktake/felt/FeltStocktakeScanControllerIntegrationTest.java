@@ -13,6 +13,7 @@ import ch.portami.inventorybackend.felt.repository.FeltRollRepository;
 import ch.portami.inventorybackend.felt.repository.FeltTypeRepository;
 import ch.portami.inventorybackend.felt.repository.ScrapPieceRepository;
 import ch.portami.inventorybackend.felt.repository.SupplierRepository;
+import ch.portami.inventorybackend.stocktake.felt.dto.FeltStocktakeItemType;
 import ch.portami.inventorybackend.stocktake.felt.dto.item.FeltStocktakeResolutionType;
 import ch.portami.inventorybackend.stocktake.felt.dto.item.ResolveFeltStocktakeProblemDto;
 import ch.portami.inventorybackend.stocktake.felt.dto.scan.CreateFeltStocktakeScanDto;
@@ -69,7 +70,9 @@ class FeltStocktakeScanControllerIntegrationTest extends BaseIntegrationTest {
     private Long supplierId;
     private Long feltTypeId;
 
+    private Long feltId;
     private Long rollBarcodeId;
+    private Long scrapBarcodeId;
 
     @BeforeAll
     void beforeAll() {
@@ -103,6 +106,8 @@ class FeltStocktakeScanControllerIntegrationTest extends BaseIntegrationTest {
                 "Supplier Red"
         ));
 
+        feltId = felt.getId();
+
         FeltRoll roll = feltRollRepository.save(
                 new FeltRoll(felt, null, storageRepository.getReferenceById(storageAId), 10.0, 1.5));
         ScrapPiece scrap = scrapPieceRepository.save(
@@ -110,7 +115,8 @@ class FeltStocktakeScanControllerIntegrationTest extends BaseIntegrationTest {
 
         rollBarcodeId = barcodeRepository.save(Barcode.forRoll(roll))
                                          .getId();
-        barcodeRepository.save(Barcode.forScrap(scrap));
+        scrapBarcodeId = barcodeRepository.save(Barcode.forScrap(scrap))
+                                          .getId();
     }
 
     private FeltStocktakeDto postStocktake(boolean singleStorage) {
@@ -165,9 +171,105 @@ class FeltStocktakeScanControllerIntegrationTest extends BaseIntegrationTest {
             FeltStocktakeScanDto scan = postScan(stocktake.id(), String.valueOf(rollBarcodeId), storageAId);
 
             assertThat(scan.scanId()).isNotNull();
+            assertThat(scan.type()).isEqualTo(FeltStocktakeItemType.ROLL);
             assertThat(scan.barcode()).isEqualTo(String.valueOf(rollBarcodeId));
             assertThat(scan.scannedStorageId()).isEqualTo(storageAId);
             assertThat(scan.isVoided()).isFalse();
+        }
+
+        @Test
+        @DisplayName("creates scan for known scrap barcode")
+        void createsScanForScrap() {
+            FeltStocktakeDto stocktake = postStocktake(false);
+
+            FeltStocktakeScanDto scan = postScan(stocktake.id(), String.valueOf(scrapBarcodeId), storageBId);
+
+            assertThat(scan.scanId()).isNotNull();
+            assertThat(scan.type()).isEqualTo(FeltStocktakeItemType.SCRAP);
+            assertThat(scan.barcode()).isEqualTo(String.valueOf(scrapBarcodeId));
+            assertThat(scan.scannedStorageId()).isEqualTo(storageBId);
+            assertThat(scan.isVoided()).isFalse();
+        }
+
+        @Test
+        @DisplayName("creates scan for unknown barcode")
+        void createsScanForUnknownBarcode() {
+            FeltStocktakeDto stocktake = postStocktake(false);
+
+            FeltStocktakeScanDto scan = postScan(stocktake.id(), "UNKNOWN-123", storageAId);
+
+            assertThat(scan.scanId()).isNotNull();
+            assertThat(scan.type()).isEqualTo(FeltStocktakeItemType.UNKNOWN);
+            assertThat(scan.barcode()).isEqualTo("UNKNOWN-123");
+            assertThat(scan.scannedStorageId()).isEqualTo(storageAId);
+            assertThat(scan.isVoided()).isFalse();
+        }
+
+        @Test
+        @DisplayName("creates scan for known barcode in different storage")
+        void createsScanForKnownBarcodeInDifferentStorage() {
+            FeltStocktakeDto stocktake = postStocktake(false);
+
+            FeltStocktakeScanDto scan = postScan(stocktake.id(), String.valueOf(rollBarcodeId), storageBId);
+
+            assertThat(scan.scanId()).isNotNull();
+            assertThat(scan.type()).isEqualTo(FeltStocktakeItemType.ROLL);
+            assertThat(scan.barcode()).isEqualTo(String.valueOf(rollBarcodeId));
+            assertThat(scan.scannedStorageId()).isEqualTo(storageBId);
+            assertThat(scan.isVoided()).isFalse();
+        }
+
+        @Test
+        @DisplayName("creates scan for item created after stocktake start")
+        void createsScanForNewItem() {
+            FeltStocktakeDto stocktake = postStocktake(false);
+            ScrapPiece newScrap = scrapPieceRepository.save(
+                    new ScrapPiece(feltRepository.getReferenceById(feltId), null,
+                            storageRepository.getReferenceById(storageAId), 80.0, 80.0));
+            Long newBarcodeId = barcodeRepository.save(Barcode.forScrap(newScrap))
+                                                 .getId();
+
+            FeltStocktakeScanDto scan = postScan(stocktake.id(), String.valueOf(newBarcodeId), storageAId);
+
+            assertThat(scan.scanId()).isNotNull();
+            assertThat(scan.type()).isEqualTo(FeltStocktakeItemType.SCRAP);
+            assertThat(scan.barcode()).isEqualTo(String.valueOf(newBarcodeId));
+            assertThat(scan.scannedStorageId()).isEqualTo(storageAId);
+            assertThat(scan.isVoided()).isFalse();
+        }
+
+        @Test
+        @DisplayName("corrects old scan for item that required rescan")
+        void correctsOldScanOnRescan() {
+            FeltStocktakeDto stocktake = postStocktake(false);
+            FeltStocktakeScanDto initialScan = postScan(stocktake.id(), String.valueOf(rollBarcodeId), storageBId);
+
+            restTestClient.post()
+                          .uri("/api/stocktakes/{id}/items/{itemId}/resolve", stocktake.id(), initialScan.itemId())
+                          .contentType(MediaType.APPLICATION_JSON)
+                          .body(new ResolveFeltStocktakeProblemDto(FeltStocktakeResolutionType.MOVE_PHYSICALLY, null))
+                          .exchange()
+                          .expectStatus()
+                          .isOk();
+
+            FeltStocktakeScanDto correctionScan = postScan(stocktake.id(), String.valueOf(rollBarcodeId), storageAId);
+
+            assertThat(correctionScan.barcode()).isEqualTo(String.valueOf(rollBarcodeId));
+            assertThat(correctionScan.scannedStorageId()).isEqualTo(storageAId);
+            assertThat(correctionScan.isCorrected()).isFalse();
+
+            restTestClient.get()
+                          .uri("/api/stocktakes/{id}/scans/{scanId}", stocktake.id(), initialScan.scanId())
+                          .exchange()
+                          .expectStatus()
+                          .isOk()
+                          .expectBody(FeltStocktakeScanDto.class)
+                          .value(scan -> {
+                              assertThat(scan.scanId()).isEqualTo(initialScan.scanId());
+                              assertThat(scan.barcode()).isEqualTo(String.valueOf(rollBarcodeId));
+                              assertThat(scan.scannedStorageId()).isEqualTo(storageBId);
+                              assertThat(scan.isCorrected()).isTrue();
+                          });
         }
 
         @Test
@@ -180,6 +282,20 @@ class FeltStocktakeScanControllerIntegrationTest extends BaseIntegrationTest {
                           .exchange()
                           .expectStatus()
                           .isNotFound();
+        }
+
+        @Test
+        @DisplayName("returns 422 when storage does not exist")
+        void returns422ForUnknownStorage() {
+            FeltStocktakeDto stocktake = postStocktake(false);
+
+            restTestClient.post()
+                          .uri("/api/stocktakes/{id}/scans", stocktake.id())
+                          .contentType(MediaType.APPLICATION_JSON)
+                          .body(new CreateFeltStocktakeScanDto(String.valueOf(rollBarcodeId), 99999L))
+                          .exchange()
+                          .expectStatus()
+                          .isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT);
         }
 
         @Test
@@ -342,6 +458,25 @@ class FeltStocktakeScanControllerIntegrationTest extends BaseIntegrationTest {
                           .isOk()
                           .expectBody(FeltStocktakeScanDto.class)
                           .value(scan -> assertThat(scan.isVoided()).isTrue());
+        }
+
+        @Test
+        @DisplayName("does nothing when scan is already voided")
+        void voidsAlreadyVoidedScan() {
+            FeltStocktakeDto stocktake = postStocktake(false);
+            FeltStocktakeScanDto created = postScan(stocktake.id(), String.valueOf(rollBarcodeId), storageAId);
+
+            restTestClient.post()
+                          .uri("/api/stocktakes/{id}/scans/{scanId}/void", stocktake.id(), created.scanId())
+                          .exchange()
+                          .expectStatus()
+                          .isNoContent();
+
+            restTestClient.post()
+                          .uri("/api/stocktakes/{id}/scans/{scanId}/void", stocktake.id(), created.scanId())
+                          .exchange()
+                          .expectStatus()
+                          .isNoContent();
         }
 
         @Test
