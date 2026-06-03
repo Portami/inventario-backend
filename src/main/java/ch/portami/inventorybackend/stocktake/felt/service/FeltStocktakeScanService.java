@@ -91,7 +91,7 @@ public class FeltStocktakeScanService {
         scan = scanRepo.save(scan);
 
         if (evaluation.status() == FeltStocktakeItemStatus.RESCAN_REQUIRED) {
-            correctOriginalScan(item.getScans());
+            correctOriginalScan(item.getScans(), scan);
         }
 
         return scanMapper.toDto(scan);
@@ -225,9 +225,9 @@ public class FeltStocktakeScanService {
         return item;
     }
 
-    private void correctOriginalScan(List<FeltStocktakeScan> scans) {
+    private void correctOriginalScan(List<FeltStocktakeScan> scans, FeltStocktakeScan newScan) {
         for (FeltStocktakeScan scan : scans) {
-            if (!scan.isVoided()) {
+            if (!scan.isVoided() && !scan.equals(newScan)) {
                 scan.setCorrected(true);
             }
         }
