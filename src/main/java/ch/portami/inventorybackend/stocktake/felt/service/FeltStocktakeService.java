@@ -343,10 +343,19 @@ public class FeltStocktakeService {
         if (storageIds == null) {
             return storageRepo.findAll();
         }
+
         List<Storage> storages = storageRepo.findAllById(storageIds);
+
         if (storages.size() != storageIds.size()) {
-            throw new InvalidStorageReferenceException(-1L);
+            for (Long storageId : storageIds) {
+                if (storages.stream()
+                            .noneMatch(storage -> storage.getId()
+                                                         .equals(storageId))) {
+                    throw new InvalidStorageReferenceException(storageId);
+                }
+            }
         }
+
         return storages;
     }
 

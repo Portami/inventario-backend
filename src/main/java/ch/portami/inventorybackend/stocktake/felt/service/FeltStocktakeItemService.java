@@ -103,7 +103,7 @@ public class FeltStocktakeItemService {
 
         if (!isValidResolutionType(evaluation.status(), dto.resolution())) {
             throw new InvalidFeltStocktakeResolutionType(stocktakeId, itemId, evaluation.status(),
-                    evaluation.resolutionType());
+                    dto.resolution());
         }
 
         applyResolution(item, dto.resolution(), dto.comment());
