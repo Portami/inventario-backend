@@ -1,6 +1,5 @@
 package ch.portami.inventorybackend.stocktake.felt.service;
 
-import ch.portami.inventorybackend.felt.entity.Felt;
 import ch.portami.inventorybackend.felt.entity.FeltRoll;
 import ch.portami.inventorybackend.felt.entity.ScrapPiece;
 import ch.portami.inventorybackend.felt.repository.FeltRollRepository;
@@ -8,6 +7,7 @@ import ch.portami.inventorybackend.felt.repository.ScrapPieceRepository;
 import ch.portami.inventorybackend.stocktake.felt.domain.FeltStocktakeItemEvaluation;
 import ch.portami.inventorybackend.stocktake.felt.domain.FeltStocktakeItemEvaluator;
 import ch.portami.inventorybackend.stocktake.felt.domain.FeltStocktakeItemStatus;
+import ch.portami.inventorybackend.stocktake.felt.domain.FeltStocktakeRollOrScrapHelper;
 import ch.portami.inventorybackend.stocktake.felt.domain.FeltStocktakeStorageHelper;
 import ch.portami.inventorybackend.stocktake.felt.dto.stocktake.CreateFeltStocktakeDto;
 import ch.portami.inventorybackend.stocktake.felt.dto.stocktake.ExtendStocktakeDto;
@@ -25,7 +25,6 @@ import ch.portami.inventorybackend.stocktake.felt.mapper.FeltStocktakeItemApiSta
 import ch.portami.inventorybackend.stocktake.felt.mapper.FeltStocktakeMapper;
 import ch.portami.inventorybackend.stocktake.felt.repository.FeltStocktakeItemRepository;
 import ch.portami.inventorybackend.stocktake.felt.repository.FeltStocktakeRepository;
-import ch.portami.inventorybackend.stocktake.felt.repository.FeltStocktakeRollOrScrapRepository;
 import ch.portami.inventorybackend.storage.entity.Storage;
 import ch.portami.inventorybackend.storage.exception.InvalidStorageReferenceException;
 import ch.portami.inventorybackend.storage.repository.StorageRepository;
@@ -46,31 +45,31 @@ public class FeltStocktakeService {
 
     private final FeltStocktakeRepository stocktakeRepo;
     private final FeltStocktakeItemRepository itemRepo;
-    private final FeltStocktakeRollOrScrapRepository rollOrScrapRepo;
     private final StorageRepository storageRepo;
     private final FeltRollRepository rollRepo;
     private final ScrapPieceRepository scrapRepo;
     private final FeltStocktakeItemEvaluator evaluator;
     private final FeltStocktakeStorageHelper storageHelper;
+    private final FeltStocktakeRollOrScrapHelper rollOrScrapHelper;
     private final FeltStocktakeMapper stocktakeMapper;
 
     public FeltStocktakeService(FeltStocktakeRepository stocktakeRepo,
             FeltStocktakeItemRepository itemRepo,
-            FeltStocktakeRollOrScrapRepository rollOrScrapRepo,
             StorageRepository storageRepo,
             FeltRollRepository rollRepo,
             ScrapPieceRepository scrapRepo,
             FeltStocktakeItemEvaluator evaluator,
             FeltStocktakeStorageHelper storageHelper,
+            FeltStocktakeRollOrScrapHelper rollOrScrapHelper,
             FeltStocktakeMapper stocktakeMapper) {
         this.stocktakeRepo = stocktakeRepo;
         this.itemRepo = itemRepo;
-        this.rollOrScrapRepo = rollOrScrapRepo;
         this.storageRepo = storageRepo;
         this.rollRepo = rollRepo;
         this.scrapRepo = scrapRepo;
         this.evaluator = evaluator;
         this.storageHelper = storageHelper;
+        this.rollOrScrapHelper = rollOrScrapHelper;
         this.stocktakeMapper = stocktakeMapper;
     }
 
@@ -177,8 +176,9 @@ public class FeltStocktakeService {
 
         List<FeltRoll> rolls = rollRepo.findAll();
         for (FeltRoll roll : rolls) {
-            if (roll.getStorage() != null) {
-                createItemForRoll(stocktake, roll);
+            Storage rollStorage = roll.getStorage();
+            if (rollStorage != null) {
+                rollOrScrapHelper.createAndSaveItemForRoll(stocktake, roll, rollStorage);
             }
         }
 
@@ -186,65 +186,14 @@ public class FeltStocktakeService {
 
             List<ScrapPiece> scraps = scrapRepo.findAll();
             for (ScrapPiece scrap : scraps) {
-                if (scrap.getStorage() != null) {
-                    createItemForScrap(stocktake, scrap);
+                Storage scrapStorage = scrap.getStorage();
+                if (scrapStorage != null) {
+                    rollOrScrapHelper.createAndSaveItemForScrap(stocktake, scrap, scrapStorage);
                 }
             }
 
         }
 
-    }
-
-    private void createItemForRoll(FeltStocktake stocktake, FeltRoll roll) {
-        FeltStocktakeItem item = new FeltStocktakeItem(stocktake);
-        item = itemRepo.save(item);
-
-        Felt felt = roll.getFelt();
-
-        FeltStocktakeRollOrScrap rollOrScrap = new FeltStocktakeRollOrScrap(
-                item,
-                roll.getStorage(),
-                roll.getLength(),
-                roll.getWidth(),
-                felt.getColor(),
-                felt.getThickness(),
-                felt.getDensity(),
-                felt.getPrice(),
-                felt.getArticleNumber(),
-                felt.getFeltType()
-                    .getName(),
-                felt.getSupplier()
-                    .getName(),
-                roll
-        );
-        rollOrScrap = rollOrScrapRepo.save(rollOrScrap);
-        item.setRollOrScrap(rollOrScrap);
-    }
-
-    private void createItemForScrap(FeltStocktake stocktake, ScrapPiece scrap) {
-        FeltStocktakeItem item = new FeltStocktakeItem(stocktake);
-        item = itemRepo.save(item);
-
-        Felt felt = scrap.getFelt();
-
-        FeltStocktakeRollOrScrap rollOrScrap = new FeltStocktakeRollOrScrap(
-                item,
-                scrap.getStorage(),
-                scrap.getLength(),
-                scrap.getWidth(),
-                felt.getColor(),
-                felt.getThickness(),
-                felt.getDensity(),
-                felt.getPrice(),
-                felt.getArticleNumber(),
-                felt.getFeltType()
-                    .getName(),
-                felt.getSupplier()
-                    .getName(),
-                scrap
-        );
-        rollOrScrap = rollOrScrapRepo.save(rollOrScrap);
-        item.setRollOrScrap(rollOrScrap);
     }
 
     private void applyCompletionMutation(FeltStocktakeItem item, FeltStocktakeItemEvaluation evaluation) {
