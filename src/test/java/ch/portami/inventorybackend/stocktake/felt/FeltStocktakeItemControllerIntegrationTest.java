@@ -13,8 +13,8 @@ import ch.portami.inventorybackend.felt.repository.FeltRollRepository;
 import ch.portami.inventorybackend.felt.repository.FeltTypeRepository;
 import ch.portami.inventorybackend.felt.repository.ScrapPieceRepository;
 import ch.portami.inventorybackend.felt.repository.SupplierRepository;
+import ch.portami.inventorybackend.stocktake.felt.dto.item.FeltStocktakeItemApiStatus;
 import ch.portami.inventorybackend.stocktake.felt.dto.item.FeltStocktakeItemDto;
-import ch.portami.inventorybackend.stocktake.felt.dto.item.FeltStocktakeItemStatus;
 import ch.portami.inventorybackend.stocktake.felt.dto.item.FeltStocktakeResolutionType;
 import ch.portami.inventorybackend.stocktake.felt.dto.item.ResolveFeltStocktakeProblemDto;
 import ch.portami.inventorybackend.stocktake.felt.dto.scan.CreateFeltStocktakeScanDto;
@@ -242,7 +242,7 @@ class FeltStocktakeItemControllerIntegrationTest extends BaseIntegrationTest {
                           .expectBody(ITEM_LIST)
                           .value(list -> assertThat(list).hasSize(1)
                                                          .extracting(FeltStocktakeItemDto::status)
-                                                         .containsExactly(FeltStocktakeItemStatus.WRONG_STORAGE));
+                                                         .containsExactly(FeltStocktakeItemApiStatus.WRONG_STORAGE));
 
             restTestClient.get()
                           .uri("/api/stocktakes/{id}/items?storageId={storageId}", stocktake.id(), storageAId)
@@ -252,7 +252,7 @@ class FeltStocktakeItemControllerIntegrationTest extends BaseIntegrationTest {
                           .expectBody(ITEM_LIST)
                           .value(list -> assertThat(list).hasSize(1)
                                                          .extracting(FeltStocktakeItemDto::status)
-                                                         .containsExactly(FeltStocktakeItemStatus.WRONG_STORAGE));
+                                                         .containsExactly(FeltStocktakeItemApiStatus.WRONG_STORAGE));
         }
 
         @Test
@@ -357,7 +357,7 @@ class FeltStocktakeItemControllerIntegrationTest extends BaseIntegrationTest {
                           .expectStatus()
                           .isOk()
                           .expectBody(FeltStocktakeItemDto.class)
-                          .value(dto -> assertThat(dto.status()).isEqualTo(FeltStocktakeItemStatus.UNKNOWN));
+                          .value(dto -> assertThat(dto.status()).isEqualTo(FeltStocktakeItemApiStatus.UNKNOWN));
 
             restTestClient.post()
                           .uri("/api/stocktakes/{id}/items/{itemId}/resolve", stocktake.id(), item.getId())
@@ -390,7 +390,7 @@ class FeltStocktakeItemControllerIntegrationTest extends BaseIntegrationTest {
                           .isOk()
                           .expectBody(FeltStocktakeItemDto.class)
                           .value(dto -> {
-                              assertThat(dto.status()).isEqualTo(FeltStocktakeItemStatus.WRONG_STORAGE);
+                              assertThat(dto.status()).isEqualTo(FeltStocktakeItemApiStatus.WRONG_STORAGE);
                               assertThat(dto.resolution()).isNotNull();
                               assertThat(dto.resolution()
                                             .resolution()).isEqualTo(FeltStocktakeResolutionType.ADJUST_STORAGE);
@@ -415,7 +415,7 @@ class FeltStocktakeItemControllerIntegrationTest extends BaseIntegrationTest {
                           .isOk()
                           .expectBody(FeltStocktakeItemDto.class)
                           .value(dto -> {
-                              assertThat(dto.status()).isEqualTo(FeltStocktakeItemStatus.RESCAN_REQUIRED);
+                              assertThat(dto.status()).isEqualTo(FeltStocktakeItemApiStatus.RESCAN_REQUIRED);
                               assertThat(dto.resolution()).isNotNull();
                               assertThat(dto.resolution()
                                             .resolution()).isEqualTo(FeltStocktakeResolutionType.MOVE_PHYSICALLY);
@@ -441,7 +441,7 @@ class FeltStocktakeItemControllerIntegrationTest extends BaseIntegrationTest {
                           .isOk()
                           .expectBody(FeltStocktakeItemDto.class)
                           .value(dto -> {
-                              assertThat(dto.status()).isEqualTo(FeltStocktakeItemStatus.MISSING);
+                              assertThat(dto.status()).isEqualTo(FeltStocktakeItemApiStatus.MISSING);
                               assertThat(dto.resolution()).isNotNull();
                               assertThat(dto.resolution()
                                             .resolution()).isEqualTo(FeltStocktakeResolutionType.IGNORE_MISSING);
@@ -465,7 +465,7 @@ class FeltStocktakeItemControllerIntegrationTest extends BaseIntegrationTest {
                           .isOk()
                           .expectBody(FeltStocktakeItemDto.class)
                           .value(dto -> {
-                              assertThat(dto.status()).isEqualTo(FeltStocktakeItemStatus.MISSING);
+                              assertThat(dto.status()).isEqualTo(FeltStocktakeItemApiStatus.MISSING);
                               assertThat(dto.resolution()).isNotNull();
                               assertThat(dto.resolution()
                                             .resolution()).isEqualTo(FeltStocktakeResolutionType.REMOVE_MISSING);
@@ -488,7 +488,8 @@ class FeltStocktakeItemControllerIntegrationTest extends BaseIntegrationTest {
                           .expectStatus()
                           .isOk()
                           .expectBody(FeltStocktakeItemDto.class)
-                          .value(dto -> assertThat(dto.status()).isEqualTo(FeltStocktakeItemStatus.NOT_IN_STOCKTAKE));
+                          .value(dto -> assertThat(dto.status()).isEqualTo(
+                                  FeltStocktakeItemApiStatus.NOT_IN_STOCKTAKE));
 
             restTestClient.post()
                           .uri("/api/stocktakes/{id}/items/{itemId}/resolve", stocktake.id(), item.getId())
@@ -625,7 +626,7 @@ class FeltStocktakeItemControllerIntegrationTest extends BaseIntegrationTest {
                           .expectStatus()
                           .isOk()
                           .expectBody(FeltStocktakeItemDto.class)
-                          .value(dto -> assertThat(dto.status()).isEqualTo(FeltStocktakeItemStatus.RESCAN_REQUIRED));
+                          .value(dto -> assertThat(dto.status()).isEqualTo(FeltStocktakeItemApiStatus.RESCAN_REQUIRED));
 
             restTestClient.post()
                           .uri("/api/stocktakes/{id}/items/{itemId}/resolve", stocktake.id(), item.getId())

@@ -7,7 +7,7 @@ import ch.portami.inventorybackend.felt.entity.FeltRoll;
 import ch.portami.inventorybackend.felt.entity.ScrapPiece;
 import ch.portami.inventorybackend.stocktake.felt.domain.FeltStocktakeItemEvaluation;
 import ch.portami.inventorybackend.stocktake.felt.domain.FeltStocktakeItemEvaluator;
-import ch.portami.inventorybackend.stocktake.felt.dto.item.FeltStocktakeItemStatus;
+import ch.portami.inventorybackend.stocktake.felt.domain.FeltStocktakeItemStatus;
 import ch.portami.inventorybackend.stocktake.felt.dto.scan.CreateFeltStocktakeScanDto;
 import ch.portami.inventorybackend.stocktake.felt.dto.scan.FeltStocktakeScanDto;
 import ch.portami.inventorybackend.stocktake.felt.entity.FeltStocktake;

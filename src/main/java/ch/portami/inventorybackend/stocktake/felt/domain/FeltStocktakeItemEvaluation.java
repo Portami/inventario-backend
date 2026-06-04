@@ -1,6 +1,5 @@
 package ch.portami.inventorybackend.stocktake.felt.domain;
 
-import ch.portami.inventorybackend.stocktake.felt.dto.item.FeltStocktakeItemStatus;
 import ch.portami.inventorybackend.stocktake.felt.dto.item.FeltStocktakeResolutionType;
 import ch.portami.inventorybackend.storage.entity.Storage;
 import jakarta.annotation.Nullable;

@@ -36,7 +36,7 @@ public record FeltStocktakeItemDto(
                         + " - `DUPLICATE_SCAN`: The item has been scanned more than once, indicating a potential issue with the scanning process. This problem has to be manually resolved by voiding one of the conflicting scans. This problem may hide other problems (e.g. `WRONG_STORAGE`) that will become visible again after the duplicate scan problem is resolved.<br/><br/> "
                         + " - `NOT_IN_STOCKTAKE`: The item was scanned but is not part of the current stocktake, e.g. because it has not was not assigned to any storage at the time the stocktake was started, or because it was created after the stocktake was started. The problem has to be acknowledged (`ACKNOWLEDGE`).<br/><br/> "
                         + " - `UNKNOWN`: The scanned barcode does not match any item in the system. This problem has to be resolved manually, e.g. by creating a new item for the scanned barcode, and must be resolved by acknowledging the problem (`ACKNOWLEDGE`).<br/>")
-        FeltStocktakeItemStatus status,
+        FeltStocktakeItemApiStatus status,
 
         @Schema(description = "Indicates whether the item has any unresolved problems.")
         Boolean needsResolution,

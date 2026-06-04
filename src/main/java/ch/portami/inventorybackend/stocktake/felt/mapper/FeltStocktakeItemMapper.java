@@ -2,9 +2,9 @@ package ch.portami.inventorybackend.stocktake.felt.mapper;
 
 import ch.portami.inventorybackend.stocktake.felt.domain.FeltStocktakeItemEvaluation;
 import ch.portami.inventorybackend.stocktake.felt.domain.FeltStocktakeItemEvaluator;
+import ch.portami.inventorybackend.stocktake.felt.domain.FeltStocktakeItemStatus;
 import ch.portami.inventorybackend.stocktake.felt.domain.FeltStocktakeItemTypeResolver;
 import ch.portami.inventorybackend.stocktake.felt.dto.item.FeltStocktakeItemDto;
-import ch.portami.inventorybackend.stocktake.felt.dto.item.FeltStocktakeItemStatus;
 import ch.portami.inventorybackend.stocktake.felt.dto.item.FeltStocktakeRollOrScrapDto;
 import ch.portami.inventorybackend.stocktake.felt.entity.FeltStocktakeItem;
 import ch.portami.inventorybackend.stocktake.felt.entity.FeltStocktakeRollOrScrap;
@@ -59,7 +59,7 @@ public class FeltStocktakeItemMapper {
                 item.getBarcode(),
                 expectedStorageId,
                 expectedStorageName,
-                status,
+                FeltStocktakeItemApiStatusMapper.toApiStatus(status),
                 evaluation.needsResolution(),
                 evaluation.hasResolvedProblem() ? resolutionMapper.toDto(evaluation) : null,
                 scansToExpose.stream()

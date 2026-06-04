@@ -2,8 +2,8 @@ package ch.portami.inventorybackend.stocktake.felt.service;
 
 import ch.portami.inventorybackend.stocktake.felt.domain.FeltStocktakeItemEvaluation;
 import ch.portami.inventorybackend.stocktake.felt.domain.FeltStocktakeItemEvaluator;
+import ch.portami.inventorybackend.stocktake.felt.domain.FeltStocktakeItemStatus;
 import ch.portami.inventorybackend.stocktake.felt.dto.item.FeltStocktakeItemDto;
-import ch.portami.inventorybackend.stocktake.felt.dto.item.FeltStocktakeItemStatus;
 import ch.portami.inventorybackend.stocktake.felt.dto.item.FeltStocktakeResolutionType;
 import ch.portami.inventorybackend.stocktake.felt.dto.item.ResolveFeltStocktakeProblemDto;
 import ch.portami.inventorybackend.stocktake.felt.entity.FeltStocktake;
@@ -16,6 +16,7 @@ import ch.portami.inventorybackend.stocktake.felt.exception.FeltStocktakeItemNot
 import ch.portami.inventorybackend.stocktake.felt.exception.FeltStocktakeNotFoundException;
 import ch.portami.inventorybackend.stocktake.felt.exception.InvalidFeltStocktakeResolutionType;
 import ch.portami.inventorybackend.stocktake.felt.exception.NoFeltStocktakeProblemToResolveException;
+import ch.portami.inventorybackend.stocktake.felt.mapper.FeltStocktakeItemApiStatusMapper;
 import ch.portami.inventorybackend.stocktake.felt.mapper.FeltStocktakeItemMapper;
 import ch.portami.inventorybackend.stocktake.felt.repository.FeltStocktakeItemRepository;
 import ch.portami.inventorybackend.stocktake.felt.repository.FeltStocktakeRepository;
@@ -102,7 +103,8 @@ public class FeltStocktakeItemService {
         }
 
         if (!isValidResolutionType(evaluation.status(), dto.resolution())) {
-            throw new InvalidFeltStocktakeResolutionType(stocktakeId, itemId, evaluation.status(),
+            throw new InvalidFeltStocktakeResolutionType(stocktakeId, itemId,
+                    FeltStocktakeItemApiStatusMapper.toApiStatus(evaluation.status()),
                     dto.resolution());
         }
 
@@ -130,12 +132,13 @@ public class FeltStocktakeItemService {
         return itemMapper.toDto(item, false, expectedStorageClosed, stocktakeStorageIds(stocktakeId));
     }
 
-    private boolean isValidResolutionType(FeltStocktakeItemStatus status, FeltStocktakeResolutionType resolutionType) {
+    private boolean isValidResolutionType(FeltStocktakeItemStatus status,
+            FeltStocktakeResolutionType resolutionType) {
         return switch (resolutionType) {
             case ADJUST_STORAGE, MOVE_PHYSICALLY -> status == FeltStocktakeItemStatus.WRONG_STORAGE;
             case REMOVE_MISSING, IGNORE_MISSING -> status == FeltStocktakeItemStatus.MISSING;
-            case ACKNOWLEDGE ->
-                    status == FeltStocktakeItemStatus.UNKNOWN || status == FeltStocktakeItemStatus.NOT_IN_STOCKTAKE;
+            case ACKNOWLEDGE -> status == FeltStocktakeItemStatus.UNKNOWN
+                    || status == FeltStocktakeItemStatus.NOT_IN_STOCKTAKE;
         };
     }
 

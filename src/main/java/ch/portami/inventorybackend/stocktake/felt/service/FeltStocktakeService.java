@@ -19,6 +19,7 @@ import ch.portami.inventorybackend.stocktake.felt.exception.FeltStocktakeComplet
 import ch.portami.inventorybackend.stocktake.felt.exception.FeltStocktakeNotFoundException;
 import ch.portami.inventorybackend.stocktake.felt.exception.UnclosedFeltStocktakeStorageException;
 import ch.portami.inventorybackend.stocktake.felt.exception.UnresolvedFeltStocktakeProblemException;
+import ch.portami.inventorybackend.stocktake.felt.mapper.FeltStocktakeItemApiStatusMapper;
 import ch.portami.inventorybackend.stocktake.felt.mapper.FeltStocktakeMapper;
 import ch.portami.inventorybackend.stocktake.felt.repository.FeltStocktakeItemRepository;
 import ch.portami.inventorybackend.stocktake.felt.repository.FeltStocktakeRepository;
@@ -157,7 +158,8 @@ public class FeltStocktakeService {
             FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, false, expectedStorageClosed,
                     stocktakeStorageIds);
             if (evaluation.needsResolution()) {
-                throw new UnresolvedFeltStocktakeProblemException(id, item.getId(), evaluation.status());
+                throw new UnresolvedFeltStocktakeProblemException(id, item.getId(),
+                        FeltStocktakeItemApiStatusMapper.toApiStatus(evaluation.status()));
             }
 
             usedItems.add(item);
