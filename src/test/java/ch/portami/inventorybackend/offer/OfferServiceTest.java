@@ -64,7 +64,8 @@ class OfferServiceTest {
             return it;
         });
 
-        var dto = new ch.portami.inventorybackend.offer.dto.CreateOfferItemOptionalDto(10L, "Desc", 1,
+        var dto = new ch.portami.inventorybackend.offer.dto.CreateOfferItemOptionalDto(
+                ch.portami.inventorybackend.offer.domain.OfferItemKind.PRODUCT, 10L, "Desc", 1,
                 new BigDecimal("1.00"));
         var result = offerService.addOfferItem(ID, dto);
 

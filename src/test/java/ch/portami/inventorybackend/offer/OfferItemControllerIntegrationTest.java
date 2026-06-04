@@ -1,6 +1,7 @@
 package ch.portami.inventorybackend.offer;
 
 import ch.portami.inventorybackend.BaseIntegrationTest;
+import ch.portami.inventorybackend.offer.domain.OfferItemKind;
 import ch.portami.inventorybackend.offer.domain.OfferState;
 import ch.portami.inventorybackend.offer.dto.CreateOfferItemOptionalDto;
 import ch.portami.inventorybackend.offer.dto.OfferItemDto;
@@ -58,7 +59,7 @@ class OfferItemControllerIntegrationTest extends BaseIntegrationTest {
         void testAddItemCreatesItem() {
             Offer offer = createTestOffer("Acme", OfferState.OFFER);
 
-            CreateOfferItemOptionalDto dto = new CreateOfferItemOptionalDto(5L, "desc", 1, new BigDecimal("1.00"));
+            CreateOfferItemOptionalDto dto = new CreateOfferItemOptionalDto(OfferItemKind.PRODUCT, 5L, "desc", 1, new BigDecimal("1.00"));
 
             OfferItemDto body = restTestClient.post()
                                               .uri(OFFERS_URL + "/{id}/items", offer.getId())
