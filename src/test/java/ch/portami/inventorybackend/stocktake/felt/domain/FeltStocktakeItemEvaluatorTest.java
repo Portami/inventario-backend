@@ -142,6 +142,19 @@ class FeltStocktakeItemEvaluatorTest {
     }
 
     @Test
+    void returnsOutOfScopeWhenExpectedStorageNotInStocktake() {
+        Storage expectedStorage = createStorage(1L);
+        Storage currentStorage = createStorage(2L);
+        FeltStocktakeItem item = createItemWithRoll(expectedStorage, currentStorage);
+
+        FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, false, Map.of(currentStorage.getId(), false));
+
+        assertThat(evaluation.status()).isEqualTo(FeltStocktakeItemStatus.OUT_OF_SCOPE);
+        assertThat(evaluation.resolutionType()).isNull();
+        assertThat(evaluation.needsResolution()).isFalse();
+    }
+
+    @Test
     void returnsMissingWhenNoScansAndStorageClosed() {
         Storage storage = createStorage(1L);
         FeltStocktakeItem item = createItemWithRoll(storage, storage);
@@ -304,6 +317,40 @@ class FeltStocktakeItemEvaluatorTest {
 
         assertThat(evaluation.resolutionType()).isEqualTo(FeltStocktakeResolutionType.ADJUST_STORAGE);
         assertThat(evaluation.mutationApplied()).isFalse();
+    }
+
+    @Test
+    void keepsInitialStatusWhenOriginalItemIsDeleted() {
+        Storage currentStorage = createStorage(1L);
+
+        FeltStocktakeItem item = new FeltStocktakeItem(new FeltStocktake("test"));
+        FeltStocktakeRollOrScrap rollOrScrap = new FeltStocktakeRollOrScrap(item, currentStorage, 10.0, 1.0,
+                "red", 2.0, 0.8, BigDecimal.ONE, "ART", "TYPE", "SUP",
+                (FeltRoll) null); // No roll is linked to the item, simulating a deleted original item
+        item.setRollOrScrap(rollOrScrap);
+
+        FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, false,
+                Map.of(currentStorage.getId(), false));
+
+        assertThat(evaluation.status()).isEqualTo(FeltStocktakeItemStatus.INITIAL);
+        assertThat(evaluation.resolutionType()).isNull();
+    }
+
+    @Test
+    void keepsMissingStatusWhenOriginalItemIsDeleted() {
+        Storage currentStorage = createStorage(1L);
+
+        FeltStocktakeItem item = new FeltStocktakeItem(new FeltStocktake("test"));
+        FeltStocktakeRollOrScrap rollOrScrap = new FeltStocktakeRollOrScrap(item, currentStorage, 10.0, 1.0,
+                "red", 2.0, 0.8, BigDecimal.ONE, "ART", "TYPE", "SUP",
+                (FeltRoll) null); // No roll is linked to the item, simulating a deleted original item
+        item.setRollOrScrap(rollOrScrap);
+
+        FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, false,
+                Map.of(currentStorage.getId(), true)); // Storage is closed
+
+        assertThat(evaluation.status()).isEqualTo(FeltStocktakeItemStatus.MISSING);
+        assertThat(evaluation.resolutionType()).isNull();
     }
 
 }
