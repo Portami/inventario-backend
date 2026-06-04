@@ -8,10 +8,8 @@ import ch.portami.inventorybackend.stocktake.felt.dto.item.FeltStocktakeItemDto;
 import ch.portami.inventorybackend.stocktake.felt.dto.item.FeltStocktakeRollOrScrapDto;
 import ch.portami.inventorybackend.stocktake.felt.entity.FeltStocktakeItem;
 import ch.portami.inventorybackend.stocktake.felt.entity.FeltStocktakeRollOrScrap;
-import ch.portami.inventorybackend.stocktake.felt.entity.FeltStocktakeScan;
 import ch.portami.inventorybackend.storage.entity.Storage;
-import java.util.List;
-import java.util.Set;
+import java.util.Map;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -28,10 +26,13 @@ public class FeltStocktakeItemMapper {
         this.resolutionMapper = resolutionMapper;
     }
 
-    public FeltStocktakeItemDto toDto(FeltStocktakeItem item, boolean stocktakeCompleted, boolean expectedStorageClosed,
-            Set<Long> stocktakeStorageIds) {
-        FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, stocktakeCompleted,
-                expectedStorageClosed, stocktakeStorageIds);
+    public FeltStocktakeItemDto toDto(FeltStocktakeItem item, boolean stocktakeCompleted,
+            Map<Long, Boolean> storageStates) {
+        FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, stocktakeCompleted, storageStates);
+        return toDto(item, evaluation);
+    }
+
+    public FeltStocktakeItemDto toDto(FeltStocktakeItem item, FeltStocktakeItemEvaluation evaluation) {
 
         FeltStocktakeItemStatus status = evaluation.status();
         FeltStocktakeRollOrScrap rollOrScrap = item.getRollOrScrap();
@@ -45,13 +46,6 @@ public class FeltStocktakeItemMapper {
             expectedStorageName = expectedStorage.getName();
         }
 
-        List<FeltStocktakeScan> scansToExpose = item.getScans();
-        if (stocktakeCompleted) {
-            scansToExpose = scansToExpose.stream()
-                                         .filter(scan -> !Boolean.TRUE.equals(scan.isVoided()))
-                                         .toList();
-        }
-
         return new FeltStocktakeItemDto(
                 FeltStocktakeItemTypeResolver.resolve(item),
                 item.getId(),
@@ -62,10 +56,12 @@ public class FeltStocktakeItemMapper {
                 FeltStocktakeItemApiStatusMapper.toApiStatus(status),
                 evaluation.needsResolution(),
                 evaluation.hasResolvedProblem() ? resolutionMapper.toDto(evaluation) : null,
-                scansToExpose.stream()
-                             .map(scanAssembler::toDto)
-                             .toList()
+                item.getScans()
+                    .stream()
+                    .map(scanAssembler::toDto)
+                    .toList()
         );
+        
     }
 
     private FeltStocktakeRollOrScrapDto toRollOrScrapDto(FeltStocktakeRollOrScrap rollOrScrap) {

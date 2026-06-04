@@ -6,15 +6,15 @@ import ch.portami.inventorybackend.stocktake.felt.entity.FeltStocktakeRollOrScra
 import ch.portami.inventorybackend.stocktake.felt.entity.FeltStocktakeScan;
 import ch.portami.inventorybackend.storage.entity.Storage;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import org.springframework.stereotype.Component;
 
 @Component
 public class FeltStocktakeItemEvaluator {
 
     public FeltStocktakeItemEvaluation evaluate(FeltStocktakeItem item, boolean stocktakeCompleted,
-            boolean expectedStorageClosed, Set<Long> stocktakeStorageIds) {
+            Map<Long, Boolean> storageStates) {
 
         Storage expectedStorage = expectedStorage(item);
         List<FeltStocktakeScan> activeScans = item.getScans()
@@ -23,14 +23,13 @@ public class FeltStocktakeItemEvaluator {
                                                   .filter(s -> !s.isCorrected())
                                                   .toList();
 
-        FeltStocktakeItemStatus status = determineStatus(item, activeScans, expectedStorage, expectedStorageClosed,
-                stocktakeStorageIds);
+        FeltStocktakeItemStatus status = determineStatus(item, activeScans, expectedStorage, storageStates);
 
         FeltStocktakeResolutionType resolutionType = determineResolutionType(item, status);
 
         if (status == FeltStocktakeItemStatus.WRONG_STORAGE
                 && resolutionType == FeltStocktakeResolutionType.MOVE_PHYSICALLY
-                && isStoragePartOfStocktake(expectedStorage, stocktakeStorageIds)
+                && expectedStorage != null && storageStates.containsKey(expectedStorage.getId())
                 && activeScans.stream()
                               .noneMatch(scan -> isExpectedStorage(scan, expectedStorage))) {
             status = FeltStocktakeItemStatus.RESCAN_REQUIRED;
@@ -46,7 +45,7 @@ public class FeltStocktakeItemEvaluator {
     }
 
     private FeltStocktakeItemStatus determineStatus(FeltStocktakeItem item, List<FeltStocktakeScan> activeScans,
-            Storage expectedStorage, boolean expectedStorageClosed, Set<Long> stocktakeStorageIds) {
+            Storage expectedStorage, Map<Long, Boolean> storageStates) {
 
         if (activeScans.size() > 1) {
             return FeltStocktakeItemStatus.DUPLICATE_SCAN;
@@ -62,7 +61,9 @@ public class FeltStocktakeItemEvaluator {
 
         if (activeScans.isEmpty()) {
 
-            if (!isStoragePartOfStocktake(expectedStorage, stocktakeStorageIds)) {
+            Boolean expectedStorageClosed = storageStates.get(expectedStorage.getId());
+
+            if (expectedStorageClosed == null) {
                 return FeltStocktakeItemStatus.OUT_OF_SCOPE;
             }
 
@@ -168,10 +169,6 @@ public class FeltStocktakeItemEvaluator {
             return null;
         }
         return rollOrScrap.getExpectedStorage();
-    }
-
-    private boolean isStoragePartOfStocktake(Storage storage, Set<Long> stocktakeStorageIds) {
-        return storage != null && stocktakeStorageIds.contains(storage.getId());
     }
 
     private boolean isExpectedStorage(FeltStocktakeScan scan, Storage expectedStorage) {

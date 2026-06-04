@@ -3,6 +3,7 @@ package ch.portami.inventorybackend.stocktake.felt.service;
 import ch.portami.inventorybackend.stocktake.felt.domain.FeltStocktakeItemEvaluation;
 import ch.portami.inventorybackend.stocktake.felt.domain.FeltStocktakeItemEvaluator;
 import ch.portami.inventorybackend.stocktake.felt.domain.FeltStocktakeItemStatus;
+import ch.portami.inventorybackend.stocktake.felt.domain.FeltStocktakeStorageHelper;
 import ch.portami.inventorybackend.stocktake.felt.dto.item.FeltStocktakeItemDto;
 import ch.portami.inventorybackend.stocktake.felt.dto.item.FeltStocktakeResolutionType;
 import ch.portami.inventorybackend.stocktake.felt.dto.item.ResolveFeltStocktakeProblemDto;
@@ -10,7 +11,6 @@ import ch.portami.inventorybackend.stocktake.felt.entity.FeltStocktake;
 import ch.portami.inventorybackend.stocktake.felt.entity.FeltStocktakeItem;
 import ch.portami.inventorybackend.stocktake.felt.entity.FeltStocktakeRollOrScrap;
 import ch.portami.inventorybackend.stocktake.felt.entity.FeltStocktakeScan;
-import ch.portami.inventorybackend.stocktake.felt.entity.FeltStocktakeStorage;
 import ch.portami.inventorybackend.stocktake.felt.exception.FeltStocktakeCompletedException;
 import ch.portami.inventorybackend.stocktake.felt.exception.FeltStocktakeItemNotFoundException;
 import ch.portami.inventorybackend.stocktake.felt.exception.FeltStocktakeNotFoundException;
@@ -20,13 +20,11 @@ import ch.portami.inventorybackend.stocktake.felt.mapper.FeltStocktakeItemApiSta
 import ch.portami.inventorybackend.stocktake.felt.mapper.FeltStocktakeItemMapper;
 import ch.portami.inventorybackend.stocktake.felt.repository.FeltStocktakeItemRepository;
 import ch.portami.inventorybackend.stocktake.felt.repository.FeltStocktakeRepository;
-import ch.portami.inventorybackend.stocktake.felt.repository.FeltStocktakeStorageRepository;
 import ch.portami.inventorybackend.storage.entity.Storage;
 import jakarta.annotation.Nullable;
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Stream;
+import java.util.Map;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,41 +34,51 @@ public class FeltStocktakeItemService {
 
     private final FeltStocktakeRepository stocktakeRepo;
     private final FeltStocktakeItemRepository itemRepo;
-    private final FeltStocktakeStorageRepository stocktakeStorageRepo;
     private final FeltStocktakeItemEvaluator evaluator;
+    private final FeltStocktakeStorageHelper storageHelper;
     private final FeltStocktakeItemMapper itemMapper;
 
     public FeltStocktakeItemService(FeltStocktakeRepository stocktakeRepo,
             FeltStocktakeItemRepository itemRepo,
-            FeltStocktakeStorageRepository stocktakeStorageRepo,
             FeltStocktakeItemEvaluator evaluator,
+            FeltStocktakeStorageHelper storageHelper,
             FeltStocktakeItemMapper itemMapper) {
         this.stocktakeRepo = stocktakeRepo;
         this.itemRepo = itemRepo;
-        this.stocktakeStorageRepo = stocktakeStorageRepo;
         this.evaluator = evaluator;
+        this.storageHelper = storageHelper;
         this.itemMapper = itemMapper;
     }
 
     public List<FeltStocktakeItemDto> getItems(Long stocktakeId, @Nullable Long storageId) {
+
         FeltStocktake stocktake = getStocktake(stocktakeId);
         List<FeltStocktakeItem> items = itemRepo.findByStocktakeId(stocktakeId);
-        Set<Long> stocktakeStorageIds = stocktakeStorageIds(stocktakeId);
+        Map<Long, Boolean> storageStates = storageHelper.getStorageStatesOfStocktake(stocktakeId);
+        boolean stocktakeCompleted = stocktake.getCompletedAt() != null;
 
-        Stream<FeltStocktakeItem> itemStream = items.stream();
+        List<FeltStocktakeItemDto> itemsToReturn = new ArrayList<>();
 
-        if (storageId != null) {
-            itemStream = itemStream.filter(item -> matchesStorage(item, storageId));
+        if (storageId == null) {
+
+            for (FeltStocktakeItem item : items) {
+                FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, stocktakeCompleted, storageStates);
+
+                if (evaluation.status() != FeltStocktakeItemStatus.OUT_OF_SCOPE) {
+                    itemsToReturn.add(itemMapper.toDto(item, evaluation));
+                }
+            }
+
         } else {
-            itemStream = itemStream.filter(item -> matchesAnyStorage(item, stocktakeStorageIds));
+
+            for (FeltStocktakeItem item : items) {
+                if (matchesStorage(item, storageId)) {
+                    itemsToReturn.add(itemMapper.toDto(item, stocktakeCompleted, storageStates));
+                }
+            }
         }
 
-        return itemStream.map(item -> {
-                             boolean expectedStorageClosed = isExpectedStorageClosed(item, stocktakeId);
-                             return itemMapper.toDto(item, stocktake.getCompletedAt() != null, expectedStorageClosed,
-                                     stocktakeStorageIds);
-                         })
-                         .toList();
+        return itemsToReturn;
     }
 
     public FeltStocktakeItemDto getItem(Long stocktakeId, Long itemId) {
@@ -78,9 +86,9 @@ public class FeltStocktakeItemService {
         FeltStocktakeItem item = itemRepo.findByStocktakeIdAndId(stocktakeId, itemId)
                                          .orElseThrow(
                                                  () -> new FeltStocktakeItemNotFoundException(stocktakeId, itemId));
-        boolean expectedStorageClosed = isExpectedStorageClosed(item, stocktakeId);
-        return itemMapper.toDto(item, stocktake.getCompletedAt() != null, expectedStorageClosed,
-                stocktakeStorageIds(stocktakeId));
+        Map<Long, Boolean> storageStates = storageHelper.getStorageStatesOfStocktake(stocktakeId);
+
+        return itemMapper.toDto(item, stocktake.getCompletedAt() != null, storageStates);
     }
 
     @Transactional
@@ -92,11 +100,9 @@ public class FeltStocktakeItemService {
                                          .orElseThrow(
                                                  () -> new FeltStocktakeItemNotFoundException(stocktakeId, itemId));
 
-        boolean expectedStorageClosed = isExpectedStorageClosed(item, stocktakeId);
-        Set<Long> stocktakeStorageIds = stocktakeStorageIds(stocktakeId);
+        Map<Long, Boolean> storageStates = storageHelper.getStorageStatesOfStocktake(stocktakeId);
 
-        FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, false, expectedStorageClosed,
-                stocktakeStorageIds);
+        FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, false, storageStates);
 
         if (!evaluation.needsResolution()) {
             throw new NoFeltStocktakeProblemToResolveException(stocktakeId, itemId);
@@ -110,7 +116,8 @@ public class FeltStocktakeItemService {
 
         applyResolution(item, dto.resolution(), dto.comment());
 
-        return itemMapper.toDto(item, false, expectedStorageClosed, stocktakeStorageIds);
+        // Do not reuse the previous evaluation, as the status probably changed after applying the resolution
+        return itemMapper.toDto(item, false, storageStates);
     }
 
     @Transactional
@@ -128,8 +135,8 @@ public class FeltStocktakeItemService {
         item.setMutationApplied(false);
         item.setResolutionComment(null);
 
-        boolean expectedStorageClosed = isExpectedStorageClosed(item, stocktakeId);
-        return itemMapper.toDto(item, false, expectedStorageClosed, stocktakeStorageIds(stocktakeId));
+        Map<Long, Boolean> storageStates = storageHelper.getStorageStatesOfStocktake(stocktakeId);
+        return itemMapper.toDto(item, false, storageStates);
     }
 
     private boolean isValidResolutionType(FeltStocktakeItemStatus status,
@@ -187,48 +194,6 @@ public class FeltStocktakeItemService {
                                                              .getId()
                                                              .equals(storageId));
 
-    }
-
-    private boolean matchesAnyStorage(FeltStocktakeItem item, Set<Long> stocktakeStorageIds) {
-        FeltStocktakeRollOrScrap rollOrScrap = item.getRollOrScrap();
-
-        if (rollOrScrap != null) {
-
-            Storage expectedStorage = rollOrScrap.getExpectedStorage();
-
-            if (expectedStorage != null && stocktakeStorageIds.contains(expectedStorage.getId())) {
-                return true;
-            }
-
-        }
-
-        return item.getScans()
-                   .stream()
-                   .filter(scan -> !scan.isVoided())
-                   .anyMatch(scan -> stocktakeStorageIds.contains(scan.getScannedStorage()
-                                                                      .getId()));
-
-    }
-
-    private boolean isExpectedStorageClosed(FeltStocktakeItem item, Long stocktakeId) {
-        if (item.getRollOrScrap() == null || item.getRollOrScrap()
-                                                 .getExpectedStorage() == null) {
-            return false;
-        }
-        Long storageId = item.getRollOrScrap()
-                             .getExpectedStorage()
-                             .getId();
-        return stocktakeStorageRepo.findByStocktakeIdAndStorageId(stocktakeId, storageId)
-                                   .map(FeltStocktakeStorage::isClosed)
-                                   .orElse(false);
-    }
-
-    private Set<Long> stocktakeStorageIds(Long stocktakeId) {
-        return stocktakeStorageRepo.findByStocktakeId(stocktakeId)
-                                   .stream()
-                                   .map(link -> link.getStorage()
-                                                    .getId())
-                                   .collect(HashSet::new, Set::add, Set::addAll);
     }
 
     private FeltStocktake getStocktake(Long stocktakeId) {

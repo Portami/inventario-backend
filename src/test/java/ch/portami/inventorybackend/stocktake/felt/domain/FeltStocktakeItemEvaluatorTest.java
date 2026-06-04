@@ -9,7 +9,7 @@ import ch.portami.inventorybackend.stocktake.felt.entity.FeltStocktakeRollOrScra
 import ch.portami.inventorybackend.stocktake.felt.entity.FeltStocktakeScan;
 import ch.portami.inventorybackend.storage.entity.Storage;
 import java.math.BigDecimal;
-import java.util.Set;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -55,7 +55,7 @@ class FeltStocktakeItemEvaluatorTest {
         item.addScan(createScan(item, storage, "A"));
         item.addScan(createScan(item, storage, "A"));
 
-        FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, false, false, Set.of(storage.getId()));
+        FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, false, Map.of(storage.getId(), false));
 
         assertThat(evaluation.status()).isEqualTo(FeltStocktakeItemStatus.DUPLICATE_SCAN);
         assertThat(evaluation.needsResolution()).isTrue();
@@ -74,7 +74,7 @@ class FeltStocktakeItemEvaluatorTest {
         item.addScan(voidedScan);
         item.addScan(correctedScan);
 
-        FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, false, false, Set.of(storage.getId()));
+        FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, false, Map.of(storage.getId(), false));
 
         assertThat(evaluation.status()).isEqualTo(FeltStocktakeItemStatus.INITIAL);
         assertThat(evaluation.needsResolution()).isFalse();
@@ -85,7 +85,7 @@ class FeltStocktakeItemEvaluatorTest {
     void returnsUnknownForUnknownItem() {
         FeltStocktakeItem item = new FeltStocktakeItem(new FeltStocktake("test"), "UNKNOWN_BARCODE");
 
-        FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, false, false, Set.of(1L));
+        FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, false, Map.of(1L, false));
 
         assertThat(evaluation.status()).isEqualTo(FeltStocktakeItemStatus.UNKNOWN);
         assertThat(evaluation.resolutionType()).isNull();
@@ -98,7 +98,7 @@ class FeltStocktakeItemEvaluatorTest {
         FeltStocktakeItem item = new FeltStocktakeItem(new FeltStocktake("test"));
         item.setProblemAcknowledged(true);
 
-        FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, false, false, Set.of(storage.getId()));
+        FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, false, Map.of(storage.getId(), false));
 
         assertThat(evaluation.status()).isEqualTo(FeltStocktakeItemStatus.UNKNOWN);
         assertThat(evaluation.resolutionType()).isEqualTo(FeltStocktakeResolutionType.ACKNOWLEDGE);
@@ -110,7 +110,7 @@ class FeltStocktakeItemEvaluatorTest {
         Storage currentStorage = createStorage(2L);
         FeltStocktakeItem item = createItemWithRoll(null, currentStorage);
 
-        FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, false, false, Set.of(1L));
+        FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, false, Map.of(1L, false));
 
         assertThat(evaluation.status()).isEqualTo(FeltStocktakeItemStatus.NOT_IN_STOCKTAKE);
         assertThat(evaluation.resolutionType()).isNull();
@@ -123,7 +123,7 @@ class FeltStocktakeItemEvaluatorTest {
         FeltStocktakeItem item = createItemWithRoll(null, currentStorage);
         item.setProblemAcknowledged(true);
 
-        FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, false, false, Set.of(1L));
+        FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, false, Map.of(1L, false));
 
         assertThat(evaluation.status()).isEqualTo(FeltStocktakeItemStatus.NOT_IN_STOCKTAKE);
         assertThat(evaluation.resolutionType()).isEqualTo(FeltStocktakeResolutionType.ACKNOWLEDGE);
@@ -136,7 +136,7 @@ class FeltStocktakeItemEvaluatorTest {
         Storage storage = createStorage(1L);
         FeltStocktakeItem item = createItemWithRoll(storage, storage);
 
-        FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, false, false, Set.of(storage.getId()));
+        FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, false, Map.of(storage.getId(), false));
 
         assertThat(evaluation.status()).isEqualTo(FeltStocktakeItemStatus.INITIAL);
         assertThat(evaluation.needsResolution()).isFalse();
@@ -147,7 +147,7 @@ class FeltStocktakeItemEvaluatorTest {
         Storage storage = createStorage(1L);
         FeltStocktakeItem item = createItemWithRoll(storage, storage);
 
-        FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, false, true, Set.of(storage.getId()));
+        FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, false, Map.of(storage.getId(), true));
 
         assertThat(evaluation.status()).isEqualTo(FeltStocktakeItemStatus.MISSING);
         assertThat(evaluation.resolutionType()).isNull();
@@ -160,7 +160,7 @@ class FeltStocktakeItemEvaluatorTest {
         FeltStocktakeItem item = createItemWithRoll(storage, storage);
         item.setProblemAcknowledged(true);
 
-        FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, false, true, Set.of(storage.getId()));
+        FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, false, Map.of(storage.getId(), true));
 
         assertThat(evaluation.status()).isEqualTo(FeltStocktakeItemStatus.MISSING);
         assertThat(evaluation.resolutionType()).isEqualTo(FeltStocktakeResolutionType.IGNORE_MISSING);
@@ -175,7 +175,7 @@ class FeltStocktakeItemEvaluatorTest {
         item.setProblemAcknowledged(true);
         item.setMutationWanted(true);
 
-        FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, false, true, Set.of(storage.getId()));
+        FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, false, Map.of(storage.getId(), true));
 
         assertThat(evaluation.status()).isEqualTo(FeltStocktakeItemStatus.MISSING);
         assertThat(evaluation.resolutionType()).isEqualTo(FeltStocktakeResolutionType.REMOVE_MISSING);
@@ -189,7 +189,7 @@ class FeltStocktakeItemEvaluatorTest {
         FeltStocktakeItem item = createItemWithRoll(storage, storage);
         item.addScan(createScan(item, storage, "OK"));
 
-        FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, false, false, Set.of(storage.getId()));
+        FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, false, Map.of(storage.getId(), false));
 
         assertThat(evaluation.status()).isEqualTo(FeltStocktakeItemStatus.OK);
         assertThat(evaluation.needsResolution()).isFalse();
@@ -202,8 +202,8 @@ class FeltStocktakeItemEvaluatorTest {
         FeltStocktakeItem item = createItemWithRoll(expectedStorage, expectedStorage);
         item.addScan(createScan(item, scannedStorage, "WRONG"));
 
-        FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, false, false,
-                Set.of(expectedStorage.getId()));
+        FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, false,
+                Map.of(scannedStorage.getId(), false));
 
         assertThat(evaluation.status()).isEqualTo(FeltStocktakeItemStatus.WRONG_STORAGE);
         assertThat(evaluation.resolutionType()).isNull();
@@ -222,8 +222,8 @@ class FeltStocktakeItemEvaluatorTest {
         item.setNewStorage(newStorage);
         item.setResolutionComment("Move in system");
 
-        FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, false, false,
-                Set.of(expectedStorage.getId()));
+        FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, false,
+                Map.of(scannedStorage.getId(), false));
 
         assertThat(evaluation.status()).isEqualTo(FeltStocktakeItemStatus.WRONG_STORAGE);
         assertThat(evaluation.resolutionType()).isEqualTo(FeltStocktakeResolutionType.ADJUST_STORAGE);
@@ -241,8 +241,8 @@ class FeltStocktakeItemEvaluatorTest {
         item.setProblemAcknowledged(true);
         item.setMutationWanted(false);
 
-        FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, false, false,
-                Set.of(expectedStorage.getId()));
+        FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, false,
+                Map.of(scannedStorage.getId(), false, expectedStorage.getId(), false));
 
         assertThat(evaluation.status()).isEqualTo(FeltStocktakeItemStatus.RESCAN_REQUIRED);
         assertThat(evaluation.resolutionType()).isEqualTo(FeltStocktakeResolutionType.MOVE_PHYSICALLY);
@@ -258,7 +258,7 @@ class FeltStocktakeItemEvaluatorTest {
         item.setProblemAcknowledged(true);
         item.setMutationWanted(false);
 
-        FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, false, false, Set.of(99L));
+        FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, false, Map.of(scannedStorage.getId(), false));
 
         assertThat(evaluation.status()).isEqualTo(FeltStocktakeItemStatus.WRONG_STORAGE);
         assertThat(evaluation.resolutionType()).isEqualTo(FeltStocktakeResolutionType.MOVE_PHYSICALLY);
@@ -278,8 +278,8 @@ class FeltStocktakeItemEvaluatorTest {
         item.addScan(createScan(item, expectedStorage, "RESCAN"));
         initialScan.setCorrected(true);
 
-        FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, false, false,
-                Set.of(expectedStorage.getId()));
+        FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, false,
+                Map.of(expectedStorage.getId(), false, scannedStorage.getId(), false));
 
         assertThat(evaluation.status()).isEqualTo(FeltStocktakeItemStatus.WRONG_STORAGE);
         assertThat(evaluation.resolutionType()).isEqualTo(FeltStocktakeResolutionType.MOVE_PHYSICALLY);
@@ -300,7 +300,7 @@ class FeltStocktakeItemEvaluatorTest {
         item.setNewStorage(newStorage);
         item.setMutationApplied(false); // Mutation was not applied although it was wanted
 
-        FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, true, false, Set.of(expectedStorage.getId()));
+        FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, true, Map.of(expectedStorage.getId(), false, scannedStorage.getId(), false, newStorage.getId(), false));
 
         assertThat(evaluation.resolutionType()).isEqualTo(FeltStocktakeResolutionType.ADJUST_STORAGE);
         assertThat(evaluation.mutationApplied()).isFalse();
