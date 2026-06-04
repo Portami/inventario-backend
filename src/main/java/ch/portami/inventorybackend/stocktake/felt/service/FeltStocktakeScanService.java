@@ -106,6 +106,10 @@ public class FeltStocktakeScanService {
         item.addScan(scan);
         scan = scanRepo.save(scan);
 
+        if (evaluation.status() == FeltStocktakeItemStatus.MISSING && evaluation.hasResolvedProblem()) {
+            removeResolution(item);
+        }
+
         if (evaluation.status() == FeltStocktakeItemStatus.RESCAN_REQUIRED) {
             correctOriginalScan(item.getScans(), scan);
         }
@@ -216,6 +220,14 @@ public class FeltStocktakeScanService {
     private FeltStocktakeItem resolveUnknownItem(FeltStocktake stocktake, String barcodeValue) {
         return itemRepo.findByStocktakeIdAndBarcode(stocktake.getId(), barcodeValue)
                        .orElseGet(() -> itemRepo.save(new FeltStocktakeItem(stocktake, barcodeValue)));
+    }
+
+    private void removeResolution(FeltStocktakeItem item) {
+        item.setProblemAcknowledged(false);
+        item.setMutationWanted(false);
+        item.setNewStorage(null);
+        item.setMutationApplied(false);
+        item.setResolutionComment(null);
     }
 
     private void correctOriginalScan(List<FeltStocktakeScan> scans, FeltStocktakeScan newScan) {
