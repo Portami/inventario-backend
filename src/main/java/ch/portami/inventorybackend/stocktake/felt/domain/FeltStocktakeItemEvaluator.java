@@ -102,7 +102,9 @@ public class FeltStocktakeItemEvaluator {
 
     private boolean needsResolution(FeltStocktakeItemStatus status, FeltStocktakeResolutionType resolutionType) {
 
-        if (status == FeltStocktakeItemStatus.OK || status == FeltStocktakeItemStatus.INITIAL) {
+        if (status == FeltStocktakeItemStatus.OUT_OF_SCOPE
+                || status == FeltStocktakeItemStatus.INITIAL
+                || status == FeltStocktakeItemStatus.OK) {
             return false;
         }
         if (status == FeltStocktakeItemStatus.DUPLICATE_SCAN) {
