@@ -518,7 +518,7 @@ class FeltStocktakeControllerIntegrationTest extends BaseIntegrationTest {
                           .expectStatus()
                           .isOk();
 
-            new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
+            new TransactionTemplate(transactionManager).executeWithoutResult(_ -> {
                 FeltRoll updated = feltRollRepository.findById(rollId)
                                                      .orElseThrow();
                 assertThat(updated.getStorage()
@@ -545,7 +545,7 @@ class FeltStocktakeControllerIntegrationTest extends BaseIntegrationTest {
                           .expectStatus()
                           .isOk();
 
-            new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
+            new TransactionTemplate(transactionManager).executeWithoutResult(_ -> {
                 FeltRoll updated = feltRollRepository.findById(rollId)
                                                      .orElseThrow();
                 assertThat(updated.getStorage()
@@ -611,7 +611,7 @@ class FeltStocktakeControllerIntegrationTest extends BaseIntegrationTest {
                           .expectStatus()
                           .isOk();
 
-            new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
+            new TransactionTemplate(transactionManager).executeWithoutResult(_ -> {
                 ScrapPiece updated = scrapPieceRepository.findById(scrapId)
                                                          .orElseThrow();
                 assertThat(updated.getStorage()

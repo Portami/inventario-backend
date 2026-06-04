@@ -163,8 +163,7 @@ public class FeltStocktakeItemService {
 
     }
 
-    private Storage resolveScannedStorage(
-            List<FeltStocktakeScan> scans) {
+    private Storage resolveScannedStorage(List<FeltStocktakeScan> scans) {
         return scans.stream()
                     .filter(scan -> !scan.isVoided())
                     .filter(scan -> !scan.isCorrected())

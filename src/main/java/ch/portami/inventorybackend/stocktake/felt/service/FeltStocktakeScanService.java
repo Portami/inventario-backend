@@ -73,7 +73,7 @@ public class FeltStocktakeScanService {
 
     @Transactional
     public FeltStocktakeScanDto createScan(Long stocktakeId, CreateFeltStocktakeScanDto dto) {
-        FeltStocktake stocktake = loadStocktake(stocktakeId);
+        FeltStocktake stocktake = getStocktake(stocktakeId);
         ensureNotCompleted(stocktake);
 
         Storage scannedStorage = storageRepo.findById(dto.scannedStorageId())
@@ -99,13 +99,13 @@ public class FeltStocktakeScanService {
     }
 
     public FeltStocktakeScanDto getScan(Long stocktakeId, Long scanId) {
-        loadStocktake(stocktakeId);
-        FeltStocktakeScan scan = loadScanEntity(stocktakeId, scanId);
+        getStocktake(stocktakeId);
+        FeltStocktakeScan scan = getScanEntity(stocktakeId, scanId);
         return scanMapper.toDto(scan);
     }
 
     public List<FeltStocktakeScanDto> getScans(Long stocktakeId, @Nullable Long storageId) {
-        loadStocktake(stocktakeId);
+        getStocktake(stocktakeId);
         List<FeltStocktakeScan> scans = storageId == null
                 ? scanRepo.findByStocktakeId(stocktakeId)
                 : scanRepo.findByStocktakeIdAndScannedStorageId(stocktakeId, storageId);
@@ -117,10 +117,10 @@ public class FeltStocktakeScanService {
     @Transactional
     public void voidScan(Long stocktakeId, Long scanId) {
 
-        FeltStocktake stocktake = loadStocktake(stocktakeId);
+        FeltStocktake stocktake = getStocktake(stocktakeId);
         ensureNotCompleted(stocktake);
 
-        FeltStocktakeScan scan = loadScanEntity(stocktakeId, scanId);
+        FeltStocktakeScan scan = getScanEntity(stocktakeId, scanId);
 
         if (scan.isVoided()) {
             return;
@@ -240,12 +240,12 @@ public class FeltStocktakeScanService {
         }
     }
 
-    private FeltStocktake loadStocktake(Long stocktakeId) {
+    private FeltStocktake getStocktake(Long stocktakeId) {
         return stocktakeRepo.findById(stocktakeId)
                             .orElseThrow(() -> new FeltStocktakeNotFoundException(stocktakeId));
     }
 
-    private FeltStocktakeScan loadScanEntity(Long stocktakeId, Long scanId) {
+    private FeltStocktakeScan getScanEntity(Long stocktakeId, Long scanId) {
         return scanRepo.findByStocktakeIdAndId(stocktakeId, scanId)
                        .orElseThrow(
                                () -> new FeltStocktakeScanNotFoundException(stocktakeId, scanId));

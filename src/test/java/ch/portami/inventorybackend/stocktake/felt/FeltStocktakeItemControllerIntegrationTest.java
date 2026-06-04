@@ -699,9 +699,7 @@ class FeltStocktakeItemControllerIntegrationTest extends BaseIntegrationTest {
                           .expectStatus()
                           .isOk()
                           .expectBody(FeltStocktakeItemDto.class)
-                          .value(dto -> {
-                              assertThat(dto.resolution()).isNull();
-                          });
+                          .value(dto -> assertThat(dto.resolution()).isNull());
         }
 
         @Test
