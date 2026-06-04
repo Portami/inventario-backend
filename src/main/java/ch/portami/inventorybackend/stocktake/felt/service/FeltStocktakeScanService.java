@@ -1,5 +1,6 @@
 package ch.portami.inventorybackend.stocktake.felt.service;
 
+import ch.portami.inventorybackend.barcode.BarcodeCode;
 import ch.portami.inventorybackend.barcode.entity.Barcode;
 import ch.portami.inventorybackend.barcode.repository.BarcodeRepository;
 import ch.portami.inventorybackend.felt.entity.FeltRoll;
@@ -205,9 +206,10 @@ public class FeltStocktakeScanService {
 
     private Long tryParseBarcodeId(String barcodeValue) {
         try {
-            return Long.parseLong(barcodeValue);
-        } catch (NumberFormatException ex) {
+            return new BarcodeCode(barcodeValue).toId();
+        } catch (NumberFormatException _) {
             return null;
         }
     }
+    
 }
