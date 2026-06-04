@@ -11,10 +11,6 @@ public interface FeltStocktakeScanRepository extends JpaRepository<FeltStocktake
 
     List<FeltStocktakeScan> findByStocktakeId(Long stocktakeId);
 
-    List<FeltStocktakeScan> findByStocktakeIdAndStocktakeItemId(Long stocktakeId, Long itemId);
-
     List<FeltStocktakeScan> findByStocktakeIdAndScannedStorageId(Long stocktakeId, Long storageId);
 
-    void deleteByStocktakeIdAndVoidedIsTrue(Long stocktakeId);
-    
 }
