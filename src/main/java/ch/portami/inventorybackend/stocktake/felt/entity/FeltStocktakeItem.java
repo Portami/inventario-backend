@@ -43,7 +43,7 @@ public class FeltStocktakeItem {
     private Boolean mutationWanted = false;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = true)
-    @JoinColumn(name = "expected_storage_id", nullable = true)
+    @JoinColumn(name = "new_storage_id", nullable = true)
     private Storage newStorage;
 
     @Column(name = "mutation_applied", nullable = false)
