@@ -10,7 +10,7 @@ public class FeltStocktakeItemApiStatusMapper {
 
     public static FeltStocktakeItemApiStatus toApiStatus(FeltStocktakeItemStatus status) {
         return switch (status) {
-            case INITIAL -> FeltStocktakeItemApiStatus.INITIAL;
+            case INITIAL, OUT_OF_SCOPE -> FeltStocktakeItemApiStatus.INITIAL;
             case OK -> FeltStocktakeItemApiStatus.OK;
             case MISSING -> FeltStocktakeItemApiStatus.MISSING;
             case WRONG_STORAGE -> FeltStocktakeItemApiStatus.WRONG_STORAGE;

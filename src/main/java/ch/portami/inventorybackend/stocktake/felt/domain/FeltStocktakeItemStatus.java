@@ -2,6 +2,7 @@ package ch.portami.inventorybackend.stocktake.felt.domain;
 
 public enum FeltStocktakeItemStatus {
     INITIAL,
+    OUT_OF_SCOPE,
     OK,
     MISSING,
     WRONG_STORAGE,

@@ -23,13 +23,14 @@ public class FeltStocktakeItemEvaluator {
                                                   .filter(s -> !s.isCorrected())
                                                   .toList();
 
-        FeltStocktakeItemStatus status = determineStatus(item, activeScans, expectedStorage, expectedStorageClosed);
+        FeltStocktakeItemStatus status = determineStatus(item, activeScans, expectedStorage, expectedStorageClosed,
+                stocktakeStorageIds);
 
         FeltStocktakeResolutionType resolutionType = determineResolutionType(item, status);
 
         if (status == FeltStocktakeItemStatus.WRONG_STORAGE
                 && resolutionType == FeltStocktakeResolutionType.MOVE_PHYSICALLY
-                && expectedStorage != null && stocktakeStorageIds.contains(expectedStorage.getId())
+                && isStoragePartOfStocktake(expectedStorage, stocktakeStorageIds)
                 && activeScans.stream()
                               .noneMatch(scan -> isExpectedStorage(scan, expectedStorage))) {
             status = FeltStocktakeItemStatus.RESCAN_REQUIRED;
@@ -45,7 +46,7 @@ public class FeltStocktakeItemEvaluator {
     }
 
     private FeltStocktakeItemStatus determineStatus(FeltStocktakeItem item, List<FeltStocktakeScan> activeScans,
-            Storage expectedStorage, boolean expectedStorageClosed) {
+            Storage expectedStorage, boolean expectedStorageClosed, Set<Long> stocktakeStorageIds) {
 
         if (activeScans.size() > 1) {
             return FeltStocktakeItemStatus.DUPLICATE_SCAN;
@@ -60,7 +61,13 @@ public class FeltStocktakeItemEvaluator {
         }
 
         if (activeScans.isEmpty()) {
+
+            if (!isStoragePartOfStocktake(expectedStorage, stocktakeStorageIds)) {
+                return FeltStocktakeItemStatus.OUT_OF_SCOPE;
+            }
+
             return expectedStorageClosed ? FeltStocktakeItemStatus.MISSING : FeltStocktakeItemStatus.INITIAL;
+
         }
 
         FeltStocktakeScan scan = activeScans.getFirst();
@@ -80,7 +87,7 @@ public class FeltStocktakeItemEvaluator {
         }
 
         return switch (status) {
-            case OK, INITIAL, DUPLICATE_SCAN -> null;
+            case OK, INITIAL, OUT_OF_SCOPE, DUPLICATE_SCAN -> null;
             case WRONG_STORAGE -> item.isMutationWanted()
                     ? FeltStocktakeResolutionType.ADJUST_STORAGE
                     : FeltStocktakeResolutionType.MOVE_PHYSICALLY;
@@ -161,6 +168,10 @@ public class FeltStocktakeItemEvaluator {
             return null;
         }
         return rollOrScrap.getExpectedStorage();
+    }
+
+    private boolean isStoragePartOfStocktake(Storage storage, Set<Long> stocktakeStorageIds) {
+        return storage != null && stocktakeStorageIds.contains(storage.getId());
     }
 
     private boolean isExpectedStorage(FeltStocktakeScan scan, Storage expectedStorage) {
