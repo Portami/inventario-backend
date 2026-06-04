@@ -6,6 +6,8 @@ import ch.portami.inventorybackend.storage.entity.Storage;
 import jakarta.annotation.Nullable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
@@ -29,6 +31,10 @@ public class FeltStocktakeRollOrScrap {
     @JoinColumn(name = "item_id")
     @OnDelete(action = OnDeleteAction.CASCADE)
     private FeltStocktakeItem stocktakeItem;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type", nullable = false)
+    private Type type;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = true)
     @JoinColumn(name = "roll_id", nullable = true)
@@ -90,6 +96,7 @@ public class FeltStocktakeRollOrScrap {
         this.feltTypeName = feltTypeName;
         this.supplierName = supplierName;
 
+        this.type = Type.ROLL;
         this.roll = roll;
     }
 
@@ -109,6 +116,7 @@ public class FeltStocktakeRollOrScrap {
         this.feltTypeName = feltTypeName;
         this.supplierName = supplierName;
 
+        this.type = Type.SCRAP;
         this.scrap = scrap;
     }
 
@@ -126,6 +134,10 @@ public class FeltStocktakeRollOrScrap {
 
     public @Nullable Storage getExpectedStorage() {
         return expectedStorage;
+    }
+
+    public Type getType() {
+        return type;
     }
 
     public @Nullable FeltRoll getRoll() {
@@ -191,6 +203,10 @@ public class FeltStocktakeRollOrScrap {
     @Override
     public String toString() {
         return "FeltStocktakeRollOrScrap{id=" + id + ", articleNumber='" + articleNumber + "', color='" + color + "'}";
+    }
+
+    public enum Type {
+        ROLL, SCRAP
     }
 
 }

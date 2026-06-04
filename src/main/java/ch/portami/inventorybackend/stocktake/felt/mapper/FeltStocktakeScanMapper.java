@@ -1,6 +1,5 @@
 package ch.portami.inventorybackend.stocktake.felt.mapper;
 
-import ch.portami.inventorybackend.stocktake.felt.domain.FeltStocktakeItemTypeResolver;
 import ch.portami.inventorybackend.stocktake.felt.dto.scan.FeltStocktakeScanDto;
 import ch.portami.inventorybackend.stocktake.felt.entity.FeltStocktakeItem;
 import ch.portami.inventorybackend.stocktake.felt.entity.FeltStocktakeScan;

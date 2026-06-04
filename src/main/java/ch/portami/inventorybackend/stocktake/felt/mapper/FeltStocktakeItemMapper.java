@@ -3,7 +3,6 @@ package ch.portami.inventorybackend.stocktake.felt.mapper;
 import ch.portami.inventorybackend.stocktake.felt.domain.FeltStocktakeItemEvaluation;
 import ch.portami.inventorybackend.stocktake.felt.domain.FeltStocktakeItemEvaluator;
 import ch.portami.inventorybackend.stocktake.felt.domain.FeltStocktakeItemStatus;
-import ch.portami.inventorybackend.stocktake.felt.domain.FeltStocktakeItemTypeResolver;
 import ch.portami.inventorybackend.stocktake.felt.dto.item.FeltStocktakeItemDto;
 import ch.portami.inventorybackend.stocktake.felt.dto.item.FeltStocktakeRollOrScrapDto;
 import ch.portami.inventorybackend.stocktake.felt.entity.FeltStocktakeItem;
@@ -61,7 +60,7 @@ public class FeltStocktakeItemMapper {
                     .map(scanAssembler::toDto)
                     .toList()
         );
-        
+
     }
 
     private FeltStocktakeRollOrScrapDto toRollOrScrapDto(FeltStocktakeRollOrScrap rollOrScrap) {
