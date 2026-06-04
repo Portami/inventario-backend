@@ -129,6 +129,10 @@ public class FeltStocktakeItem {
         scans.add(scan);
     }
 
+    public void removeScan(FeltStocktakeScan scan) {
+        scans.remove(scan);
+    }
+
     public FeltStocktake getStocktake() {
         return stocktake;
     }

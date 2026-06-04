@@ -23,7 +23,6 @@ import ch.portami.inventorybackend.stocktake.felt.mapper.FeltStocktakeMapper;
 import ch.portami.inventorybackend.stocktake.felt.repository.FeltStocktakeItemRepository;
 import ch.portami.inventorybackend.stocktake.felt.repository.FeltStocktakeRepository;
 import ch.portami.inventorybackend.stocktake.felt.repository.FeltStocktakeRollOrScrapRepository;
-import ch.portami.inventorybackend.stocktake.felt.repository.FeltStocktakeScanRepository;
 import ch.portami.inventorybackend.stocktake.felt.repository.FeltStocktakeStorageRepository;
 import ch.portami.inventorybackend.storage.entity.Storage;
 import ch.portami.inventorybackend.storage.exception.InvalidStorageReferenceException;
@@ -45,7 +44,6 @@ public class FeltStocktakeService {
     private final FeltStocktakeStorageRepository stocktakeStorageRepo;
     private final FeltStocktakeItemRepository itemRepo;
     private final FeltStocktakeRollOrScrapRepository rollOrScrapRepo;
-    private final FeltStocktakeScanRepository scanRepo;
     private final StorageRepository storageRepo;
     private final FeltRollRepository rollRepo;
     private final ScrapPieceRepository scrapRepo;
@@ -56,7 +54,6 @@ public class FeltStocktakeService {
             FeltStocktakeStorageRepository stocktakeStorageRepo,
             FeltStocktakeItemRepository itemRepo,
             FeltStocktakeRollOrScrapRepository rollOrScrapRepo,
-            FeltStocktakeScanRepository scanRepo,
             StorageRepository storageRepo,
             FeltRollRepository rollRepo,
             ScrapPieceRepository scrapRepo,
@@ -66,7 +63,6 @@ public class FeltStocktakeService {
         this.stocktakeStorageRepo = stocktakeStorageRepo;
         this.itemRepo = itemRepo;
         this.rollOrScrapRepo = rollOrScrapRepo;
-        this.scanRepo = scanRepo;
         this.storageRepo = storageRepo;
         this.rollRepo = rollRepo;
         this.scrapRepo = scrapRepo;
@@ -170,10 +166,10 @@ public class FeltStocktakeService {
 
         for (FeltStocktakeItem item : usedItems) {
             applyCompletionMutation(item, stocktakeStorageIds);
+            removeVoidedScans(item);
         }
 
         itemRepo.deleteAll(unusedItems);
-        scanRepo.deleteByStocktakeIdAndVoidedIsTrue(id);
 
         stocktake.setCompletedAt(Instant.now());
         return stocktakeMapper.toFeltStocktakeDto(stocktake);
@@ -312,6 +308,14 @@ public class FeltStocktakeService {
             }
         }
 
+    }
+
+    private void removeVoidedScans(FeltStocktakeItem item) {
+        for (FeltStocktakeScan scan : item.getScans()) {
+            if (scan.isVoided()) {
+                item.removeScan(scan);
+            }
+        }
     }
 
     private boolean isExpectedStoragePartOfStocktake(FeltStocktakeItem item, Long stocktakeId) {
