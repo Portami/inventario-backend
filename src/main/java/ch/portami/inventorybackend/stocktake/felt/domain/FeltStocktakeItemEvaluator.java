@@ -50,7 +50,7 @@ public class FeltStocktakeItemEvaluator {
             return FeltStocktakeItemStatus.DUPLICATE_SCAN;
         }
 
-        if (isUnknownItem(item)) {
+        if (item.getRollOrScrap() == null) {
             return FeltStocktakeItemStatus.UNKNOWN;
         }
 
@@ -152,14 +152,6 @@ public class FeltStocktakeItemEvaluator {
 
         return rollOrScrap.getRoll() != null || rollOrScrap.getScrap() != null;
 
-    }
-
-    private boolean isUnknownItem(FeltStocktakeItem item) {
-        FeltStocktakeRollOrScrap rollOrScrap = item.getRollOrScrap();
-        if (rollOrScrap == null) {
-            return true;
-        }
-        return rollOrScrap.getRoll() == null && rollOrScrap.getScrap() == null;
     }
 
     private Storage expectedStorage(FeltStocktakeItem item) {
