@@ -639,6 +639,28 @@ class FeltStocktakeControllerIntegrationTest extends BaseIntegrationTest {
         }
 
         @Test
+        @DisplayName("marks wrong-storage scans corrected when move physically is chosen")
+        void marksWrongStorageScansCorrectedOnMovePhysically() {
+            createFeltInventory();
+
+            FeltStocktakeDto created = postStocktake(List.of(storageBId), false);
+            FeltStocktakeScanDto scan = postScan(created.id(), String.valueOf(rollBarcodeId), storageBId);
+
+            resolveProblem(created.id(), findRollItemId(created.id()), FeltStocktakeResolutionType.MOVE_PHYSICALLY);
+
+            closeStorage(created.id(), storageBId);
+
+            restTestClient.post()
+                          .uri("/api/stocktakes/{id}/complete", created.id())
+                          .exchange()
+                          .expectStatus()
+                          .isOk();
+
+            assertThat(stocktakeScanRepository.findByStocktakeIdAndId(created.id(), scan.scanId()))
+                    .hasValueSatisfying(saved -> assertThat(saved.isCorrected()).isTrue());
+        }
+
+        @Test
         @DisplayName("removes voided scans on resolution")
         void removesVoidedScansOnResolution() {
             createFeltInventory();

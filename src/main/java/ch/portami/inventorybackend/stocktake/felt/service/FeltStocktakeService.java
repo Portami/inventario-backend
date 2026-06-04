@@ -7,6 +7,7 @@ import ch.portami.inventorybackend.felt.repository.FeltRollRepository;
 import ch.portami.inventorybackend.felt.repository.ScrapPieceRepository;
 import ch.portami.inventorybackend.stocktake.felt.domain.FeltStocktakeItemEvaluation;
 import ch.portami.inventorybackend.stocktake.felt.domain.FeltStocktakeItemEvaluator;
+import ch.portami.inventorybackend.stocktake.felt.domain.FeltStocktakeItemStatus;
 import ch.portami.inventorybackend.stocktake.felt.dto.stocktake.CreateFeltStocktakeDto;
 import ch.portami.inventorybackend.stocktake.felt.dto.stocktake.ExtendStocktakeDto;
 import ch.portami.inventorybackend.stocktake.felt.dto.stocktake.FeltStocktakeDto;
@@ -144,34 +145,35 @@ public class FeltStocktakeService {
                                                                          .getId())
                                                         .collect(HashSet::new, Set::add, Set::addAll);
 
-        List<FeltStocktakeItem> unusedItems = new ArrayList<>();
-        List<FeltStocktakeItem> usedItems = new ArrayList<>();
+        List<FeltStocktakeItem> outOfScopeItems = new ArrayList<>();
+        List<FeltStocktakeItem> inScopeItems = new ArrayList<>();
 
         for (FeltStocktakeItem item : items) {
-
-            if (!isExpectedStoragePartOfStocktake(item, id)) {
-                unusedItems.add(item);
-                continue;
-            }
 
             boolean expectedStorageClosed = isExpectedStorageClosed(item, id);
             FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, false, expectedStorageClosed,
                     stocktakeStorageIds);
+
+            if (evaluation.status() == FeltStocktakeItemStatus.OUT_OF_SCOPE) {
+                outOfScopeItems.add(item);
+                continue;
+            }
+
             if (evaluation.needsResolution()) {
                 throw new UnresolvedFeltStocktakeProblemException(id, item.getId(),
                         FeltStocktakeItemApiStatusMapper.toApiStatus(evaluation.status()));
             }
 
-            usedItems.add(item);
+            inScopeItems.add(item);
 
         }
 
-        for (FeltStocktakeItem item : usedItems) {
+        for (FeltStocktakeItem item : inScopeItems) {
             applyCompletionMutation(item, stocktakeStorageIds);
             removeVoidedScans(item);
         }
 
-        itemRepo.deleteAll(unusedItems);
+        itemRepo.deleteAll(outOfScopeItems);
 
         stocktake.setCompletedAt(Instant.now());
         return stocktakeMapper.toFeltStocktakeDto(stocktake);
@@ -318,18 +320,6 @@ public class FeltStocktakeService {
                 item.removeScan(scan);
             }
         }
-    }
-
-    private boolean isExpectedStoragePartOfStocktake(FeltStocktakeItem item, Long stocktakeId) {
-        if (item.getRollOrScrap() == null || item.getRollOrScrap()
-                                                 .getExpectedStorage() == null) {
-            return false;
-        }
-        Long storageId = item.getRollOrScrap()
-                             .getExpectedStorage()
-                             .getId();
-        return stocktakeStorageRepo.findByStocktakeIdAndStorageId(stocktakeId, storageId)
-                                   .isPresent();
     }
 
     private boolean isExpectedStorageClosed(FeltStocktakeItem item, Long stocktakeId) {
