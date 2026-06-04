@@ -174,13 +174,25 @@ public class FeltStocktakeService {
     }
 
     private void createItemsForStorages(FeltStocktake stocktake, boolean includeScrap) {
+
         List<FeltRoll> rolls = rollRepo.findAll();
-        rolls.forEach(roll -> createItemForRoll(stocktake, roll));
+        for (FeltRoll roll : rolls) {
+            if (roll.getStorage() != null) {
+                createItemForRoll(stocktake, roll);
+            }
+        }
 
         if (includeScrap) {
+
             List<ScrapPiece> scraps = scrapRepo.findAll();
-            scraps.forEach(scrap -> createItemForScrap(stocktake, scrap));
+            for (ScrapPiece scrap : scraps) {
+                if (scrap.getStorage() != null) {
+                    createItemForScrap(stocktake, scrap);
+                }
+            }
+
         }
+
     }
 
     private void createItemForRoll(FeltStocktake stocktake, FeltRoll roll) {
