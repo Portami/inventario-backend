@@ -13,7 +13,7 @@ import ch.portami.inventorybackend.felt.repository.FeltRollRepository;
 import ch.portami.inventorybackend.felt.repository.FeltTypeRepository;
 import ch.portami.inventorybackend.felt.repository.ScrapPieceRepository;
 import ch.portami.inventorybackend.felt.repository.SupplierRepository;
-import ch.portami.inventorybackend.stocktake.felt.dto.item.FeltStocktakeResolutionType;
+import ch.portami.inventorybackend.stocktake.felt.domain.FeltStocktakeResolutionType;
 import ch.portami.inventorybackend.stocktake.felt.dto.item.ResolveFeltStocktakeProblemDto;
 import ch.portami.inventorybackend.stocktake.felt.dto.scan.CreateFeltStocktakeScanDto;
 import ch.portami.inventorybackend.stocktake.felt.dto.scan.FeltStocktakeScanDto;

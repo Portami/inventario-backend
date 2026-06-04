@@ -2,7 +2,6 @@ package ch.portami.inventorybackend.stocktake.felt.domain;
 
 import ch.portami.inventorybackend.felt.entity.FeltRoll;
 import ch.portami.inventorybackend.felt.entity.ScrapPiece;
-import ch.portami.inventorybackend.stocktake.felt.dto.item.FeltStocktakeResolutionType;
 import ch.portami.inventorybackend.stocktake.felt.entity.FeltStocktake;
 import ch.portami.inventorybackend.stocktake.felt.entity.FeltStocktakeItem;
 import ch.portami.inventorybackend.stocktake.felt.entity.FeltStocktakeRollOrScrap;
@@ -300,7 +299,8 @@ class FeltStocktakeItemEvaluatorTest {
         item.setNewStorage(newStorage);
         item.setMutationApplied(false); // Mutation was not applied although it was wanted
 
-        FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, true, Map.of(expectedStorage.getId(), false, scannedStorage.getId(), false, newStorage.getId(), false));
+        FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, true,
+                Map.of(expectedStorage.getId(), false, scannedStorage.getId(), false, newStorage.getId(), false));
 
         assertThat(evaluation.resolutionType()).isEqualTo(FeltStocktakeResolutionType.ADJUST_STORAGE);
         assertThat(evaluation.mutationApplied()).isFalse();

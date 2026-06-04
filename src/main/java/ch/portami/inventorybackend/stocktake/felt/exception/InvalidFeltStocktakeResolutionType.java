@@ -2,8 +2,8 @@ package ch.portami.inventorybackend.stocktake.felt.exception;
 
 import ch.portami.inventorybackend.core.exceptions.BusinessRuleViolationException;
 import ch.portami.inventorybackend.core.exceptions.ResourceIdentifier;
+import ch.portami.inventorybackend.stocktake.felt.domain.FeltStocktakeResolutionType;
 import ch.portami.inventorybackend.stocktake.felt.dto.item.FeltStocktakeItemApiStatus;
-import ch.portami.inventorybackend.stocktake.felt.dto.item.FeltStocktakeResolutionType;
 import java.text.MessageFormat;
 
 public class InvalidFeltStocktakeResolutionType extends BusinessRuleViolationException {
