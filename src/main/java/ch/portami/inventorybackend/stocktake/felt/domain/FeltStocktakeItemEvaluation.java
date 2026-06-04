@@ -42,7 +42,9 @@ public record FeltStocktakeItemEvaluation(
      * @return whether the item has a problem (i.e. its status is neither OUT_OF_SCOPE, INITIAL nor OK).
      */
     public boolean hasProblem() {
-        return status != FeltStocktakeItemStatus.OK && status != FeltStocktakeItemStatus.INITIAL;
+        return status != FeltStocktakeItemStatus.OUT_OF_SCOPE
+                && status != FeltStocktakeItemStatus.INITIAL
+                && status != FeltStocktakeItemStatus.OK;
     }
 
     /**
@@ -51,6 +53,6 @@ public record FeltStocktakeItemEvaluation(
     public boolean hasResolvedProblem() {
         return resolutionType != null;
     }
-
+    
 }
 
