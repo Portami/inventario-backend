@@ -33,6 +33,9 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Service for creating and managing scans.
+ */
 @Service
 @Transactional(readOnly = true)
 public class FeltStocktakeScanService {
@@ -70,23 +73,36 @@ public class FeltStocktakeScanService {
         this.scanMapper = scanMapper;
     }
 
+    /**
+     * Creates a new scan for a given stocktake based on the provided barcode and scanned storage.
+     *
+     * @param stocktakeId the ID of the stocktake for which the scan is being created
+     * @param createDto   the DTO containing the barcode and scanned storage information for the new scan
+     * @return the created scan as a DTO
+     * @throws FeltStocktakeNotFoundException                if the specified stocktake does not exist
+     * @throws FeltStocktakeCompletedException               if the specified stocktake has already been completed
+     * @throws InvalidStorageReferenceException              if the scanned storage ID does not correspond to an
+     *                                                       existing storage
+     * @throws InvalidFeltStocktakeStorageReferenceException if the scanned storage is not part of the stocktake
+     */
     @Transactional
-    public FeltStocktakeScanDto createScan(Long stocktakeId, CreateFeltStocktakeScanDto dto) {
+    public FeltStocktakeScanDto createScan(Long stocktakeId, CreateFeltStocktakeScanDto createDto) {
         FeltStocktake stocktake = getStocktake(stocktakeId);
         ensureNotCompleted(stocktake);
 
-        Storage scannedStorage = storageRepo.findById(dto.scannedStorageId())
+        Storage scannedStorage = storageRepo.findById(createDto.scannedStorageId())
                                             .orElseThrow(
-                                                    () -> new InvalidStorageReferenceException(dto.scannedStorageId()));
+                                                    () -> new InvalidStorageReferenceException(
+                                                            createDto.scannedStorageId()));
 
         ensureStorageInStocktake(stocktakeId, scannedStorage.getId());
 
-        FeltStocktakeItem item = resolveItem(stocktake, dto.barcode());
+        FeltStocktakeItem item = resolveItem(stocktake, createDto.barcode());
 
         FeltStocktakeItemEvaluation evaluation = evaluator.evaluate(item, false,
                 storageHelper.getStorageStatesOfStocktake(stocktakeId));
 
-        FeltStocktakeScan scan = new FeltStocktakeScan(stocktake, item, dto.barcode(), scannedStorage);
+        FeltStocktakeScan scan = new FeltStocktakeScan(stocktake, item, createDto.barcode(), scannedStorage);
         item.addScan(scan);
         scan = scanRepo.save(scan);
 
@@ -97,12 +113,30 @@ public class FeltStocktakeScanService {
         return scanMapper.toDto(scan);
     }
 
+    /**
+     * Retrieves a specific scan for a given stocktake.
+     *
+     * @param stocktakeId the ID of the stocktake to which the scan belongs
+     * @param scanId      the ID of the scan to retrieve
+     * @return the requested scan as a DTO
+     * @throws FeltStocktakeNotFoundException     if the specified stocktake does not exist
+     * @throws FeltStocktakeScanNotFoundException if the specified scan does not exist within the stocktake
+     */
     public FeltStocktakeScanDto getScan(Long stocktakeId, Long scanId) {
         getStocktake(stocktakeId);
         FeltStocktakeScan scan = getScanEntity(stocktakeId, scanId);
         return scanMapper.toDto(scan);
     }
 
+    /**
+     * Retrieves all scans for a given stocktake, optionally filtered by scanned storage.
+     *
+     * @param stocktakeId the ID of the stocktake for which to retrieve scans
+     * @param storageId   the optional ID of the scanned storage to filter scans by. If null, all scans for the
+     *                    stocktake will be retrieved regardless of scanned storage.
+     * @return a list of scans for the specified stocktake, optionally filtered by scanned storage, as DTOs
+     * @throws FeltStocktakeNotFoundException if the specified stocktake does not exist
+     */
     public List<FeltStocktakeScanDto> getScans(Long stocktakeId, @Nullable Long storageId) {
         getStocktake(stocktakeId);
         List<FeltStocktakeScan> scans = storageId == null
@@ -113,6 +147,18 @@ public class FeltStocktakeScanService {
                     .toList();
     }
 
+    /**
+     * Voids a specific scan for a given stocktake. A voided scan is ignored in the evaluation of the stocktake and will
+     * not contribute to the status of the associated item.
+     *
+     * @param stocktakeId the ID of the stocktake to which the scan belongs
+     * @param scanId      the ID of the scan to void
+     * @throws FeltStocktakeNotFoundException     if the specified stocktake does not exist
+     * @throws FeltStocktakeScanNotFoundException if the specified scan does not exist within the stocktake
+     * @throws FeltStocktakeCompletedException    if the specified stocktake has already been completed
+     * @throws FeltStocktakeScanLockedException   if the scan cannot be voided because it is involved in the resolution
+     *                                            of the item and therefore cannot be voided
+     */
     @Transactional
     public void voidScan(Long stocktakeId, Long scanId) {
 
@@ -211,5 +257,5 @@ public class FeltStocktakeScanService {
             return null;
         }
     }
-    
+
 }

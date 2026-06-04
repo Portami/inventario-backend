@@ -12,6 +12,10 @@ import ch.portami.inventorybackend.storage.entity.Storage;
 import jakarta.annotation.Nullable;
 import org.springframework.stereotype.Component;
 
+/**
+ * Helper class to create and save {@link FeltStocktakeItem} with associated {@link FeltStocktakeRollOrScrap} for a
+ * given {@link FeltRoll} or {@link ScrapPiece}.
+ */
 @Component
 public class FeltStocktakeRollOrScrapHelper {
 
@@ -24,6 +28,15 @@ public class FeltStocktakeRollOrScrapHelper {
         this.rollOrScrapRepo = rollOrScrapRepo;
     }
 
+    /**
+     * Creates and saves a new {@link FeltStocktakeItem} with an associated {@link FeltStocktakeRollOrScrap} for the
+     * given {@link FeltRoll}.
+     *
+     * @param stocktake       the stocktake to which the item belongs
+     * @param roll            the felt roll for which the item should be created
+     * @param expectedStorage the expected storage for the item, can be null if not applicable
+     * @return the created and saved item
+     */
     public FeltStocktakeItem createAndSaveItemForRoll(FeltStocktake stocktake, FeltRoll roll,
             @Nullable Storage expectedStorage) {
 
@@ -56,6 +69,15 @@ public class FeltStocktakeRollOrScrapHelper {
 
     }
 
+    /**
+     * Creates and saves a new {@link FeltStocktakeItem} with an associated {@link FeltStocktakeRollOrScrap} for the
+     * given {@link ScrapPiece}.
+     *
+     * @param stocktake       the stocktake to which the item belongs
+     * @param scrap           the scrap piece for which the item should be created
+     * @param expectedStorage the expected storage for the item, can be null if not applicable
+     * @return the created and saved item
+     */
     public FeltStocktakeItem createAndSaveItemForScrap(FeltStocktake stocktake, ScrapPiece scrap,
             @Nullable Storage expectedStorage) {
 

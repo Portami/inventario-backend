@@ -39,6 +39,10 @@ import java.util.Set;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Service that manages felt stocktakes, including creation, retrieval, extension, completion, and deletion of
+ * stocktakes.
+ */
 @Service
 @Transactional(readOnly = true)
 public class FeltStocktakeService {
@@ -73,24 +77,44 @@ public class FeltStocktakeService {
         this.stocktakeMapper = stocktakeMapper;
     }
 
+    /**
+     * Creates a new felt stocktake with the given description and initial scope.
+     *
+     * @param createDto the DTO containing the description and initial scope of the stocktake
+     * @return the created stocktake as a DTO
+     * @throws InvalidStorageReferenceException if any of the provided storage IDs do not correspond to existing
+     *                                          storages
+     */
     @Transactional
-    public FeltStocktakeDto createStocktake(CreateFeltStocktakeDto dto) {
-        FeltStocktake stocktake = stocktakeRepo.save(new FeltStocktake(dto.description()));
+    public FeltStocktakeDto createStocktake(CreateFeltStocktakeDto createDto) {
+        FeltStocktake stocktake = stocktakeRepo.save(new FeltStocktake(createDto.description()));
 
-        List<Storage> storages = resolveStorages(dto.storageIds());
+        List<Storage> storages = resolveStorages(createDto.storageIds());
         storages.stream()
                 .map(storage -> new FeltStocktakeStorage(stocktake, storage))
                 .forEach(stocktake::addStorage);
 
-        createItemsForStorages(stocktake, dto.includeScrap());
+        createItemsForStorages(stocktake, createDto.includeScrap());
 
         return stocktakeMapper.toFeltStocktakeDto(stocktake);
     }
 
+    /**
+     * Retrieves a felt stocktake by its ID.
+     *
+     * @param id the ID of the stocktake to retrieve
+     * @return the retrieved stocktake as a DTO
+     * @throws FeltStocktakeNotFoundException if no stocktake with the given ID exists
+     */
     public FeltStocktakeDto getStocktake(Long id) {
         return stocktakeMapper.toFeltStocktakeDto(getStocktakeEntity(id));
     }
 
+    /**
+     * Retrieves all felt stocktakes.
+     *
+     * @return a list of all stocktakes as DTOs
+     */
     public List<FeltStocktakeDto> getAllStocktakes() {
         return stocktakeRepo.findAll()
                             .stream()
@@ -98,11 +122,28 @@ public class FeltStocktakeService {
                             .toList();
     }
 
+    /**
+     * Deletes a felt stocktake by its ID. If the stocktake does not exist, no action is taken.
+     *
+     * @param id the ID of the stocktake to delete.
+     */
     @Transactional
     public void deleteStocktake(Long id) {
         stocktakeRepo.deleteById(id);
     }
 
+    /**
+     * Extends the scope of an existing felt stocktake by adding new storages. The stocktake must not be completed.
+     *
+     * @param id  the ID of the stocktake to extend
+     * @param dto the DTO containing the IDs of the storages to add to the stocktake. If null, all existing storages
+     *            will be added.
+     * @return the updated stocktake as a DTO
+     * @throws FeltStocktakeNotFoundException   if no stocktake with the given ID exists
+     * @throws FeltStocktakeCompletedException  if the stocktake has already been completed
+     * @throws InvalidStorageReferenceException if any of the provided storage IDs do not correspond to existing
+     *                                          storages
+     */
     @Transactional
     public FeltStocktakeDto extendStocktake(Long id, ExtendStocktakeDto dto) {
         FeltStocktake stocktake = getStocktakeEntity(id);
@@ -126,6 +167,18 @@ public class FeltStocktakeService {
         return stocktakeMapper.toFeltStocktakeDto(stocktake);
     }
 
+    /**
+     * Completes a felt stocktake by evaluating all items and applying necessary mutations based the chosen
+     * resolutions.
+     *
+     * @param id the ID of the stocktake to complete
+     * @return the completed stocktake as a DTO
+     * @throws FeltStocktakeNotFoundException          if no stocktake with the given ID exists
+     * @throws FeltStocktakeCompletedException         if the stocktake has already been completed
+     * @throws UnclosedFeltStocktakeStorageException   if any storage in the stocktake is not closed
+     * @throws UnresolvedFeltStocktakeProblemException if any item in the stocktake has a problem that requires
+     *                                                 resolution but has not been resolved yet
+     */
     @Transactional
     public FeltStocktakeDto completeStocktake(Long id) {
         FeltStocktake stocktake = getStocktakeEntity(id);
@@ -306,4 +359,5 @@ public class FeltStocktakeService {
             throw new FeltStocktakeCompletedException(stocktake.getId());
         }
     }
+
 }

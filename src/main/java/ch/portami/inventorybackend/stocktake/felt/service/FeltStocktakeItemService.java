@@ -28,6 +28,10 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Service for managing felt stocktake items, including retrieving item details and resolving problems with items during
+ * a stocktake.
+ */
 @Service
 @Transactional(readOnly = true)
 public class FeltStocktakeItemService {
@@ -50,6 +54,17 @@ public class FeltStocktakeItemService {
         this.itemMapper = itemMapper;
     }
 
+    /**
+     * Retrieves the items of a stocktake, optionally filtered by storage. If a storage ID is provided, only items that
+     * are expected to be in that storage or have been scanned in that storage will be returned. If no storage ID is
+     * provided, all items of this stocktake will be returned.
+     *
+     * @param stocktakeId the ID of the stocktake for which to retrieve the items
+     * @param storageId   the optional ID of the storage to filter items by
+     * @return a list of items matching the criteria, each with its evaluated status and resolution information if
+     * applicable
+     * @throws FeltStocktakeNotFoundException if the stocktake with the given ID does not exist
+     */
     public List<FeltStocktakeItemDto> getItems(Long stocktakeId, @Nullable Long storageId) {
 
         FeltStocktake stocktake = getStocktake(stocktakeId);
@@ -81,6 +96,17 @@ public class FeltStocktakeItemService {
         return itemsToReturn;
     }
 
+    /**
+     * Retrieves the details of a specific stocktake item, including its evaluated status and resolution information if
+     * applicable.
+     *
+     * @param stocktakeId the ID of the stocktake to which the item belongs
+     * @param itemId      the ID of the item to retrieve
+     * @return the details of the item, including its evaluated status and resolution information if applicable
+     * @throws FeltStocktakeNotFoundException     if the stocktake with the given ID does not exist
+     * @throws FeltStocktakeItemNotFoundException if the item with the given ID does not exist in the specified
+     *                                            stocktake
+     */
     public FeltStocktakeItemDto getItem(Long stocktakeId, Long itemId) {
         FeltStocktake stocktake = getStocktake(stocktakeId);
         FeltStocktakeItem item = itemRepo.findByStocktakeIdAndId(stocktakeId, itemId)
@@ -91,8 +117,25 @@ public class FeltStocktakeItemService {
         return itemMapper.toDto(item, stocktake.getCompletedAt() != null, storageStates);
     }
 
+    /**
+     * Resolves a problem of a stocktake item by applying the specified resolution. The type of resolution must be valid
+     * for the item's problem status.
+     *
+     * @param stocktakeId   the ID of the stocktake to which the item belongs
+     * @param itemId        the ID of the item for which to resolve the problem
+     * @param resolutionDto the DTO containing the resolution type
+     * @return the details of the item after applying the resolution, including its new evaluated status and resolution
+     * @throws FeltStocktakeNotFoundException           if the stocktake with the given ID does not exist
+     * @throws FeltStocktakeItemNotFoundException       if the item with the given ID does not exist in the specified
+     *                                                  stocktake
+     * @throws NoFeltStocktakeProblemToResolveException if the item does not have a problem that needs to be resolved
+     * @throws InvalidFeltStocktakeResolutionType       if the provided resolution type is not valid for the item's
+     *                                                  problem status
+     * @throws FeltStocktakeCompletedException          if the stocktake has already been completed
+     */
     @Transactional
-    public FeltStocktakeItemDto resolveProblem(Long stocktakeId, Long itemId, ResolveFeltStocktakeProblemDto dto) {
+    public FeltStocktakeItemDto resolveProblem(Long stocktakeId, Long itemId,
+            ResolveFeltStocktakeProblemDto resolutionDto) {
         FeltStocktake stocktake = getStocktake(stocktakeId);
         ensureNotCompleted(stocktake);
 
@@ -108,18 +151,30 @@ public class FeltStocktakeItemService {
             throw new NoFeltStocktakeProblemToResolveException(stocktakeId, itemId);
         }
 
-        if (!isValidResolutionType(evaluation.status(), dto.resolution())) {
+        if (!isValidResolutionType(evaluation.status(), resolutionDto.resolution())) {
             throw new InvalidFeltStocktakeResolutionType(stocktakeId, itemId,
                     FeltStocktakeItemApiStatusMapper.toApiStatus(evaluation.status()),
-                    dto.resolution());
+                    resolutionDto.resolution());
         }
 
-        applyResolution(item, dto.resolution(), dto.comment());
+        applyResolution(item, resolutionDto.resolution(), resolutionDto.comment());
 
         // Do not reuse the previous evaluation, as the status probably changed after applying the resolution
         return itemMapper.toDto(item, false, storageStates);
     }
 
+    /**
+     * Unresolves a previously resolved problem of a stocktake item, resetting all resolution-related fields of the
+     * item.
+     *
+     * @param stocktakeId the ID of the stocktake to which the item belongs
+     * @param itemId      the ID of the item for which to unresolve the problem
+     * @return the details of the item after unresolving the problem, including its new evaluated status
+     * @throws FeltStocktakeNotFoundException     if the stocktake with the given ID does not exist
+     * @throws FeltStocktakeItemNotFoundException if the item with the given ID does not exist in the specified
+     *                                            stocktake
+     * @throws FeltStocktakeCompletedException    if the stocktake has already been completed
+     */
     @Transactional
     public FeltStocktakeItemDto unresolveProblem(Long stocktakeId, Long itemId) {
         FeltStocktake stocktake = getStocktake(stocktakeId);
@@ -205,4 +260,5 @@ public class FeltStocktakeItemService {
             throw new FeltStocktakeCompletedException(stocktake.getId());
         }
     }
+
 }

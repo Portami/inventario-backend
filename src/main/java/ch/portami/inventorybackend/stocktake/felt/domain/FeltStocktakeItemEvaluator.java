@@ -9,9 +9,20 @@ import java.util.Map;
 import java.util.Objects;
 import org.springframework.stereotype.Component;
 
+/**
+ * Evaluates the status of felt stocktake items.
+ */
 @Component
 public class FeltStocktakeItemEvaluator {
 
+    /**
+     * Evaluates the status of a felt stocktake item based on its scans, expected storage, and the states of storages.
+     *
+     * @param item               the felt stocktake item to evaluate
+     * @param stocktakeCompleted whether the stocktake has been completed
+     * @param storageStates      a map of storage IDs to their closed/open state
+     * @return an evaluation containing information about the items current state within the stocktake
+     */
     public FeltStocktakeItemEvaluation evaluate(FeltStocktakeItem item, boolean stocktakeCompleted,
             Map<Long, Boolean> storageStates) {
 
