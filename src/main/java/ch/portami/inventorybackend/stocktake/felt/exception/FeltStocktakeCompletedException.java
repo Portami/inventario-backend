@@ -10,5 +10,5 @@ public class FeltStocktakeCompletedException extends BusinessRuleViolationExcept
         super(MessageFormat.format("Stocktake with id {0} is already completed and cannot be modified.", stocktakeId),
                 new ResourceIdentifier("stocktakeId", stocktakeId));
     }
-    
+
 }

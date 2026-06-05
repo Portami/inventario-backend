@@ -11,5 +11,5 @@ public class FeltStocktakeScanNotFoundException extends ResourceNotFoundExceptio
                 new ResourceIdentifier("stocktakeId", stocktakeId),
                 new ResourceIdentifier("scanId", scanId));
     }
-    
+
 }

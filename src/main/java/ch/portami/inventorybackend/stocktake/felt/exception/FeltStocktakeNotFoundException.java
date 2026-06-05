@@ -10,5 +10,5 @@ public class FeltStocktakeNotFoundException extends ResourceNotFoundException {
         super(MessageFormat.format("Stocktake with id {0} was not found.", id),
                 new ResourceIdentifier("stocktakeId", id));
     }
-    
+
 }

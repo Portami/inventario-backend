@@ -53,6 +53,6 @@ public record FeltStocktakeItemEvaluation(
     public boolean hasResolvedProblem() {
         return resolutionType != null;
     }
-    
+
 }
 

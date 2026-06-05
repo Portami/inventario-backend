@@ -70,7 +70,6 @@ public class FeltStocktakeItemEvaluator {
         }
 
         if (activeScans.isEmpty()) {
-
             Boolean expectedStorageClosed = storageStates.get(expectedStorage.getId());
 
             if (expectedStorageClosed == null) {
@@ -78,7 +77,6 @@ public class FeltStocktakeItemEvaluator {
             }
 
             return expectedStorageClosed ? FeltStocktakeItemStatus.MISSING : FeltStocktakeItemStatus.INITIAL;
-
         }
 
         FeltStocktakeScan scan = activeScans.getFirst();

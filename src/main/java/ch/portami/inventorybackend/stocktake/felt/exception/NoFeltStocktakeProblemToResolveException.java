@@ -13,5 +13,5 @@ public class NoFeltStocktakeProblemToResolveException extends BusinessRuleViolat
                 new ResourceIdentifier("stocktakeId", stocktakeId),
                 new ResourceIdentifier("itemId", itemId));
     }
-    
+
 }

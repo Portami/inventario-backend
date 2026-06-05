@@ -11,5 +11,5 @@ public interface FeltStocktakeStorageRepository extends JpaRepository<FeltStockt
     List<FeltStocktakeStorage> findByStocktakeId(Long stocktakeId);
 
     Optional<FeltStocktakeStorage> findByStocktakeIdAndStorageId(Long stocktakeId, Long storageId);
-    
+
 }
