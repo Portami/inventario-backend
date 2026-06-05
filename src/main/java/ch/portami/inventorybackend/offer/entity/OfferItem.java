@@ -1,7 +1,10 @@
 package ch.portami.inventorybackend.offer.entity;
 
+import ch.portami.inventorybackend.offer.domain.OfferItemKind;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -10,6 +13,8 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Objects;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "offer_item")
@@ -21,6 +26,11 @@ public class OfferItem implements Serializable {
 
     @Column(name = "offer_id", nullable = false)
     private Long offerId;
+
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
+    @Column(nullable = false)
+    private OfferItemKind kind = OfferItemKind.PRODUCT;
 
     @Column(name = "product_variant_id")
     private Long productVariantId;
@@ -54,6 +64,14 @@ public class OfferItem implements Serializable {
         this.quantity = quantity;
         this.unitPrice = unitPrice == null ? BigDecimal.ZERO : unitPrice;
         this.totalPrice = totalPrice == null ? BigDecimal.ZERO : totalPrice;
+    }
+
+    public OfferItemKind getKind() {
+        return kind;
+    }
+
+    public void setKind(OfferItemKind kind) {
+        this.kind = kind;
     }
 
     public Long getId() {
