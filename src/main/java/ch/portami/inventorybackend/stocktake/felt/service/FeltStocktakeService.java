@@ -322,11 +322,8 @@ public class FeltStocktakeService {
     }
 
     private void removeVoidedScans(FeltStocktakeItem item) {
-        for (FeltStocktakeScan scan : item.getScans()) {
-            if (scan.isVoided()) {
-                item.removeScan(scan);
-            }
-        }
+        item.getScans()
+            .removeIf(FeltStocktakeScan::isVoided);
     }
 
     private List<Storage> resolveStorages(List<Long> storageIds) {
