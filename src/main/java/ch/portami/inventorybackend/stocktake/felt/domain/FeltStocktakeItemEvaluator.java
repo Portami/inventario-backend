@@ -112,17 +112,11 @@ public class FeltStocktakeItemEvaluator {
     }
 
     private boolean needsResolution(FeltStocktakeItemStatus status, FeltStocktakeResolutionType resolutionType) {
-
-        if (status == FeltStocktakeItemStatus.OUT_OF_SCOPE
-                || status == FeltStocktakeItemStatus.INITIAL
-                || status == FeltStocktakeItemStatus.OK) {
-            return false;
-        }
-        if (status == FeltStocktakeItemStatus.DUPLICATE_SCAN) {
-            return true;
-        }
-        return resolutionType == null;
-
+        return switch (status) {
+            case OUT_OF_SCOPE, INITIAL, OK -> false;
+            case DUPLICATE_SCAN -> true;
+            default -> resolutionType == null;
+        };
     }
 
     private FeltStocktakeItemEvaluation createEvaluationWithResolution(FeltStocktakeItem item,
