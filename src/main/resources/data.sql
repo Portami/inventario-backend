@@ -584,42 +584,42 @@ INSERT IGNORE INTO barcode (id, type, felt_roll_id, scrap_piece_id)
 VALUES (82, 'SCRAP', NULL, 1);
 
 
-INSERT IGNORE INTO inventario.category (id, name)
+INSERT IGNORE INTO category (id, name)
 VALUES (1, 'Taschen');
-INSERT IGNORE INTO inventario.category (id, name)
+INSERT IGNORE INTO category (id, name)
 VALUES (2, 'Kinderfinken');
 
-INSERT IGNORE INTO inventario.product (id, name, category_id)
+INSERT IGNORE INTO product (id, name, category_id)
 VALUES (1, 'shopper-1', 1);
-INSERT IGNORE INTO inventario.product (id, name, category_id)
+INSERT IGNORE INTO product (id, name, category_id)
 VALUES (2, 'shopper-2', 1);
-INSERT IGNORE INTO inventario.product (id, name, category_id)
+INSERT IGNORE INTO product (id, name, category_id)
 VALUES (3, 'täppali', 2);
-INSERT IGNORE INTO inventario.product_variant (id, name, price, product_id)
+INSERT IGNORE INTO product_variant (id, name, price, product_id)
 VALUES (1, 'weiss/schwarz', 169.00, 1);
 
-INSERT IGNORE INTO inventario.product_variant (id, name, price, product_id)
+INSERT IGNORE INTO product_variant (id, name, price, product_id)
 VALUES (2, 'giftgrün/grau', 169.00, 1);
-INSERT IGNORE INTO inventario.product_variant (id, name, price, product_id)
+INSERT IGNORE INTO product_variant (id, name, price, product_id)
 VALUES (3, 'petrol/anthrazit', 169.00, 1);
-INSERT IGNORE INTO inventario.product_variant (id, name, price, product_id)
+INSERT IGNORE INTO product_variant (id, name, price, product_id)
 VALUES (4, 'rot/anthrazit', 169.00, 1);
-INSERT IGNORE INTO inventario.product_variant (id, name, price, product_id)
+INSERT IGNORE INTO product_variant (id, name, price, product_id)
 VALUES (5, 'lemon', 196.00, 2);
-INSERT IGNORE INTO inventario.product_variant (id, name, price, product_id)
+INSERT IGNORE INTO product_variant (id, name, price, product_id)
 VALUES (6, '19-21 / S royalblau', 50.00, 3);
 
-INSERT IGNORE INTO inventario.product_inventory (id, count, product_variant_id, storage_id)
+INSERT IGNORE INTO product_inventory (id, count, product_variant_id, storage_id)
 VALUES (1, 5, 5, 1);
-INSERT IGNORE INTO inventario.product_inventory (id, count, product_variant_id, storage_id)
+INSERT IGNORE INTO product_inventory (id, count, product_variant_id, storage_id)
 VALUES (2, 4, 5, 2);
-INSERT IGNORE INTO inventario.product_inventory (id, count, product_variant_id, storage_id)
+INSERT IGNORE INTO product_inventory (id, count, product_variant_id, storage_id)
 VALUES (3, 2, 1, 1);
-INSERT IGNORE INTO inventario.product_inventory (id, count, product_variant_id, storage_id)
+INSERT IGNORE INTO product_inventory (id, count, product_variant_id, storage_id)
 VALUES (4, 4, 1, 2);
-INSERT IGNORE INTO inventario.product_inventory (id, count, product_variant_id, storage_id)
+INSERT IGNORE INTO product_inventory (id, count, product_variant_id, storage_id)
 VALUES (5, 3, 2, 1);
-INSERT IGNORE INTO inventario.product_inventory (id, count, product_variant_id, storage_id)
+INSERT IGNORE INTO product_inventory (id, count, product_variant_id, storage_id)
 VALUES (6, 1, 2, 2);
 
 -- ============================================================
