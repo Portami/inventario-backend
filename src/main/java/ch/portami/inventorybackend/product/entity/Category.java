@@ -1,5 +1,6 @@
 package ch.portami.inventorybackend.product.entity;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -29,6 +30,9 @@ public class Category {
     @OneToMany(mappedBy = "category", fetch = FetchType.LAZY)
     private final List<Product> products = new ArrayList<>();
 
+    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private final List<CategoryField> fields = new ArrayList<>();
+
     public Category() {
     }
 
@@ -52,6 +56,10 @@ public class Category {
         return products;
     }
 
+    public List<CategoryField> getFields() {
+        return fields;
+    }
+
     // --- Sync helpers ---------------------------------------------------
 
     public void addProduct(Product product) {
@@ -62,6 +70,15 @@ public class Category {
     public void removeProduct(Product product) {
         products.remove(product);
         product.setCategory(null);
+    }
+
+    public void addField(CategoryField field) {
+        fields.add(field);
+        field.setCategory(this);
+    }
+
+    public void clearFields() {
+        fields.clear();
     }
 
     // --- equals / hashCode (Vlad Mihalcea pattern) ----------------------

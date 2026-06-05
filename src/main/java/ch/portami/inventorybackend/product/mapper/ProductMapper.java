@@ -21,7 +21,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
-@Mapper(componentModel = "spring", uses = {ProductVariantMapper.class, ProductAttributeMapper.class})
+@Mapper(componentModel = "spring", uses = {ProductVariantMapper.class, ProductAttributeMapper.class, CategoryMapper.class})
 public interface ProductMapper {
 
     @Mapping(source = "productVariants", target = "variants")
@@ -92,8 +92,11 @@ public interface ProductMapper {
 
             }
 
-            untouchedAttributes.values()
-                               .forEach(product::removeProductAttribute);
+            untouchedAttributes.values().forEach(a -> {
+                // Initialize lazy collection so orphan-removal cascades correctly before the parent DELETE.
+                a.getProductAttributeValues().clear();
+                product.removeProductAttribute(a);
+            });
 
         }
 

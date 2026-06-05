@@ -4,10 +4,14 @@ import ch.portami.inventorybackend.product.dto.category.CategoryDto;
 import ch.portami.inventorybackend.product.dto.category.CreateCategoryDto;
 import ch.portami.inventorybackend.product.dto.category.UpdateCategoryDto;
 import ch.portami.inventorybackend.product.entity.Category;
+import ch.portami.inventorybackend.product.entity.CategoryField;
 import ch.portami.inventorybackend.product.exception.CategoryNotFoundException;
 import ch.portami.inventorybackend.product.mapper.CategoryMapper;
 import ch.portami.inventorybackend.product.repository.CategoryRepository;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,6 +45,11 @@ public class CategoryService {
     @Transactional
     public CategoryDto createCategory(CreateCategoryDto createCategoryDto) {
         Category category = categoryMapper.toCategory(createCategoryDto);
+        if (createCategoryDto.fieldNames() != null) {
+            for (String fieldName : createCategoryDto.fieldNames()) {
+                category.addField(new CategoryField(category, fieldName));
+            }
+        }
         Category savedCategory = categoryRepository.save(category);
         return categoryMapper.toCategoryDto(savedCategory);
     }
@@ -84,6 +93,20 @@ public class CategoryService {
     public CategoryDto updateCategory(Long id, UpdateCategoryDto updateCategoryDto) {
         Category category = getCategory(id);
         categoryMapper.updateCategory(updateCategoryDto, category);
+        if (updateCategoryDto.fieldNames() != null) {
+            Set<String> newNames = new HashSet<>(updateCategoryDto.fieldNames());
+            Set<String> existingNames = category.getFields().stream()
+                                                .map(CategoryField::getName)
+                                                .collect(Collectors.toSet());
+            // Remove fields whose name is no longer in the new list (keeps IDs stable for retained fields).
+            category.getFields().removeIf(f -> !newNames.contains(f.getName()));
+            // Add only genuinely new fields.
+            for (String name : updateCategoryDto.fieldNames()) {
+                if (!existingNames.contains(name)) {
+                    category.addField(new CategoryField(category, name));
+                }
+            }
+        }
         Category updatedCategory = categoryRepository.save(category);
         return categoryMapper.toCategoryDto(updatedCategory);
     }
@@ -96,6 +119,7 @@ public class CategoryService {
      * @throws DataIntegrityViolationException if the category cannot be deleted because it is still referenced by
      *                                         products
      */
+    @Transactional
     public void deleteCategory(Long id) {
         categoryRepository.deleteById(id);
     }
