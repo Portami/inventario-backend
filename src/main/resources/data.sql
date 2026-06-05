@@ -621,3 +621,437 @@ INSERT IGNORE INTO product_inventory (id, count, product_variant_id, storage_id)
 VALUES (5, 3, 2, 1);
 INSERT IGNORE INTO product_inventory (id, count, product_variant_id, storage_id)
 VALUES (6, 1, 2, 2);
+
+-- ============================================================
+-- OFFER TEST DATA
+-- ============================================================
+
+-- Customers (offer_customer)
+-- 1 Atelier Madeleine Schönberg — top customer, very reliable
+INSERT IGNORE INTO offer_customer (id, name, contact_person, email, phone, street, zip, city, country, vat_number)
+VALUES (1, 'Atelier Madeleine Schönberg', 'Madeleine Schönberg', 'm.schoenberg@atelier-ms.ch', '+41 44 210 33 55', 'Limmatquai 18', '8001', 'Zürich', 'CH', 'CHE-123.456.789 MWST');
+
+-- 2 Textile Werkstatt Brunner GmbH — reliable, mid-size orders
+INSERT IGNORE INTO offer_customer (id, name, contact_person, email, phone, street, zip, city, country, vat_number)
+VALUES (2, 'Textile Werkstatt Brunner GmbH', 'Peter Brunner', 'p.brunner@textilwerkstatt.ch', '+41 31 372 88 10', 'Aarbergergasse 7', '3011', 'Bern', 'CH', 'CHE-234.567.890 MWST');
+
+-- 3 Kreativ-Markt Luzern AG — good but has one overdue invoice
+INSERT IGNORE INTO offer_customer (id, name, contact_person, email, phone, street, zip, city, country, vat_number)
+VALUES (3, 'Kreativ-Markt Luzern AG', 'Sandra Kälin', 's.kaelin@kreativmarkt-luzern.ch', '+41 41 420 05 70', 'Hertensteinstrasse 22', '6004', 'Luzern', 'CH', 'CHE-345.678.901 MWST');
+
+-- 4 Handwerk & Design Studio Huber — mixed, has first dunning notice
+INSERT IGNORE INTO offer_customer (id, name, contact_person, email, phone, street, zip, city, country, vat_number)
+VALUES (4, 'Handwerk & Design Studio Huber', 'Jonas Huber', 'j.huber@hd-studio.ch', '+41 61 381 22 40', 'Freie Strasse 12', '4001', 'Basel', 'CH', 'CHE-456.789.012 MWST');
+
+-- 5 Filzkunst Atelier Müller — reliable, one fresh offer pending
+INSERT IGNORE INTO offer_customer (id, name, contact_person, email, phone, street, zip, city, country, vat_number)
+VALUES (5, 'Filzkunst Atelier Müller', 'Heidi Müller', 'h.mueller@filzkunst.ch', '+41 71 244 66 80', 'Gallusstrasse 14', '9000', 'St. Gallen', 'CH', 'CHE-567.890.123 MWST');
+
+-- 6 Bastelbedarf Weber AG — unreliable, mostly lost/no response
+INSERT IGNORE INTO offer_customer (id, name, contact_person, email, phone, street, zip, city, country, vat_number)
+VALUES (6, 'Bastelbedarf Weber AG', 'Thomas Weber', 't.weber@bastelbedarf-weber.ch', '+41 52 212 77 30', 'Marktgasse 5', '8400', 'Winterthur', 'CH', 'CHE-678.901.234 MWST');
+
+-- 7 Hobby-Treff Schneider GmbH — avoid: zero completions, all cancelled/no response
+INSERT IGNORE INTO offer_customer (id, name, contact_person, email, phone, street, zip, city, country, vat_number)
+VALUES (7, 'Hobby-Treff Schneider GmbH', 'Kurt Schneider', 'k.schneider@hobby-treff.ch', '+41 62 824 55 10', 'Rathausgasse 3', '5000', 'Aarau', 'CH', 'CHE-789.012.345 MWST');
+
+-- 8 Kunsthandwerk Bachmann — medium, overdue payment reminder
+INSERT IGNORE INTO offer_customer (id, name, contact_person, email, phone, street, zip, city, country, vat_number)
+VALUES (8, 'Kunsthandwerk Bachmann', 'Ursula Bachmann', 'u.bachmann@kh-bachmann.ch', '+41 81 252 14 60', 'Reichsgasse 9', '7000', 'Chur', 'CH', 'CHE-890.123.456 MWST');
+
+-- 9 Mode Atelier Keller — new customer, two offers in early stages
+INSERT IGNORE INTO offer_customer (id, name, contact_person, email, phone, street, zip, city, country, vat_number)
+VALUES (9, 'Mode Atelier Keller', 'Anna Keller', 'a.keller@modeatelier-keller.ch', '+41 62 296 38 90', 'Hauptgasse 16', '4600', 'Olten', 'CH', NULL);
+
+-- 10 Stoff & Faden Huber — serious overdue second dunning notice
+INSERT IGNORE INTO offer_customer (id, name, contact_person, email, phone, street, zip, city, country, vat_number)
+VALUES (10, 'Stoff & Faden Huber', 'Markus Huber', 'm.huber@stoff-faden.ch', '+41 52 721 09 50', 'Zürcherstrasse 28', '8500', 'Frauenfeld', 'CH', 'CHE-901.234.567 MWST');
+
+-- ============================================================
+-- Offers
+-- Customer 1 (Atelier Madeleine Schönberg) — 5 COMPLETED + 1 INVOICE
+-- ============================================================
+INSERT IGNORE INTO offer (id, customer_id, state, created_at, updated_at, due_at, offer_sent)
+VALUES (1,  1, 'COMPLETED', '2025-03-10 09:15:00', '2025-04-02 14:30:00', '2025-03-24 00:00:00', true);
+INSERT IGNORE INTO offer (id, customer_id, state, created_at, updated_at, due_at, offer_sent)
+VALUES (2,  1, 'COMPLETED', '2025-05-20 10:00:00', '2025-06-18 11:45:00', '2025-06-10 00:00:00', true);
+INSERT IGNORE INTO offer (id, customer_id, state, created_at, updated_at, due_at, offer_sent)
+VALUES (3,  1, 'COMPLETED', '2025-08-12 08:30:00', '2025-09-05 16:00:00', '2025-08-26 00:00:00', true);
+INSERT IGNORE INTO offer (id, customer_id, state, created_at, updated_at, due_at, offer_sent)
+VALUES (4,  1, 'COMPLETED', '2025-11-05 09:00:00', '2025-12-02 13:20:00', '2025-11-19 00:00:00', true);
+INSERT IGNORE INTO offer (id, customer_id, state, created_at, updated_at, due_at, offer_sent)
+VALUES (5,  1, 'COMPLETED', '2026-02-18 10:30:00', '2026-03-12 15:10:00', '2026-03-04 00:00:00', true);
+INSERT IGNORE INTO offer (id, customer_id, state, created_at, updated_at, due_at, offer_sent)
+VALUES (6,  1, 'INVOICE',   '2026-04-22 11:00:00', '2026-05-08 09:30:00', '2026-06-20 00:00:00', true);
+
+-- Customer 2 (Textile Werkstatt Brunner GmbH) — 4 COMPLETED + 1 ORDER_CONFIRMATION
+INSERT IGNORE INTO offer (id, customer_id, state, created_at, updated_at, due_at, offer_sent)
+VALUES (7,  2, 'COMPLETED',          '2025-04-08 08:45:00', '2025-05-14 10:00:00', '2025-04-28 00:00:00', true);
+INSERT IGNORE INTO offer (id, customer_id, state, created_at, updated_at, due_at, offer_sent)
+VALUES (8,  2, 'COMPLETED',          '2025-07-14 09:30:00', '2025-08-20 14:00:00', '2025-08-05 00:00:00', true);
+INSERT IGNORE INTO offer (id, customer_id, state, created_at, updated_at, due_at, offer_sent)
+VALUES (9,  2, 'COMPLETED',          '2025-10-22 10:15:00', '2025-11-28 11:30:00', '2025-11-11 00:00:00', true);
+INSERT IGNORE INTO offer (id, customer_id, state, created_at, updated_at, due_at, offer_sent)
+VALUES (10, 2, 'COMPLETED',          '2026-01-30 08:00:00', '2026-03-05 09:45:00', '2026-02-13 00:00:00', true);
+INSERT IGNORE INTO offer (id, customer_id, state, created_at, updated_at, due_at, offer_sent)
+VALUES (11, 2, 'ORDER_CONFIRMATION', '2026-05-15 11:30:00', '2026-05-22 10:00:00', '2026-07-10 00:00:00', true);
+
+-- Customer 3 (Kreativ-Markt Luzern AG) — 3 COMPLETED + 1 PAYMENT_REMINDER (overdue)
+INSERT IGNORE INTO offer (id, customer_id, state, created_at, updated_at, due_at, offer_sent)
+VALUES (12, 3, 'COMPLETED',          '2025-05-14 09:00:00', '2025-06-20 16:00:00', '2025-06-04 00:00:00', true);
+INSERT IGNORE INTO offer (id, customer_id, state, created_at, updated_at, due_at, offer_sent)
+VALUES (13, 3, 'COMPLETED',          '2025-09-03 10:30:00', '2025-10-10 13:00:00', '2025-09-24 00:00:00', true);
+INSERT IGNORE INTO offer (id, customer_id, state, created_at, updated_at, due_at, offer_sent)
+VALUES (14, 3, 'COMPLETED',          '2026-01-17 08:15:00', '2026-02-22 11:00:00', '2026-02-06 00:00:00', true);
+INSERT IGNORE INTO offer (id, customer_id, state, created_at, updated_at, due_at, offer_sent)
+VALUES (15, 3, 'PAYMENT_REMINDER',   '2026-02-28 09:00:00', '2026-04-02 10:15:00', '2026-04-15 00:00:00', true);
+
+-- Customer 4 (Handwerk & Design Studio Huber) — 3 COMPLETED + 1 FIRST_DUNNING_NOTICE (overdue)
+INSERT IGNORE INTO offer (id, customer_id, state, created_at, updated_at, due_at, offer_sent)
+VALUES (16, 4, 'COMPLETED',             '2025-06-19 10:00:00', '2025-07-22 14:30:00', '2025-07-09 00:00:00', true);
+INSERT IGNORE INTO offer (id, customer_id, state, created_at, updated_at, due_at, offer_sent)
+VALUES (17, 4, 'COMPLETED',             '2025-10-08 09:15:00', '2025-11-15 12:00:00', '2025-10-29 00:00:00', true);
+INSERT IGNORE INTO offer (id, customer_id, state, created_at, updated_at, due_at, offer_sent)
+VALUES (18, 4, 'COMPLETED',             '2026-01-25 10:30:00', '2026-02-28 15:00:00', '2026-02-15 00:00:00', true);
+INSERT IGNORE INTO offer (id, customer_id, state, created_at, updated_at, due_at, offer_sent)
+VALUES (19, 4, 'FIRST_DUNNING_NOTICE', '2025-12-10 08:00:00', '2026-03-15 09:00:00', '2026-02-28 00:00:00', true);
+
+-- Customer 5 (Filzkunst Atelier Müller) — 3 COMPLETED + 1 fresh OFFER
+INSERT IGNORE INTO offer (id, customer_id, state, created_at, updated_at, due_at, offer_sent)
+VALUES (20, 5, 'COMPLETED', '2025-05-30 09:30:00', '2025-06-30 11:00:00', '2025-06-20 00:00:00', true);
+INSERT IGNORE INTO offer (id, customer_id, state, created_at, updated_at, due_at, offer_sent)
+VALUES (21, 5, 'COMPLETED', '2025-09-18 10:00:00', '2025-10-20 14:30:00', '2025-10-08 00:00:00', true);
+INSERT IGNORE INTO offer (id, customer_id, state, created_at, updated_at, due_at, offer_sent)
+VALUES (22, 5, 'COMPLETED', '2026-02-05 08:45:00', '2026-03-07 10:15:00', '2026-02-26 00:00:00', true);
+INSERT IGNORE INTO offer (id, customer_id, state, created_at, updated_at, due_at, offer_sent)
+VALUES (23, 5, 'OFFER',     '2026-05-28 11:00:00', '2026-05-28 11:00:00', '2026-06-11 00:00:00', false);
+
+-- Customer 6 (Bastelbedarf Weber AG) — 1 COMPLETED, 2 CANCELLED, 2 NO_RESPONSE
+INSERT IGNORE INTO offer (id, customer_id, state, created_at, updated_at, due_at, offer_sent)
+VALUES (24, 6, 'COMPLETED',   '2025-04-01 10:00:00', '2025-05-08 13:00:00', '2025-04-22 00:00:00', true);
+INSERT IGNORE INTO offer (id, customer_id, state, created_at, updated_at, due_at, offer_sent)
+VALUES (25, 6, 'CANCELLED',   '2025-06-10 09:00:00', '2025-07-15 10:30:00', '2025-06-24 00:00:00', true);
+INSERT IGNORE INTO offer (id, customer_id, state, created_at, updated_at, due_at, offer_sent)
+VALUES (26, 6, 'CANCELLED',   '2025-10-15 08:30:00', '2025-11-18 09:45:00', '2025-10-29 00:00:00', true);
+INSERT IGNORE INTO offer (id, customer_id, state, created_at, updated_at, due_at, offer_sent)
+VALUES (27, 6, 'NO_RESPONSE', '2025-12-05 10:15:00', '2026-01-20 11:00:00', '2025-12-19 00:00:00', true);
+INSERT IGNORE INTO offer (id, customer_id, state, created_at, updated_at, due_at, offer_sent)
+VALUES (28, 6, 'NO_RESPONSE', '2026-03-20 09:00:00', '2026-04-28 14:00:00', '2026-04-03 00:00:00', true);
+
+-- Customer 7 (Hobby-Treff Schneider GmbH) — 2 CANCELLED, 2 NO_RESPONSE (avoid)
+INSERT IGNORE INTO offer (id, customer_id, state, created_at, updated_at, due_at, offer_sent)
+VALUES (29, 7, 'CANCELLED',   '2025-07-22 09:30:00', '2025-08-20 10:00:00', '2025-08-05 00:00:00', true);
+INSERT IGNORE INTO offer (id, customer_id, state, created_at, updated_at, due_at, offer_sent)
+VALUES (30, 7, 'CANCELLED',   '2025-11-11 10:00:00', '2025-12-10 11:30:00', '2025-11-25 00:00:00', true);
+INSERT IGNORE INTO offer (id, customer_id, state, created_at, updated_at, due_at, offer_sent)
+VALUES (31, 7, 'NO_RESPONSE', '2026-01-08 08:15:00', '2026-02-15 09:00:00', '2026-01-22 00:00:00', true);
+INSERT IGNORE INTO offer (id, customer_id, state, created_at, updated_at, due_at, offer_sent)
+VALUES (32, 7, 'NO_RESPONSE', '2026-04-03 11:00:00', '2026-05-12 14:30:00', '2026-04-17 00:00:00', true);
+
+-- Customer 8 (Kunsthandwerk Bachmann) — 2 COMPLETED + 1 PAYMENT_REMINDER (overdue)
+INSERT IGNORE INTO offer (id, customer_id, state, created_at, updated_at, due_at, offer_sent)
+VALUES (33, 8, 'COMPLETED',        '2025-08-25 09:00:00', '2025-09-30 12:00:00', '2025-09-15 00:00:00', true);
+INSERT IGNORE INTO offer (id, customer_id, state, created_at, updated_at, due_at, offer_sent)
+VALUES (34, 8, 'COMPLETED',        '2025-12-15 10:30:00', '2026-01-20 14:00:00', '2026-01-05 00:00:00', true);
+INSERT IGNORE INTO offer (id, customer_id, state, created_at, updated_at, due_at, offer_sent)
+VALUES (35, 8, 'PAYMENT_REMINDER', '2026-03-05 08:45:00', '2026-04-10 10:00:00', '2026-04-20 00:00:00', true);
+
+-- Customer 9 (Mode Atelier Keller) — 1 OFFER + 1 ORDER_CONFIRMATION
+INSERT IGNORE INTO offer (id, customer_id, state, created_at, updated_at, due_at, offer_sent)
+VALUES (36, 9, 'OFFER',              '2026-05-20 10:00:00', '2026-05-20 10:00:00', '2026-06-03 00:00:00', false);
+INSERT IGNORE INTO offer (id, customer_id, state, created_at, updated_at, due_at, offer_sent)
+VALUES (37, 9, 'ORDER_CONFIRMATION', '2026-04-28 09:15:00', '2026-05-05 11:00:00', '2026-06-25 00:00:00', true);
+
+-- Customer 10 (Stoff & Faden Huber) — 2 COMPLETED + 1 SECOND_DUNNING_NOTICE (serious overdue)
+INSERT IGNORE INTO offer (id, customer_id, state, created_at, updated_at, due_at, offer_sent)
+VALUES (38, 10, 'COMPLETED',             '2025-07-30 08:30:00', '2025-08-28 13:00:00', '2025-08-20 00:00:00', true);
+INSERT IGNORE INTO offer (id, customer_id, state, created_at, updated_at, due_at, offer_sent)
+VALUES (39, 10, 'COMPLETED',             '2025-11-20 10:00:00', '2025-12-22 15:00:00', '2025-12-10 00:00:00', true);
+INSERT IGNORE INTO offer (id, customer_id, state, created_at, updated_at, due_at, offer_sent)
+VALUES (40, 10, 'SECOND_DUNNING_NOTICE', '2025-12-20 09:00:00', '2026-04-15 10:30:00', '2026-02-10 00:00:00', true);
+
+-- ============================================================
+-- Offer Items  (unit_price × quantity = total for each item)
+-- ============================================================
+
+-- Offer 1 (Atelier Schönberg, COMPLETED) — CHF 340
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (1,  1, NULL, 'Wollfilz schwarz 1.2mm, 50×80cm', 2, 85.00, 170.00, '2025-03-10 09:15:00', '2025-03-10 09:15:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (2,  1, NULL, 'Wollfilz rohweiss 1.2mm, 100×180cm', 1, 170.00, 170.00, '2025-03-10 09:15:00', '2025-03-10 09:15:00');
+
+-- Offer 2 (Atelier Schönberg, COMPLETED) — CHF 520
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (3,  2, NULL, 'Wollfilz grafitgrau 1.2mm, 100×180cm', 2, 145.00, 290.00, '2025-05-20 10:00:00', '2025-05-20 10:00:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (4,  2, NULL, 'Wollfilz orange 1.2mm, 50×80cm', 1, 85.00, 85.00, '2025-05-20 10:00:00', '2025-05-20 10:00:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (5,  2, 6,    'Täppali 19-21 / S royalblau', 3, 50.00, 150.00, '2025-05-20 10:00:00', '2025-05-20 10:00:00');
+
+-- Offer 3 (Atelier Schönberg, COMPLETED) — CHF 280
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (6,  3, NULL, 'Wollfilz tannengrün 1.2mm, 100×180cm', 1, 155.00, 155.00, '2025-08-12 08:30:00', '2025-08-12 08:30:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (7,  3, NULL, 'Reststück aubergin, 58×62cm', 1, 125.00, 125.00, '2025-08-12 08:30:00', '2025-08-12 08:30:00');
+
+-- Offer 4 (Atelier Schönberg, COMPLETED) — CHF 650
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (8,  4, NULL, 'Wollfilz anthrazit-meliert 1.2mm, 200×180cm', 1, 295.00, 295.00, '2025-11-05 09:00:00', '2025-11-05 09:00:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (9,  4, 1,    'Shopper weiss/schwarz', 2, 169.00, 338.00, '2025-11-05 09:00:00', '2025-11-05 09:00:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (10, 4, NULL, 'Filzzuschnitt bordeaux, 30×60cm', 1, 17.00, 17.00, '2025-11-05 09:00:00', '2025-11-05 09:00:00');
+
+-- Offer 5 (Atelier Schönberg, COMPLETED) — CHF 410
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (11, 5, NULL, 'Wollfilz royalblau 1.2mm, 100×180cm', 2, 165.00, 330.00, '2026-02-18 10:30:00', '2026-02-18 10:30:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (12, 5, 6,    'Täppali 19-21 / S royalblau', 2, 50.00, 100.00, '2026-02-18 10:30:00', '2026-02-18 10:30:00');
+
+-- Offer 6 (Atelier Schönberg, INVOICE) — CHF 490
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (13, 6, NULL, 'Wollfilz schwarz 1.2mm, 200×180cm', 1, 285.00, 285.00, '2026-04-22 11:00:00', '2026-04-22 11:00:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (14, 6, NULL, 'Wollfilz weiss 1.2mm, 50×80cm', 1, 90.00, 90.00, '2026-04-22 11:00:00', '2026-04-22 11:00:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (15, 6, NULL, 'Reststück grafitgrau, 47×55cm', 1, 115.00, 115.00, '2026-04-22 11:00:00', '2026-04-22 11:00:00');
+
+-- Offer 7 (Textile Werkstatt Brunner, COMPLETED) — CHF 840
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (16, 7, NULL, 'Wollfilz schwarz 1.2mm, 200×180cm', 2, 285.00, 570.00, '2025-04-08 08:45:00', '2025-04-08 08:45:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (17, 7, NULL, 'Wollfilz hellbeige-meliert 1.2mm, 100×180cm', 1, 160.00, 160.00, '2025-04-08 08:45:00', '2025-04-08 08:45:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (18, 7, 5,    'Shopper lemon', 1, 196.00, 196.00, '2025-04-08 08:45:00', '2025-04-08 08:45:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (19, 7, NULL, 'Zuschnittgebühr', 1, 24.00, 24.00, '2025-04-08 08:45:00', '2025-04-08 08:45:00');
+
+-- Offer 8 (Textile Werkstatt Brunner, COMPLETED) — CHF 560
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (20, 8, NULL, 'Wollfilz royalblau 1.2mm, 200×180cm', 1, 310.00, 310.00, '2025-07-14 09:30:00', '2025-07-14 09:30:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (21, 8, NULL, 'Wollfilz türkis 1.2mm, 100×180cm', 1, 170.00, 170.00, '2025-07-14 09:30:00', '2025-07-14 09:30:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (22, 8, NULL, 'Reststück pink, 62×48cm', 1, 80.00, 80.00, '2025-07-14 09:30:00', '2025-07-14 09:30:00');
+
+-- Offer 9 (Textile Werkstatt Brunner, COMPLETED) — CHF 720
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (23, 9, NULL, 'Wollfilz dunkelbraun-meliert 1.2mm, 200×180cm', 1, 290.00, 290.00, '2025-10-22 10:15:00', '2025-10-22 10:15:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (24, 9, 1,    'Shopper weiss/schwarz', 2, 169.00, 338.00, '2025-10-22 10:15:00', '2025-10-22 10:15:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (25, 9, NULL, 'Wollfilz camel-meliert 1.2mm, 50×80cm', 1, 72.00, 72.00, '2025-10-22 10:15:00', '2025-10-22 10:15:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (26, 9, NULL, 'Zuschnittgebühr', 1, 20.00, 20.00, '2025-10-22 10:15:00', '2025-10-22 10:15:00');
+
+-- Offer 10 (Textile Werkstatt Brunner, COMPLETED) — CHF 390
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (27, 10, NULL, 'Wollfilz anthrazit-meliert 1.2mm, 100×180cm', 1, 195.00, 195.00, '2026-01-30 08:00:00', '2026-01-30 08:00:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (28, 10, NULL, 'Wollfilz rost-meliert 1.2mm, 100×180cm', 1, 195.00, 195.00, '2026-01-30 08:00:00', '2026-01-30 08:00:00');
+
+-- Offer 11 (Textile Werkstatt Brunner, ORDER_CONFIRMATION) — CHF 630
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (29, 11, NULL, 'Wollfilz schwarz 1.2mm, 200×180cm', 1, 285.00, 285.00, '2026-05-15 11:30:00', '2026-05-15 11:30:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (30, 11, 2,    'Shopper giftgrün/grau', 2, 169.00, 338.00, '2026-05-15 11:30:00', '2026-05-15 11:30:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (31, 11, NULL, 'Zuschnittgebühr', 1, 7.00, 7.00, '2026-05-15 11:30:00', '2026-05-15 11:30:00');
+
+-- Offer 12 (Kreativ-Markt Luzern, COMPLETED) — CHF 460
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (32, 12, NULL, 'Wollfilz weiss 1.2mm, 200×180cm', 1, 280.00, 280.00, '2025-05-14 09:00:00', '2025-05-14 09:00:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (33, 12, NULL, 'Wollfilz gelb-meliert 1.2mm, 100×180cm', 1, 180.00, 180.00, '2025-05-14 09:00:00', '2025-05-14 09:00:00');
+
+-- Offer 13 (Kreativ-Markt Luzern, COMPLETED) — CHF 310
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (34, 13, NULL, 'Reststück bordeaux, 55×70cm', 1, 150.00, 150.00, '2025-09-03 10:30:00', '2025-09-03 10:30:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (35, 13, 6,    'Täppali 19-21 / S royalblau', 2, 50.00, 100.00, '2025-09-03 10:30:00', '2025-09-03 10:30:00');
+
+-- Offer 14 (Kreativ-Markt Luzern, COMPLETED) — CHF 580
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (36, 14, NULL, 'Wollfilz blau 1.2mm, 200×180cm', 1, 315.00, 315.00, '2026-01-17 08:15:00', '2026-01-17 08:15:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (37, 14, NULL, 'Wollfilz lila 1.2mm, 100×180cm', 1, 185.00, 185.00, '2026-01-17 08:15:00', '2026-01-17 08:15:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (38, 14, NULL, 'Reststück dunkelrot, 42×38cm', 1, 80.00, 80.00, '2026-01-17 08:15:00', '2026-01-17 08:15:00');
+
+-- Offer 15 (Kreativ-Markt Luzern, PAYMENT_REMINDER overdue) — CHF 420
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (39, 15, NULL, 'Wollfilz olive 1.2mm, 100×180cm', 1, 245.00, 245.00, '2026-02-28 09:00:00', '2026-02-28 09:00:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (40, 15, NULL, 'Reststück pistazie, 60×55cm', 1, 175.00, 175.00, '2026-02-28 09:00:00', '2026-02-28 09:00:00');
+
+-- Offer 16 (Handwerk & Design Huber, COMPLETED) — CHF 350
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (41, 16, NULL, 'Wollfilz dunkelbraun 1.2mm, 100×180cm', 1, 185.00, 185.00, '2025-06-19 10:00:00', '2025-06-19 10:00:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (42, 16, NULL, 'Wollfilz orange 1.2mm, 50×80cm', 2, 82.50, 165.00, '2025-06-19 10:00:00', '2025-06-19 10:00:00');
+
+-- Offer 17 (Handwerk & Design Huber, COMPLETED) — CHF 490
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (43, 17, NULL, 'Wollfilz grafitgrau 1.2mm, 200×180cm', 1, 280.00, 280.00, '2025-10-08 09:15:00', '2025-10-08 09:15:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (44, 17, NULL, 'Reststück schwarz, 50×65cm', 1, 130.00, 130.00, '2025-10-08 09:15:00', '2025-10-08 09:15:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (45, 17, NULL, 'Zuschnittgebühr', 1, 20.00, 20.00, '2025-10-08 09:15:00', '2025-10-08 09:15:00');
+
+-- Offer 18 (Handwerk & Design Huber, COMPLETED) — CHF 275
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (46, 18, NULL, 'Reststück tannengrün, 65×70cm', 1, 175.00, 175.00, '2026-01-25 10:30:00', '2026-01-25 10:30:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (47, 18, NULL, 'Reststück hellgrau-meliert, 48×52cm', 1, 100.00, 100.00, '2026-01-25 10:30:00', '2026-01-25 10:30:00');
+
+-- Offer 19 (Handwerk & Design Huber, FIRST_DUNNING_NOTICE overdue) — CHF 680
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (48, 19, NULL, 'Wollfilz dunkelgrau-meliert 1.2mm, 200×180cm', 1, 295.00, 295.00, '2025-12-10 08:00:00', '2025-12-10 08:00:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (49, 19, 3,    'Shopper petrol/anthrazit', 2, 169.00, 338.00, '2025-12-10 08:00:00', '2025-12-10 08:00:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (50, 19, NULL, 'Zuschnittgebühr', 1, 47.00, 47.00, '2025-12-10 08:00:00', '2025-12-10 08:00:00');
+
+-- Offer 20 (Filzkunst Atelier Müller, COMPLETED) — CHF 390
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (51, 20, NULL, 'Wollfilz violett 1.2mm, 200×180cm', 1, 265.00, 265.00, '2025-05-30 09:30:00', '2025-05-30 09:30:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (52, 20, NULL, 'Reststück bordeaux, 50×58cm', 1, 125.00, 125.00, '2025-05-30 09:30:00', '2025-05-30 09:30:00');
+
+-- Offer 21 (Filzkunst Atelier Müller, COMPLETED) — CHF 540
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (53, 21, NULL, 'Wollfilz türkis 1.2mm, 200×180cm', 1, 305.00, 305.00, '2025-09-18 10:00:00', '2025-09-18 10:00:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (54, 21, NULL, 'Wollfilz rosa 1.2mm, 50×80cm', 1, 95.00, 95.00, '2025-09-18 10:00:00', '2025-09-18 10:00:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (55, 21, NULL, 'Reststück pink, 44×60cm', 1, 140.00, 140.00, '2025-09-18 10:00:00', '2025-09-18 10:00:00');
+
+-- Offer 22 (Filzkunst Atelier Müller, COMPLETED) — CHF 320
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (56, 22, NULL, 'Wollfilz apfelgrün 1.2mm, 100×180cm', 1, 175.00, 175.00, '2026-02-05 08:45:00', '2026-02-05 08:45:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (57, 22, NULL, 'Reststück zitronengelb, 55×50cm', 1, 145.00, 145.00, '2026-02-05 08:45:00', '2026-02-05 08:45:00');
+
+-- Offer 23 (Filzkunst Atelier Müller, OFFER) — CHF 450
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (58, 23, NULL, 'Wollfilz schwarz 1.2mm, 200×180cm', 1, 285.00, 285.00, '2026-05-28 11:00:00', '2026-05-28 11:00:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (59, 23, NULL, 'Reststück hellgrau-meliert, 52×68cm', 1, 165.00, 165.00, '2026-05-28 11:00:00', '2026-05-28 11:00:00');
+
+-- Offer 24 (Bastelbedarf Weber, COMPLETED) — CHF 260
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (60, 24, NULL, 'Wollfilz weiss 1.2mm, 100×180cm', 1, 160.00, 160.00, '2025-04-01 10:00:00', '2025-04-01 10:00:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (61, 24, NULL, 'Reststück gelb, 40×55cm', 1, 100.00, 100.00, '2025-04-01 10:00:00', '2025-04-01 10:00:00');
+
+-- Offer 25 (Bastelbedarf Weber, CANCELLED) — CHF 430
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (62, 25, NULL, 'Wollfilz dunkelrot 1.2mm, 200×180cm', 1, 255.00, 255.00, '2025-06-10 09:00:00', '2025-06-10 09:00:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (63, 25, NULL, 'Reststück orange, 58×48cm', 1, 175.00, 175.00, '2025-06-10 09:00:00', '2025-06-10 09:00:00');
+
+-- Offer 26 (Bastelbedarf Weber, CANCELLED) — CHF 380
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (64, 26, NULL, 'Wollfilz grafitgrau 1.2mm, 100×180cm', 1, 200.00, 200.00, '2025-10-15 08:30:00', '2025-10-15 08:30:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (65, 26, 4,    'Shopper rot/anthrazit', 1, 169.00, 169.00, '2025-10-15 08:30:00', '2025-10-15 08:30:00');
+
+-- Offer 27 (Bastelbedarf Weber, NO_RESPONSE) — CHF 510
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (66, 27, NULL, 'Wollfilz schwarz 1.2mm, 200×180cm', 1, 285.00, 285.00, '2025-12-05 10:15:00', '2025-12-05 10:15:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (67, 27, NULL, 'Wollfilz weiss 1.2mm, 50×80cm', 1, 105.00, 105.00, '2025-12-05 10:15:00', '2025-12-05 10:15:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (68, 27, NULL, 'Zuschnittgebühr', 1, 120.00, 120.00, '2025-12-05 10:15:00', '2025-12-05 10:15:00');
+
+-- Offer 28 (Bastelbedarf Weber, NO_RESPONSE) — CHF 290
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (69, 28, NULL, 'Wollfilz orange 1.2mm, 100×180cm', 1, 175.00, 175.00, '2026-03-20 09:00:00', '2026-03-20 09:00:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (70, 28, NULL, 'Reststück kirschrot, 45×60cm', 1, 115.00, 115.00, '2026-03-20 09:00:00', '2026-03-20 09:00:00');
+
+-- Offer 29 (Hobby-Treff Schneider, CANCELLED) — CHF 320
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (71, 29, NULL, 'Wollfilz lila 1.2mm, 100×180cm', 1, 185.00, 185.00, '2025-07-22 09:30:00', '2025-07-22 09:30:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (72, 29, NULL, 'Reststück aubergin, 48×55cm', 1, 135.00, 135.00, '2025-07-22 09:30:00', '2025-07-22 09:30:00');
+
+-- Offer 30 (Hobby-Treff Schneider, CANCELLED) — CHF 480
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (73, 30, NULL, 'Wollfilz tannengrün 1.2mm, 200×180cm', 1, 270.00, 270.00, '2025-11-11 10:00:00', '2025-11-11 10:00:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (74, 30, NULL, 'Wollfilz olive 1.2mm, 50×80cm', 1, 90.00, 90.00, '2025-11-11 10:00:00', '2025-11-11 10:00:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (75, 30, 5,    'Shopper lemon', 1, 120.00, 120.00, '2025-11-11 10:00:00', '2025-11-11 10:00:00');
+
+-- Offer 31 (Hobby-Treff Schneider, NO_RESPONSE) — CHF 390
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (76, 31, NULL, 'Wollfilz dunkelgrau-meliert 1.2mm, 200×180cm', 1, 270.00, 270.00, '2026-01-08 08:15:00', '2026-01-08 08:15:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (77, 31, NULL, 'Reststück schwarz, 58×62cm', 1, 120.00, 120.00, '2026-01-08 08:15:00', '2026-01-08 08:15:00');
+
+-- Offer 32 (Hobby-Treff Schneider, NO_RESPONSE) — CHF 260
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (78, 32, NULL, 'Wollfilz royalblau 1.2mm, 100×180cm', 1, 175.00, 175.00, '2026-04-03 11:00:00', '2026-04-03 11:00:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (79, 32, NULL, 'Reststück hellblau, 40×50cm', 1, 85.00, 85.00, '2026-04-03 11:00:00', '2026-04-03 11:00:00');
+
+-- Offer 33 (Kunsthandwerk Bachmann, COMPLETED) — CHF 430
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (80, 33, NULL, 'Wollfilz anthrazit-meliert 1.2mm, 200×180cm', 1, 290.00, 290.00, '2025-08-25 09:00:00', '2025-08-25 09:00:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (81, 33, NULL, 'Reststück bordeaux, 52×68cm', 1, 140.00, 140.00, '2025-08-25 09:00:00', '2025-08-25 09:00:00');
+
+-- Offer 34 (Kunsthandwerk Bachmann, COMPLETED) — CHF 350
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (82, 34, NULL, 'Wollfilz dunkelbraun 1.2mm, 100×180cm', 1, 195.00, 195.00, '2025-12-15 10:30:00', '2025-12-15 10:30:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (83, 34, NULL, 'Wollfilz kirschrot 1.2mm, 50×80cm', 1, 155.00, 155.00, '2025-12-15 10:30:00', '2025-12-15 10:30:00');
+
+-- Offer 35 (Kunsthandwerk Bachmann, PAYMENT_REMINDER overdue) — CHF 560
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (84, 35, NULL, 'Wollfilz schwarz 1.2mm, 200×180cm', 1, 285.00, 285.00, '2026-03-05 08:45:00', '2026-03-05 08:45:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (85, 35, NULL, 'Wollfilz grafitgrau 1.2mm, 50×80cm', 1, 95.00, 95.00, '2026-03-05 08:45:00', '2026-03-05 08:45:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (86, 35, NULL, 'Reststück dunkelgrau-meliert, 48×65cm', 1, 180.00, 180.00, '2026-03-05 08:45:00', '2026-03-05 08:45:00');
+
+-- Offer 36 (Mode Atelier Keller, OFFER) — CHF 340
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (87, 36, NULL, 'Wollfilz weiss 1.2mm, 100×180cm', 1, 170.00, 170.00, '2026-05-20 10:00:00', '2026-05-20 10:00:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (88, 36, NULL, 'Reststück rohweiss, 60×55cm', 1, 170.00, 170.00, '2026-05-20 10:00:00', '2026-05-20 10:00:00');
+
+-- Offer 37 (Mode Atelier Keller, ORDER_CONFIRMATION) — CHF 715
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (89, 37, NULL, 'Wollfilz schwarz 1.2mm, 200×180cm', 1, 285.00, 285.00, '2026-04-28 09:15:00', '2026-04-28 09:15:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (90, 37, 1,    'Shopper weiss/schwarz', 2, 169.00, 338.00, '2026-04-28 09:15:00', '2026-04-28 09:15:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (91, 37, NULL, 'Wollfilz dunkelgrau-meliert 1.2mm, 50×80cm', 1, 72.00, 72.00, '2026-04-28 09:15:00', '2026-04-28 09:15:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (92, 37, NULL, 'Zuschnittgebühr', 1, 20.00, 20.00, '2026-04-28 09:15:00', '2026-04-28 09:15:00');
+
+-- Offer 38 (Stoff & Faden Huber, COMPLETED) — CHF 480
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (93, 38, NULL, 'Wollfilz hellgrau-meliert 1.2mm, 200×180cm', 1, 265.00, 265.00, '2025-07-30 08:30:00', '2025-07-30 08:30:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (94, 38, NULL, 'Wollfilz weiss 1.2mm, 50×80cm', 1, 95.00, 95.00, '2025-07-30 08:30:00', '2025-07-30 08:30:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (95, 38, NULL, 'Reststück rohweiss, 44×58cm', 1, 120.00, 120.00, '2025-07-30 08:30:00', '2025-07-30 08:30:00');
+
+-- Offer 39 (Stoff & Faden Huber, COMPLETED) — CHF 370
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (96, 39, NULL, 'Wollfilz dunkelbraun-meliert 1.2mm, 100×180cm', 1, 210.00, 210.00, '2025-11-20 10:00:00', '2025-11-20 10:00:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (97, 39, NULL, 'Wollfilz camel-meliert 1.2mm, 100×180cm', 1, 160.00, 160.00, '2025-11-20 10:00:00', '2025-11-20 10:00:00');
+
+-- Offer 40 (Stoff & Faden Huber, SECOND_DUNNING_NOTICE — serious overdue) — CHF 890
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (98,  40, NULL, 'Wollfilz schwarz 1.2mm, 200×180cm', 2, 285.00, 570.00, '2025-12-20 09:00:00', '2025-12-20 09:00:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (99,  40, 2,    'Shopper giftgrün/grau', 1, 169.00, 169.00, '2025-12-20 09:00:00', '2025-12-20 09:00:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (100, 40, NULL, 'Reststück anthrazit-meliert, 60×70cm', 1, 151.00, 151.00, '2025-12-20 09:00:00', '2025-12-20 09:00:00');
+INSERT IGNORE INTO offer_item (id, offer_id, product_variant_id, description, quantity, unit_price, total_price, created_at, updated_at)
+VALUES (101, 40, NULL, 'Mahngebühr', 1, 0.00, 0.00, '2025-12-20 09:00:00', '2025-12-20 09:00:00');

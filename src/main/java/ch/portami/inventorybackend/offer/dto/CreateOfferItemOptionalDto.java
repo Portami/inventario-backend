@@ -1,10 +1,14 @@
 package ch.portami.inventorybackend.offer.dto;
 
+import ch.portami.inventorybackend.offer.domain.OfferItemKind;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 
 @Schema(description = "Request body for creating a new (possibly empty) line item inside an existing offer")
 public record CreateOfferItemOptionalDto(
+
+        @Schema(description = "Kind of line item (SCRAP, ROLL, or PRODUCT)")
+        OfferItemKind kind,
 
         @Schema(description = "ID of the referenced product or product variant")
         Long productVariantId,
