@@ -23,3 +23,12 @@ springdoc:
     enabled: false
   swagger-ui:
     enabled: false
+
+portami:
+  offer:
+    due-days:
+      OFFER: 14
+      INVOICE: 10
+      PAYMENT_REMINDER: 5
+  cutting:
+    margin-cm: 1.5

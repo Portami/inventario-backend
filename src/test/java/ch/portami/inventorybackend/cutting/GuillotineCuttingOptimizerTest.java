@@ -1,6 +1,7 @@
 package ch.portami.inventorybackend.cutting;
 
 import ch.portami.inventorybackend.cutassistant.CuttingStockLoader;
+import ch.portami.inventorybackend.cutassistant.config.CuttingProperties;
 import ch.portami.inventorybackend.cutassistant.domain.CutInput;
 import ch.portami.inventorybackend.cutassistant.domain.CutResult;
 import ch.portami.inventorybackend.cutassistant.domain.CuttableStock;
@@ -11,9 +12,9 @@ import ch.portami.inventorybackend.cutassistant.impl.GuillotineCuttingOptimizer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -29,8 +30,12 @@ class GuillotineCuttingOptimizerTest {
     @Mock
     private CuttingStockLoader cuttingStockLoaderMock;
 
-    @InjectMocks
     private GuillotineCuttingOptimizer testee;
+
+    @BeforeEach
+    void setUp() {
+        testee = new GuillotineCuttingOptimizer(cuttingStockLoaderMock, new CuttingProperties(1.5));
+    }
 
     @Test
     void givenStockAndPiece_whenOptimize_thenAssignsWhenStockMatchesAndOutputsPaddedDimensions() {
