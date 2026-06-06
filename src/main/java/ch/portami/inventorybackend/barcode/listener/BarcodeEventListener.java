@@ -21,6 +21,13 @@ public class BarcodeEventListener {
         this.barcodeService = barcodeService;
     }
 
+    /**
+     * Generates and persists a barcode for a newly created felt roll. Runs before commit so the
+     * barcode is written in the same transaction as the roll; if barcode creation fails the roll
+     * creation is rolled back too.
+     *
+     * @param event the published roll-created event carrying the new roll
+     */
     @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
     public void onRollCreated(FeltRollCreatedEvent event) {
         barcodeService.createForRoll(event.roll());
