@@ -3,6 +3,9 @@ package ch.portami.inventorybackend.felt;
 import ch.portami.inventorybackend.BaseIntegrationTest;
 import ch.portami.inventorybackend.felt.dto.CreateFeltDto;
 import ch.portami.inventorybackend.felt.dto.CreateFeltRollDto;
+import ch.portami.inventorybackend.felt.dto.CutFeltRollDto;
+import ch.portami.inventorybackend.felt.dto.CutResultDto;
+import ch.portami.inventorybackend.felt.dto.CutScrapDto;
 import ch.portami.inventorybackend.felt.dto.FeltDto;
 import ch.portami.inventorybackend.felt.dto.FeltRollDto;
 import ch.portami.inventorybackend.felt.dto.UpdateFeltRollDto;
@@ -12,6 +15,7 @@ import ch.portami.inventorybackend.felt.entity.Supplier;
 import ch.portami.inventorybackend.felt.repository.BatchRepository;
 import ch.portami.inventorybackend.felt.repository.FeltRollRepository;
 import ch.portami.inventorybackend.felt.repository.FeltTypeRepository;
+import ch.portami.inventorybackend.felt.repository.ScrapPieceRepository;
 import ch.portami.inventorybackend.felt.repository.SupplierRepository;
 import ch.portami.inventorybackend.storage.entity.Storage;
 import ch.portami.inventorybackend.storage.repository.StorageRepository;
@@ -43,6 +47,8 @@ class FeltRollControllerIntegrationTest extends BaseIntegrationTest {
     private RestTestClient restTestClient;
     @Autowired
     private FeltRollRepository feltRollRepository;
+    @Autowired
+    private ScrapPieceRepository scrapPieceRepository;
     @Autowired
     private SupplierRepository supplierRepository;
     @Autowired
@@ -87,6 +93,7 @@ class FeltRollControllerIntegrationTest extends BaseIntegrationTest {
 
     @BeforeEach
     void resetRolls() {
+        scrapPieceRepository.deleteAll();
         feltRollRepository.deleteAll();
     }
 
@@ -436,6 +443,110 @@ class FeltRollControllerIntegrationTest extends BaseIntegrationTest {
                           .exchange()
                           .expectStatus()
                           .isNoContent();
+        }
+    }
+
+    // ── POST /api/rolls/{id}/cut ────────────────────────────────────────────
+
+    @Nested
+    @DisplayName("POST /api/rolls/{id}/cut")
+    class CutRoll {
+
+        private FeltRollDto longRoll() {
+            return postRoll(new CreateFeltRollDto(feltId, 1000.0, 180.0, null, storageId));
+        }
+
+        @Test
+        @DisplayName("shortens the roll, keeps width, and creates valid scraps")
+        void cutsRollAndCreatesScraps() {
+            FeltRollDto roll = longRoll();
+
+            restTestClient.post()
+                          .uri("/api/rolls/{id}/cut", roll.id())
+                          .contentType(MediaType.APPLICATION_JSON)
+                          .body(new CutFeltRollDto(200.0, List.of(
+                                  new CutScrapDto(60.0, 50.0, null, null),
+                                  new CutScrapDto(80.0, 44.0, null, null))))
+                          .exchange()
+                          .expectStatus()
+                          .isOk()
+                          .expectBody(CutResultDto.class)
+                          .value(result -> {
+                              assertThat(result.roll().id()).isEqualTo(roll.id());
+                              assertThat(result.roll().length()).isEqualTo(800.0);
+                              assertThat(result.roll().width()).isEqualTo(180.0);
+                              assertThat(result.createdScraps()).hasSize(2);
+                          });
+
+            assertThat(feltRollRepository.existsById(roll.id())).isTrue();
+            assertThat(scrapPieceRepository.count()).isEqualTo(2);
+        }
+
+        @Test
+        @DisplayName("silently drops a too-small scrap while keeping the valid ones")
+        void dropsTooSmallScrap() {
+            FeltRollDto roll = longRoll();
+
+            restTestClient.post()
+                          .uri("/api/rolls/{id}/cut", roll.id())
+                          .contentType(MediaType.APPLICATION_JSON)
+                          .body(new CutFeltRollDto(100.0, List.of(
+                                  new CutScrapDto(60.0, 50.0, null, null),
+                                  new CutScrapDto(40.0, 200.0, null, null)))) // width 40 < 44 → dropped
+                          .exchange()
+                          .expectStatus()
+                          .isOk()
+                          .expectBody(CutResultDto.class)
+                          .value(result -> assertThat(result.createdScraps()).hasSize(1));
+
+            assertThat(scrapPieceRepository.count()).isEqualTo(1);
+        }
+
+        @Test
+        @DisplayName("shortens the roll when no scraps are supplied")
+        void cutsWithoutScraps() {
+            FeltRollDto roll = longRoll();
+
+            restTestClient.post()
+                          .uri("/api/rolls/{id}/cut", roll.id())
+                          .contentType(MediaType.APPLICATION_JSON)
+                          .body(new CutFeltRollDto(150.0, null))
+                          .exchange()
+                          .expectStatus()
+                          .isOk()
+                          .expectBody(CutResultDto.class)
+                          .value(result -> {
+                              assertThat(result.roll().length()).isEqualTo(850.0);
+                              assertThat(result.createdScraps()).isEmpty();
+                          });
+
+            assertThat(scrapPieceRepository.count()).isZero();
+        }
+
+        @Test
+        @DisplayName("returns 409 when the cut length is not less than the roll length")
+        void rejectsTooLongCut() {
+            FeltRollDto roll = longRoll();
+
+            restTestClient.post()
+                          .uri("/api/rolls/{id}/cut", roll.id())
+                          .contentType(MediaType.APPLICATION_JSON)
+                          .body(new CutFeltRollDto(1000.0, null))
+                          .exchange()
+                          .expectStatus()
+                          .isEqualTo(HttpStatus.CONFLICT);
+        }
+
+        @Test
+        @DisplayName("returns 404 when the roll does not exist")
+        void returns404ForMissingRoll() {
+            restTestClient.post()
+                          .uri("/api/rolls/99999/cut")
+                          .contentType(MediaType.APPLICATION_JSON)
+                          .body(new CutFeltRollDto(50.0, null))
+                          .exchange()
+                          .expectStatus()
+                          .isNotFound();
         }
     }
 }

@@ -32,3 +32,5 @@ portami:
       PAYMENT_REMINDER: 5
   cutting:
     margin-cm: 1.5
+  felt:
+    scrap-min-side-cm: 44.0   # offcut with any side below this is dropped, not saved
