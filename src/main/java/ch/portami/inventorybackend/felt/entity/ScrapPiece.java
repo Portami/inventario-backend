@@ -10,7 +10,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Positive;
 import java.util.Objects;
 
 @Entity
@@ -34,11 +34,11 @@ public class ScrapPiece {
     @JoinColumn(name = "storage_id")
     private Storage storage;
 
-    @DecimalMin("44.0")
+    @Positive
     @Column(nullable = false)
     private Double length;
 
-    @DecimalMin("44.0")
+    @Positive
     @Column(nullable = false)
     private Double width;
 
