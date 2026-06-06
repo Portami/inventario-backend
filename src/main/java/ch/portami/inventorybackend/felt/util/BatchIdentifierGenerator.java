@@ -1,41 +1,42 @@
 package ch.portami.inventorybackend.felt.util;
 
-import java.util.Random;
-import java.util.stream.Collectors;
+import java.util.Locale;
 
 /**
- * Utility class for generating deterministic batch identifiers.
- * <p>
- * Each identifier is a fixed-length alphanumeric string derived from a numeric ID. The generation is deterministic: the
- * same input ID will always produce the same identifier.
+ * Utility class for generating batch identifiers from a numeric ID.
+ *
+ * <p>The identifier is the ID encoded in base&nbsp;36 (digits {@code 0-9} and letters {@code A-Z}),
+ * left-padded with zeros to {@value #IDENTIFIER_LENGTH} characters. Because the encoding is a
+ * one-to-one mapping of the ID, distinct (unique) IDs always produce distinct identifiers — there is
+ * no collision risk as long as the supplied ID is unique. The mapping is also deterministic: the same
+ * ID always yields the same identifier.
  */
 public final class BatchIdentifierGenerator {
 
     /**
-     * The length of each generated identifier.
+     * The minimum length of a generated identifier; shorter encodings are left-padded with zeros.
+     * IDs whose base-36 encoding is longer (beyond ~2.8e12) simply produce a longer string.
      */
     public static final int IDENTIFIER_LENGTH = 8;
 
-    /**
-     * The character pool used to compose identifiers.
-     */
-    public static final String IDENTIFIER_CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    private static final int BASE36 = 36;
 
     private BatchIdentifierGenerator() {
     }
 
     /**
-     * Creates a deterministic identifier from the given ID.
-     * <p>
-     * The same input ID will always produce the same identifier, as the ID is used to seed the random number
-     * generator.
+     * Creates a batch identifier from the given ID by encoding it in base 36 and left-padding it to
+     * {@value #IDENTIFIER_LENGTH} characters.
      *
-     * @param id the seed used to generate the identifier
-     * @return a string of length {@value #IDENTIFIER_LENGTH} composed of characters from {@link #IDENTIFIER_CHARACTERS}
+     * @param id the unique ID to encode (must be non-negative)
+     * @return the base-36 identifier, at least {@value #IDENTIFIER_LENGTH} characters long
      */
     public static String createIdentifier(Long id) {
-        return new Random(id).ints(IDENTIFIER_LENGTH, 0, IDENTIFIER_CHARACTERS.length())
-                             .mapToObj(i -> String.valueOf(IDENTIFIER_CHARACTERS.charAt(i)))
-                             .collect(Collectors.joining());
+        String encoded = Long.toString(id, BASE36)
+                             .toUpperCase(Locale.ROOT);
+        if (encoded.length() >= IDENTIFIER_LENGTH) {
+            return encoded;
+        }
+        return "0".repeat(IDENTIFIER_LENGTH - encoded.length()) + encoded;
     }
 }

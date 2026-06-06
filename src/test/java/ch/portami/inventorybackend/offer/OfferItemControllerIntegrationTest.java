@@ -12,7 +12,6 @@ import ch.portami.inventorybackend.offer.repository.CustomerRepository;
 import ch.portami.inventorybackend.offer.repository.OfferItemRepository;
 import ch.portami.inventorybackend.offer.repository.OfferRepository;
 import java.math.BigDecimal;
-import java.time.ZonedDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -47,7 +46,7 @@ class OfferItemControllerIntegrationTest extends BaseIntegrationTest {
 
     private Offer createTestOffer(String customerName, OfferState state) {
         Customer customer = customerRepository.save(new Customer(customerName));
-        Offer offer = new Offer(null, customer, state, ZonedDateTime.now(), ZonedDateTime.now());
+        Offer offer = new Offer(null, customer, state);
         return offerRepository.save(offer);
     }
 
