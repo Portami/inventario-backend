@@ -12,6 +12,10 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Loads the available cuttable stock for the optimizer by collecting all felt rolls and scrap
+ * pieces and adapting them into {@link CuttableStock} items.
+ */
 @Service
 public class CuttingStockLoader {
 
@@ -23,6 +27,12 @@ public class CuttingStockLoader {
         this.scrapPieceRepository = scrapPieceRepository;
     }
 
+    /**
+     * Loads all felt rolls and scrap pieces as cuttable stock. Items whose felt is unknown are
+     * skipped.
+     *
+     * @return the available stock, with rolls and scrap pieces combined into one list
+     */
     @Transactional
     public List<CuttableStock> loadAll() {
         List<CuttableStock> result = new ArrayList<>();

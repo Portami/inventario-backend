@@ -11,6 +11,9 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Service for retrieving and managing customers.
+ */
 @Service
 @Transactional
 public class CustomerService {
@@ -23,6 +26,11 @@ public class CustomerService {
         this.offerMapper = offerMapper;
     }
 
+    /**
+     * Retrieves all customers.
+     *
+     * @return a list of DTOs for all customers
+     */
     @Transactional(readOnly = true)
     public List<CustomerDto> listCustomers() {
         return customerRepository.findAll()
@@ -31,12 +39,26 @@ public class CustomerService {
                                  .toList();
     }
 
+    /**
+     * Creates a new customer.
+     *
+     * @param dto the data for the new customer
+     * @return the DTO of the created customer
+     */
     public CustomerDto createCustomer(CreateCustomerDto dto) {
         Customer customer = offerMapper.toCustomer(dto);
         Customer saved = customerRepository.save(customer);
         return offerMapper.toCustomerDto(saved);
     }
 
+    /**
+     * Applies a partial update to a customer. Only non-null fields of the DTO are applied.
+     *
+     * @param id  the ID of the customer to update
+     * @param dto the requested updates; null fields are left unchanged
+     * @return the DTO of the updated customer
+     * @throws ResourceNotFoundException if no customer with the given ID exists
+     */
     public CustomerDto updateCustomer(Long id, UpdateCustomerDto dto) {
         Customer customer = customerRepository.findById(id)
                                               .orElseThrow(

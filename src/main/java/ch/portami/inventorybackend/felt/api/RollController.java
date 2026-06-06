@@ -25,6 +25,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * REST endpoints for felt rolls, exposed under {@code /api/rolls}.
+ */
 @Tag(name = "Rolls")
 @RestController
 @RequestMapping("/api/rolls")
@@ -91,7 +94,6 @@ public class RollController {
 
     @Operation(summary = "Delete a roll")
     @ApiResponse(responseCode = "204", description = "Roll deleted")
-    @ApiResponse(responseCode = "404", description = "No roll exists with the given ID")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@Parameter(description = "Roll ID") @PathVariable Long id) {
         service.delete(id);

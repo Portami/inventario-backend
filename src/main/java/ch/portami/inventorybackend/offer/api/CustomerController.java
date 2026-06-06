@@ -19,6 +19,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * REST endpoints for customers, exposed under {@code /api/customers}.
+ */
 @Tag(name = "Customers", description = "Manage customers")
 @RestController
 @RequestMapping("/api/customers")

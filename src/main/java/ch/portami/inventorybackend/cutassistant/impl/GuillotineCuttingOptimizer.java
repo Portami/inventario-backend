@@ -2,6 +2,7 @@ package ch.portami.inventorybackend.cutassistant.impl;
 
 import ch.portami.inventorybackend.cutassistant.CuttingOptimizer;
 import ch.portami.inventorybackend.cutassistant.CuttingStockLoader;
+import ch.portami.inventorybackend.cutassistant.config.CuttingProperties;
 import ch.portami.inventorybackend.cutassistant.domain.AssignedPiece;
 import ch.portami.inventorybackend.cutassistant.domain.CutInput;
 import ch.portami.inventorybackend.cutassistant.domain.CutResult;
@@ -33,7 +34,8 @@ import org.springframework.stereotype.Service;
  *   <li><b>2D Assignment Process (Guillotine Split):</b>
  *       <ul>
  *         <li>Each stock item manages a list of "Free Spaces" (initially just one space the size of the stock).
- *         <li>For each piece, a 1.5 cm margin is added to all 4 edges to calculate the "padded" footprint.
+ *         <li>For each piece, a configurable margin (default 1.5 cm) is added to all 4 edges to calculate the
+ *             "padded" footprint.
  *         <li>The algorithm searches all Free Spaces across all compatible stock items
  *             to find the one that provides the "Best Area Fit" (leaves the smallest remaining area).
  *         <li>When a piece is placed, the chosen Free Space is removed, and the remaining L-shaped
@@ -50,12 +52,12 @@ import org.springframework.stereotype.Service;
 @Service
 public class GuillotineCuttingOptimizer implements CuttingOptimizer {
 
-    private static final Double MARGIN = 1.5;
-
     private final CuttingStockLoader stockLoader;
+    private final double margin;
 
-    public GuillotineCuttingOptimizer(CuttingStockLoader stockLoader) {
+    public GuillotineCuttingOptimizer(CuttingStockLoader stockLoader, CuttingProperties cuttingProperties) {
         this.stockLoader = stockLoader;
+        this.margin = cuttingProperties.marginCm();
     }
 
     /**
@@ -79,8 +81,8 @@ public class GuillotineCuttingOptimizer implements CuttingOptimizer {
         Map<CuttableStock, List<RequiredPiece>> assignments = new HashMap<>();
 
         for (RequiredPiece piece : piecesToCut) {
-            Double paddedLength = piece.length() + (MARGIN * 2);
-            Double paddedWidth = piece.width() + (MARGIN * 2);
+            Double paddedLength = piece.length() + (margin * 2);
+            Double paddedWidth = piece.width() + (margin * 2);
 
             Placement bestPlacement = findBestPlacement(piece, paddedLength, paddedWidth, availableStocks, stockSpaces);
 
@@ -253,8 +255,8 @@ public class GuillotineCuttingOptimizer implements CuttingOptimizer {
                                                        .map(p -> new AssignedPiece(
                                                                p.feltId(),
                                                                p.color(),
-                                                               p.length() + (MARGIN * 2),
-                                                               p.width() + (MARGIN * 2)))
+                                                               p.length() + (margin * 2),
+                                                               p.width() + (margin * 2)))
                                                        .toList();
 
             Double stockWaste = calculateTotalWasteForStock(stock, pieces);
@@ -280,7 +282,7 @@ public class GuillotineCuttingOptimizer implements CuttingOptimizer {
     private Double calculateTotalWasteForStock(CuttableStock stock, List<RequiredPiece> pieces) {
         Double totalStockArea = stock.length() * stock.width();
         Double usedPaddedArea = pieces.stream()
-                                      .mapToDouble(p -> (p.length() + (MARGIN * 2)) * (p.width() + (MARGIN * 2)))
+                                      .mapToDouble(p -> (p.length() + (margin * 2)) * (p.width() + (margin * 2)))
                                       .sum();
 
         return totalStockArea - usedPaddedArea;

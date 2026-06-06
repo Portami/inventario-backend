@@ -4,6 +4,10 @@ import ch.portami.inventorybackend.core.exceptions.InvalidResourceReferenceExcep
 import ch.portami.inventorybackend.core.exceptions.ResourceIdentifier;
 import java.text.MessageFormat;
 
+/**
+ * Thrown when a request references a storage location by an id that does not correspond to an
+ * existing storage.
+ */
 public class InvalidStorageReferenceException extends InvalidResourceReferenceException {
 
     public InvalidStorageReferenceException(Long storageId) {

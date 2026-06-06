@@ -1,6 +1,7 @@
 package ch.portami.inventorybackend.offer;
 
 import ch.portami.inventorybackend.core.exceptions.ResourceNotFoundException;
+import ch.portami.inventorybackend.offer.config.OfferProperties;
 import ch.portami.inventorybackend.offer.domain.OfferState;
 import ch.portami.inventorybackend.offer.dto.CreateOfferDto;
 import ch.portami.inventorybackend.offer.dto.CreateOfferItemDto;
@@ -19,6 +20,7 @@ import ch.portami.inventorybackend.offer.repository.OfferRepository;
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -51,7 +53,12 @@ class OfferServiceTest {
 
     @BeforeEach
     void setUp() {
-        offerService = new OfferService(offerMapper, offerRepository, offerItemRepository, customerRepository);
+        OfferProperties offerProperties = new OfferProperties(Map.of(
+                OfferState.OFFER, 14,
+                OfferState.INVOICE, 10,
+                OfferState.PAYMENT_REMINDER, 5));
+        offerService = new OfferService(offerMapper, offerRepository, offerItemRepository, customerRepository,
+                offerProperties);
     }
 
     @Test
@@ -266,7 +273,9 @@ class OfferServiceTest {
     void updateOffer_notFound_throws() {
         given(offerRepository.findById(ID)).willReturn(Optional.empty());
 
-        assertThatThrownBy(() -> offerService.updateOffer(ID, new UpdateOfferDto(null, null, null, null, null)))
+        UpdateOfferDto dto = new UpdateOfferDto(null, null, null, null, null);
+
+        assertThatThrownBy(() -> offerService.updateOffer(ID, dto))
                 .isInstanceOf(ResourceNotFoundException.class);
     }
 

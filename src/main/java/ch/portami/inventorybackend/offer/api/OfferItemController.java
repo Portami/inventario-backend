@@ -15,6 +15,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * REST endpoints for the line items of an offer, exposed under {@code /api/offers/{id}/items}.
+ */
 @Tag(name = "Offer Items", description = "Manage items inside offers")
 @RestController
 @RequestMapping("/api/offers/{id}/items")

@@ -4,6 +4,10 @@ import ch.portami.inventorybackend.core.exceptions.InvalidResourceReferenceExcep
 import ch.portami.inventorybackend.core.exceptions.ResourceIdentifier;
 import java.text.MessageFormat;
 
+/**
+ * Thrown when a request references a felt type by an id that does not correspond to an existing
+ * felt type.
+ */
 public class InvalidFeltTypeReferenceException extends InvalidResourceReferenceException {
 
     public InvalidFeltTypeReferenceException(long feltTypeId) {

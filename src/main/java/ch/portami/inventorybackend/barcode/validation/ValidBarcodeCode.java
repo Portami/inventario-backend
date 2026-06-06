@@ -8,6 +8,10 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * Bean Validation constraint asserting that a {@link ch.portami.inventorybackend.barcode.BarcodeCode}
+ * holds a non-blank, positive numeric value. Validated by {@link BarcodeCodeValidator}.
+ */
 @Documented
 @Constraint(validatedBy = BarcodeCodeValidator.class)
 @Target({ElementType.PARAMETER, ElementType.FIELD})

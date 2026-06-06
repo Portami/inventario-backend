@@ -22,17 +22,25 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+/**
+ * Centralised exception handling for all REST controllers.
+ *
+ * <p>Translates application and framework exceptions into RFC 7807 {@link ProblemDetail} responses
+ * with appropriate HTTP statuses. {@link ResourceSpecificException} subtypes are mapped to their
+ * conventional statuses (404 / 422 / 409), validation failures to 400, and anything unhandled falls
+ * back to a logged 500.
+ */
 @RestControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @Override
-    protected ResponseEntity<Object> handleMethodArgumentNotValid(
+    protected ResponseEntity<@NonNull Object> handleMethodArgumentNotValid(
             MethodArgumentNotValidException ex,
-            HttpHeaders headers,
-            HttpStatusCode status,
-            WebRequest request) {
+            @NonNull HttpHeaders headers,
+            @NonNull HttpStatusCode status,
+            @NonNull WebRequest request) {
 
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
         pd.setTitle("Validation failed");
@@ -64,6 +72,14 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return buildProblemDetail(HttpStatus.CONFLICT, "Business rule violated", ex);
     }
 
+    /**
+     * Fallback for any {@link ResourceSpecificException} not caught by a more specific handler above.
+     * Reaching this handler indicates a missing dedicated handler, so it is logged as a warning and
+     * reported as a 500.
+     *
+     * @param ex the resource-specific exception that no specific handler claimed
+     * @return a 500 problem detail describing the unhandled exception
+     */
     @ExceptionHandler(ResourceSpecificException.class)
     public ProblemDetail handleResourceSpecificException(ResourceSpecificException ex) {
         log.warn(
@@ -84,6 +100,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return pd;
     }
 
+    /**
+     * Handles database integrity violations, which most commonly occur when deleting a resource that
+     * is still referenced by other inventory items, and reports them as a 409 (Conflict).
+     *
+     * @param ex the data integrity violation raised by the persistence layer
+     * @return a 409 problem detail explaining the resource is still referenced
+     */
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ProblemDetail handleDataIntegrity(DataIntegrityViolationException ex) {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
@@ -123,6 +146,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return map;
     }
 
+    /**
+     * Last-resort fallback for any exception not handled elsewhere. Logs the error and returns a
+     * generic 500 without leaking internal details to the client.
+     *
+     * @param ex the otherwise unhandled exception
+     * @return a 500 problem detail with a generic message
+     */
     @ExceptionHandler(Exception.class)
     public ProblemDetail handleGeneric(Exception ex) {
         log.error(
