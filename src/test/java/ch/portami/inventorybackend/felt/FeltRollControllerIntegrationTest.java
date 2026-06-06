@@ -430,7 +430,7 @@ class FeltRollControllerIntegrationTest extends BaseIntegrationTest {
 
         @Test
         @DisplayName("returns 204 when roll does not exist")
-        void returns404ForMissingRoll() {
+        void returns204ForMissingRoll() {
             restTestClient.delete()
                           .uri("/api/rolls/99999")
                           .exchange()

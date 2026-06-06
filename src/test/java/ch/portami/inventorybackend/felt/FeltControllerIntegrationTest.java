@@ -498,7 +498,7 @@ class FeltControllerIntegrationTest extends BaseIntegrationTest {
 
         @Test
         @DisplayName("returns 204 when felt does not exist")
-        void returns404ForUnknownFelt() {
+        void returns204ForUnknownFelt() {
             restTestClient.delete()
                           .uri("/api/felts/{id}", 99999)
                           .exchange()
