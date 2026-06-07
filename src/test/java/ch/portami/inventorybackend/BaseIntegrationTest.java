@@ -38,6 +38,10 @@ public abstract class BaseIntegrationTest {
                 String.class
         );
         for (String table : tables) {
+            // Never wipe Flyway's history — the schema was migrated once for the cached context.
+            if ("flyway_schema_history".equals(table)) {
+                continue;
+            }
             jdbcTemplate.execute("TRUNCATE TABLE " + table);
         }
         jdbcTemplate.execute("SET FOREIGN_KEY_CHECKS = 1");
