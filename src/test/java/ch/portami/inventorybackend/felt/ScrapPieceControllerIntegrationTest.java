@@ -1,6 +1,8 @@
 package ch.portami.inventorybackend.felt;
 
 import ch.portami.inventorybackend.BaseIntegrationTest;
+import ch.portami.inventorybackend.barcode.entity.BarcodeType;
+import ch.portami.inventorybackend.barcode.repository.BarcodeRepository;
 import ch.portami.inventorybackend.felt.dto.CreateFeltDto;
 import ch.portami.inventorybackend.felt.dto.CreateScrapPieceDto;
 import ch.portami.inventorybackend.felt.dto.FeltDto;
@@ -45,6 +47,8 @@ class ScrapPieceControllerIntegrationTest extends BaseIntegrationTest {
     private BatchRepository batchRepository;
     @Autowired
     private StorageRepository storageRepository;
+    @Autowired
+    private BarcodeRepository barcodeRepository;
 
     private Long feltId;
     private Long batchId;
@@ -114,6 +118,16 @@ class ScrapPieceControllerIntegrationTest extends BaseIntegrationTest {
             assertThat(created.length()).isEqualTo(60.0);
             assertThat(created.width()).isEqualTo(50.0);
             assertThat(scrapPieceRepository.count()).isEqualTo(1);
+        }
+
+        @Test
+        @DisplayName("generates a SCRAP barcode for the created scrap piece")
+        void createsBarcodeForScrap() {
+            ScrapPieceDto created = postScrap(new CreateScrapPieceDto(feltId, 60.0, 50.0, null, null));
+
+            assertThat(barcodeRepository.findByScrapPieceId(created.id()))
+                    .get()
+                    .satisfies(barcode -> assertThat(barcode.getType()).isEqualTo(BarcodeType.SCRAP));
         }
 
         @Test
