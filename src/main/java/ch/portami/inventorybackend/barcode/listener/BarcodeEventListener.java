@@ -2,6 +2,7 @@ package ch.portami.inventorybackend.barcode.listener;
 
 import ch.portami.inventorybackend.barcode.BarcodeService;
 import ch.portami.inventorybackend.felt.event.FeltRollCreatedEvent;
+import ch.portami.inventorybackend.felt.event.ScrapPieceCreatedEvent;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -31,5 +32,17 @@ public class BarcodeEventListener {
     @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
     public void onRollCreated(FeltRollCreatedEvent event) {
         barcodeService.createForRoll(event.roll());
+    }
+
+    /**
+     * Generates and persists a barcode for a newly created scrap piece. Runs before commit so the
+     * barcode is written in the same transaction as the scrap piece; if barcode creation fails the
+     * scrap piece creation is rolled back too.
+     *
+     * @param event the published scrap-created event carrying the new scrap piece
+     */
+    @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
+    public void onScrapCreated(ScrapPieceCreatedEvent event) {
+        barcodeService.createForScrap(event.scrapPiece());
     }
 }

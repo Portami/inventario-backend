@@ -17,7 +17,9 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.type.SqlTypes;
 
 @Entity
@@ -38,9 +40,11 @@ public class Offer {
     @Column(nullable = false)
     private OfferState state;
 
-    @Column(name = "created_at")
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
     private ZonedDateTime createdAt;
 
+    @UpdateTimestamp
     @Column(name = "updated_at")
     private ZonedDateTime updatedAt;
 
@@ -56,12 +60,10 @@ public class Offer {
     public Offer() {
     }
 
-    public Offer(Long id, Customer customer, OfferState state, ZonedDateTime createdAt, ZonedDateTime updatedAt) {
+    public Offer(Long id, Customer customer, OfferState state) {
         this.id = id;
         this.customer = customer;
         this.state = state;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
     }
 
     public Long getId() {
@@ -92,16 +94,8 @@ public class Offer {
         return createdAt;
     }
 
-    public void setCreatedAt(ZonedDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
     public ZonedDateTime getUpdatedAt() {
         return updatedAt;
-    }
-
-    public void setUpdatedAt(ZonedDateTime updatedAt) {
-        this.updatedAt = updatedAt;
     }
 
     public ZonedDateTime getDueAt() {
@@ -129,16 +123,15 @@ public class Offer {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (!(o instanceof Offer offer)) {
             return false;
         }
-        Offer offer = (Offer) o;
-        return Objects.equals(id, offer.id);
+        return id != null && Objects.equals(id, offer.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, customer, state, createdAt, updatedAt);
+        return getClass().hashCode();
     }
 
     @Override

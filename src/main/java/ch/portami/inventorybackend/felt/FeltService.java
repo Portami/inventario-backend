@@ -155,12 +155,12 @@ public class FeltService {
         applyIfPresent(dto::feltTypeId, feltTypeId -> feltTypeRepo.findById(feltTypeId)
                                                                   .orElseThrow(
                                                                           () -> new InvalidFeltTypeReferenceException(
-                                                                                  id)), felt::setFeltType);
+                                                                                  feltTypeId)), felt::setFeltType);
 
         applyIfPresent(dto::supplierId, supplierId -> supplierRepo.findById(supplierId)
                                                                   .orElseThrow(
                                                                           () -> new InvalidSupplierReferenceException(
-                                                                                  id)), felt::setSupplier);
+                                                                                  supplierId)), felt::setSupplier);
 
         return feltMapper.toDto(felt);
     }

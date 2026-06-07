@@ -18,7 +18,6 @@ import ch.portami.inventorybackend.offer.repository.CustomerRepository;
 import ch.portami.inventorybackend.offer.repository.OfferItemRepository;
 import ch.portami.inventorybackend.offer.repository.OfferRepository;
 import java.math.BigDecimal;
-import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -119,7 +118,7 @@ class OfferServiceTest {
     private static final Customer CUSTOMER = new Customer(ID, CUSTOMER_NAME);
 
     private static Offer persistedOffer() {
-        Offer offer = new Offer(ID, CUSTOMER, OfferState.OFFER, ZonedDateTime.now(), ZonedDateTime.now());
+        Offer offer = new Offer(ID, CUSTOMER, OfferState.OFFER);
         OfferItem item = new OfferItem(ID, 10L, "A widget", 2, new BigDecimal("9.99"), new BigDecimal("19.98"));
 
         item.setId(1L);

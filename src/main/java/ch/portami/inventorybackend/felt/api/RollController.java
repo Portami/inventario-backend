@@ -2,6 +2,8 @@ package ch.portami.inventorybackend.felt.api;
 
 import ch.portami.inventorybackend.felt.FeltRollService;
 import ch.portami.inventorybackend.felt.dto.CreateFeltRollDto;
+import ch.portami.inventorybackend.felt.dto.CutFeltRollDto;
+import ch.portami.inventorybackend.felt.dto.CutResultDto;
 import ch.portami.inventorybackend.felt.dto.FeltRollDto;
 import ch.portami.inventorybackend.felt.dto.SplitFeltRollDto;
 import ch.portami.inventorybackend.felt.dto.UpdateFeltRollDto;
@@ -90,6 +92,17 @@ public class RollController {
         URI location = URI.create("/api/rolls/" + created.id());
         return ResponseEntity.created(location)
                              .body(created);
+    }
+
+    @Operation(summary = "Cut a roll (Abschneiden)", description = "Shortens the roll by the given length and creates the leftover scrap pieces. The roll stays a roll. Scrap pieces whose length or width is below the configured minimum are silently dropped and are absent from the response.")
+    @ApiResponse(responseCode = "200", description = "Roll shortened — body contains the updated roll and the scrap pieces that were kept")
+    @ApiResponse(responseCode = "400", description = "Validation error (cut length and scrap dimensions must be positive)")
+    @ApiResponse(responseCode = "404", description = "Roll not found")
+    @ApiResponse(responseCode = "409", description = "Cut length is not less than the roll length")
+    @PostMapping("/{id}/cut")
+    public ResponseEntity<CutResultDto> cut(@Parameter(description = "Roll ID") @PathVariable Long id,
+            @RequestBody @Valid CutFeltRollDto dto) {
+        return ResponseEntity.ok(service.cut(id, dto));
     }
 
     @Operation(summary = "Delete a roll")

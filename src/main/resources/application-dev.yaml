@@ -1,9 +1,13 @@
 spring:
-  sql:
-    init:
-      mode: always
-  jpa:
-    defer-datasource-initialization: true
+  flyway:
+    # Add the dev-only demo migrations (a sibling location, NOT nested under db/migration, which Flyway
+    # scans recursively) on top of the common schema + reference data.
+    locations:
+      - classpath:db/migration
+      - classpath:db/migration-dev
+    # The dev demo migrations use a high version range, so allow later common migrations to apply
+    # out of order on an already-seeded dev database.
+    out-of-order: true
 
 springdoc:
   api-docs:

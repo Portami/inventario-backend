@@ -1,4 +1,6 @@
 spring:
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      # Schema is built by the common Flyway migrations (V1 baseline + V2 reference data); Hibernate
+      # only validates that the entities match it, so the test run also guards against migration drift.
+      ddl-auto: validate

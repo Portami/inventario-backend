@@ -2,9 +2,15 @@ package ch.portami.inventorybackend.felt;
 
 import ch.portami.inventorybackend.core.exceptions.BusinessRuleViolationException;
 import ch.portami.inventorybackend.core.exceptions.ResourceIdentifier;
+import ch.portami.inventorybackend.felt.config.FeltProperties;
 import ch.portami.inventorybackend.felt.dto.BatchDto;
 import ch.portami.inventorybackend.felt.dto.CreateFeltRollDto;
+import ch.portami.inventorybackend.felt.dto.CreateScrapPieceDto;
+import ch.portami.inventorybackend.felt.dto.CutFeltRollDto;
+import ch.portami.inventorybackend.felt.dto.CutResultDto;
+import ch.portami.inventorybackend.felt.dto.CutScrapDto;
 import ch.portami.inventorybackend.felt.dto.FeltRollDto;
+import ch.portami.inventorybackend.felt.dto.ScrapPieceDto;
 import ch.portami.inventorybackend.felt.dto.SplitFeltRollDto;
 import ch.portami.inventorybackend.felt.dto.UpdateFeltRollDto;
 import ch.portami.inventorybackend.felt.entity.Batch;
@@ -22,6 +28,7 @@ import ch.portami.inventorybackend.felt.repository.FeltRollRepository;
 import ch.portami.inventorybackend.felt.util.BatchIdentifierGenerator;
 import ch.portami.inventorybackend.storage.StorageService;
 import ch.portami.inventorybackend.storage.entity.Storage;
+import java.util.ArrayList;
 import java.util.List;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -45,11 +52,13 @@ public class FeltRollService {
     private final ApplicationEventPublisher eventPublisher;
     private final FeltRollMapper feltRollMapper;
     private final BatchMapper batchMapper;
+    private final ScrapPieceService scrapPieceService;
+    private final FeltProperties feltProperties;
 
     public FeltRollService(StorageService storageService, FeltRepository feltRepo, FeltRollRepository feltRollRepo,
             BatchRepository batchRepo,
             ApplicationEventPublisher eventPublisher, FeltRollMapper feltRollMapper,
-            BatchMapper batchMapper) {
+            BatchMapper batchMapper, ScrapPieceService scrapPieceService, FeltProperties feltProperties) {
         this.storageService = storageService;
         this.feltRepo = feltRepo;
         this.feltRollRepo = feltRollRepo;
@@ -57,6 +66,8 @@ public class FeltRollService {
         this.eventPublisher = eventPublisher;
         this.feltRollMapper = feltRollMapper;
         this.batchMapper = batchMapper;
+        this.scrapPieceService = scrapPieceService;
+        this.feltProperties = feltProperties;
     }
 
     /**
@@ -214,6 +225,60 @@ public class FeltRollService {
         eventPublisher.publishEvent(new FeltRollCreatedEvent(newRoll));
 
         return feltRollMapper.toDto(newRoll);
+    }
+
+    /**
+     * Performs an "Abschneiden" cut: shortens the roll's length by {@code cutLength} and creates the
+     * leftover scrap pieces supplied in the request. The roll always stays a roll. Each requested
+     * scrap whose length or width is below {@link FeltProperties#scrapMinSideCm()} is silently
+     * dropped; the rest are created (inheriting the roll's felt, and its batch/storage unless the
+     * request overrides them), each publishing a {@code ScrapPieceCreatedEvent} for barcode
+     * generation.
+     *
+     * @param rollId the ID of the roll to cut
+     * @param dto    the cut length and the leftover scrap pieces to keep
+     * @return the shortened roll together with the scrap pieces that were actually created
+     * @throws FeltRollNotFoundException      if no roll with the given ID exists
+     * @throws BusinessRuleViolationException if the cut length is not less than the roll's length
+     */
+    @Transactional
+    public CutResultDto cut(Long rollId, CutFeltRollDto dto) {
+        FeltRoll roll = feltRollRepo.findById(rollId)
+                                    .orElseThrow(() -> new FeltRollNotFoundException(rollId));
+
+        double cutLength = dto.cutLength();
+        if (cutLength >= roll.getLength()) {
+            throw new BusinessRuleViolationException(
+                    "Cut length (" + cutLength + ") must be less than the roll length (" + roll.getLength() + ")",
+                    new ResourceIdentifier("rollId", rollId));
+        }
+
+        roll.setLength(roll.getLength() - cutLength);
+
+        List<ScrapPieceDto> createdScraps = new ArrayList<>();
+        if (dto.scraps() != null) {
+            double minSide = feltProperties.scrapMinSideCm();
+            for (CutScrapDto scrap : dto.scraps()) {
+                if (scrap.length() < minSide || scrap.width() < minSide) {
+                    continue; // too small to track — silently dropped
+                }
+                Long batchId = scrap.batchId() != null ? scrap.batchId() : batchIdOf(roll);
+                Long storageId = scrap.storageId() != null ? scrap.storageId() : storageIdOf(roll);
+                createdScraps.add(scrapPieceService.create(
+                        new CreateScrapPieceDto(roll.getFelt().getId(), scrap.length(), scrap.width(), batchId,
+                                storageId)));
+            }
+        }
+
+        return new CutResultDto(feltRollMapper.toDto(roll), createdScraps);
+    }
+
+    private static Long batchIdOf(FeltRoll roll) {
+        return roll.getBatch() != null ? roll.getBatch().getId() : null;
+    }
+
+    private static Long storageIdOf(FeltRoll roll) {
+        return roll.getStorage() != null ? roll.getStorage().getId() : null;
     }
 
     /**

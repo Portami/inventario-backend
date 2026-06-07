@@ -46,7 +46,7 @@ class OfferControllerIntegrationTest extends BaseIntegrationTest {
 
     private Offer createTestOffer(String customerName, OfferState state) {
         Customer customer = customerRepository.save(new Customer(customerName));
-        Offer offer = new Offer(null, customer, state, ZonedDateTime.now(), ZonedDateTime.now());
+        Offer offer = new Offer(null, customer, state);
         return offerRepository.save(offer);
     }
 
